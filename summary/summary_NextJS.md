@@ -16,6 +16,7 @@
 
 ---
 
+<a id="nextjs-app-router-fundamentals"></a>
 ## 01_app_router_fundamentals.tsx — QUESTION SET: Next.js App Router — Fundamentals
 
 /**
@@ -321,6 +322,7 @@ export {};
 
 ---
 
+<a id="nextjs-data-fetching-server-actions"></a>
 ## 02_data_fetching_server_actions.tsx — QUESTION SET: Next.js Data Fetching
 
 /**
@@ -631,6 +633,7 @@ export {};
 
 ---
 
+<a id="nextjs-routing-middleware"></a>
 ## 03_routing_middleware.tsx — QUESTION SET: Next.js Routing — Dynamic, Parallel, Intercepting, Middleware
 
 /**
@@ -922,6 +925,7 @@ export {};
 
 ---
 
+<a id="nextjs-authentication"></a>
 ## 04_authentication.tsx — QUESTION SET: Next.js Authentication Patterns
 
 /**
@@ -1232,6 +1236,7 @@ export {};
 
 ---
 
+<a id="nextjs-performance-optimization"></a>
 ## 05_performance_optimization.tsx — QUESTION SET: Next.js Performance Optimization
 
 /**
@@ -1522,6 +1527,7 @@ export {};
 
 ---
 
+<a id="nextjs-pages-router-data-fetching"></a>
 ## 06_pages_router_data_fetching.tsx — QUESTION SET: Next.js Pages Router — Data Fetching
 
 /**
@@ -1824,6 +1830,7 @@ export {};
 
 ---
 
+<a id="nextjs-seo-metadata-i18n"></a>
 ## 07_seo_metadata_i18n.tsx — QUESTION SET: Next.js SEO, Metadata & Internationalization
 
 /**
@@ -2176,6 +2183,7 @@ export {};
 
 ---
 
+<a id="nextjs-interview-qa"></a>
 ## 08_interview_qa.tsx — QUESTION SET: Next.js Interview Q&A — Comprehensive
 
 /**
@@ -2855,6 +2863,7 @@ export {};
 
 ---
 
+<a id="nextjs-theory-interview-qa"></a>
 ## FILE: 09_theory_interview_qa.tsx
 
 /*

@@ -17,6 +17,7 @@
 
 ---
 
+<a id="react-usestate-useeffect"></a>
 ## 01_useState_useEffect.jsx — QUESTION SET: useState & useEffect — most asked React hooks
 
 /**
@@ -225,6 +226,7 @@ export { Counter, UserProfile, WindowSize, Timer, BatchingDemo };
 
 ---
 
+<a id="react-custom-hooks"></a>
 ## 02_custom_hooks.jsx — QUESTION SET: Custom Hooks
 
 /**
@@ -515,6 +517,7 @@ export {
 
 ---
 
+<a id="react-usereducer-usecontext"></a>
 ## 03_useReducer_useContext.jsx — QUESTION SET: useReducer & useContext
 
 /**
@@ -766,6 +769,7 @@ export {
 
 ---
 
+<a id="react-usememo-usecallback"></a>
 ## 04_useMemo_useCallback.jsx — QUESTION SET: useMemo & useCallback — React Performance Hooks
 
 /**
@@ -1003,6 +1007,7 @@ export { ExpensiveList, Parent, DataTable, StaleClosureFix };
 
 ---
 
+<a id="react-useref-forwardref"></a>
 ## 05_useRef_forwardRef.jsx — QUESTION SET: useRef, forwardRef & useImperativeHandle
 
 /**
@@ -1263,6 +1268,7 @@ export {
 
 ---
 
+<a id="react-component-patterns"></a>
 ## 06_component_patterns.jsx — QUESTION SET: Component Patterns
 
 /**
@@ -1561,6 +1567,7 @@ export {
 
 ---
 
+<a id="react-lazy-suspense-errorboundary"></a>
 ## 07_lazy_suspense_errorboundary.jsx — QUESTION SET: React.lazy, Suspense, Error Boundaries & Code Splitting
 
 /**
@@ -1814,6 +1821,7 @@ export { Dashboard, Router, ErrorBoundary, SafeBomb, PageLayout };
 
 ---
 
+<a id="react-advanced-patterns"></a>
 ## 08_advanced_patterns.jsx — QUESTION SET: Advanced React Patterns
 
 /**
@@ -2096,6 +2104,7 @@ export { Modal, PortalDemo, SearchWithTransition, SearchWithDeferred, FetchButto
 
 ---
 
+<a id="react-solid-principles"></a>
 ## 09_solid_principles.jsx — SOLID PRINCIPLES IN REACT
 
 /**
@@ -2583,6 +2592,7 @@ export {
 
 ---
 
+<a id="react-theory-interview-qa"></a>
 ## FILE: 10_theory_interview_qa.jsx
 
 /*

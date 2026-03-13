@@ -15,6 +15,7 @@
 
 ---
 
+<a id="aws-core-services-iam"></a>
 ## 01_core_services_iam.md — What is AWS?
 
 # AWS: Core Services Overview
@@ -199,6 +200,7 @@ await s3.send(new PutObjectCommand({ Bucket: 'mybucket', Key: 'file.txt', Body: 
 
 ---
 
+<a id="aws-ec2-vpc"></a>
 ## 02_ec2_vpc.md — EC2 — Elastic Compute Cloud
 
 # AWS: EC2 and VPC Networking
@@ -485,6 +487,7 @@ aws autoscaling put-scaling-policy \
 
 ---
 
+<a id="aws-s3-cloudfront"></a>
 ## 03_s3_cloudfront.md — S3 — Simple Storage Service
 
 # AWS: S3 and CloudFront
@@ -848,6 +851,7 @@ aws cloudfront create-invalidation \
 
 ---
 
+<a id="aws-lambda-api-gateway"></a>
 ## 04_lambda_api_gateway.md — Lambda — Serverless Functions
 
 # AWS: Lambda and API Gateway
@@ -1187,6 +1191,7 @@ log('info', 'Processing request', { userId: '123', action: 'getUser' });
 
 ---
 
+<a id="aws-rds-dynamodb-cache"></a>
 ## 05_rds_dynamodb_cache.md — RDS — Relational Database Service
 
 # AWS: RDS, DynamoDB, and ElastiCache
@@ -1510,6 +1515,7 @@ async function updateUser(userId, updates) {
 
 ---
 
+<a id="aws-sqs-sns-eventbridge"></a>
 ## 06_sqs_sns_eventbridge.md — Why Event-Driven?
 
 # AWS: SQS, SNS, and EventBridge — Event-Driven Architecture
@@ -1831,6 +1837,7 @@ exports.handler = async (event) => {
 
 ---
 
+<a id="aws-ecs-eks-ecr"></a>
 ## 07_ecs_eks_ecr.md — Container Services — Choosing the Right One
 
 # AWS: ECS, EKS, and ECR — Containers on AWS
@@ -2108,6 +2115,7 @@ Use When           simple containers  K8s workloads         event-driven short t
 
 ---
 
+<a id="aws-cicd-interview-qa"></a>
 ## 08_cicd_interview_qa.md — CI/CD Concepts
 
 # AWS: CI/CD and Comprehensive Interview Q&A

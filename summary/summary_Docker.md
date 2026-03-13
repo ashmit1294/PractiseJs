@@ -16,6 +16,7 @@
 
 ---
 
+<a id="docker-dockerfile-basics"></a>
 ## 01_dockerfile_basics.md — Q1. Simple Node.js Dockerfile
 
 # Docker: Dockerfile Fundamentals
@@ -344,6 +345,7 @@ docker scout cves myapp:latest
 
 ---
 
+<a id="docker-docker-compose"></a>
 ## 02_docker_compose.md — Q1. Basic docker-compose.yml structure
 
 # Docker: docker-compose & Multi-Container Apps
@@ -702,6 +704,7 @@ services:
 
 ---
 
+<a id="docker-networking"></a>
 ## 03_networking.md — Q1. Bridge networks (default and custom)
 
 # Docker: Networking
@@ -907,6 +910,7 @@ docker run --rm --net container:myapp nicolaka/netshoot tcpdump -i eth0 port 300
 
 ---
 
+<a id="docker-volumes-storage"></a>
 ## 04_volumes_storage.md — Q1. Named volumes
 
 # Docker: Volumes & Storage
@@ -1076,6 +1080,7 @@ volumes:
 
 ---
 
+<a id="docker-security"></a>
 ## 05_security.md — Q1. Run containers as non-root
 
 # Docker: Security Best Practices
@@ -1392,6 +1397,7 @@ CMD ["node", "dist/index.js"]
 
 ---
 
+<a id="docker-cicd-registry"></a>
 ## 06_cicd_registry.md — Q1. Basic registry push/pull
 
 # Docker: CI/CD and Registry
@@ -1681,6 +1687,7 @@ cosign attach sbom --sbom sbom.json ghcr.io/username/myapp:latest
 
 ---
 
+<a id="docker-production"></a>
 ## 07_production.md — Q1. Resource limits
 
 # Docker: Production Operations
@@ -2007,6 +2014,7 @@ docker service scale myapp_api=5
 
 ---
 
+<a id="docker-interview-qa"></a>
 ## 08_interview_qa.md — Q1. What is Docker and how does it differ from a virtual machine?**
 
 # Docker: Interview Q&A (Comprehensive)
@@ -2210,6 +2218,7 @@ docker cp <id>:/app/log.txt .     # copy file out of container
 
 ---
 
+<a id="docker-theory-advanced-qa"></a>
 ## 09_theory_advanced_qa.md — SECTION 1: BASIC
 
 # DOCKER — ADVANCED THEORY Q&A

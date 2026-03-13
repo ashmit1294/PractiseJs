@@ -15,6 +15,7 @@
 
 ---
 
+<a id="azure-core-services-aad"></a>
 ## 01_core_services_aad.md — What is Azure?
 
 # Azure: Core Services and Azure Active Directory (Entra ID)
@@ -202,6 +203,7 @@ Cost Management:
 
 ---
 
+<a id="azure-app-service-functions"></a>
 ## 02_app_service_functions.md — Azure App Service — Managed Web Hosting
 
 # Azure: App Service and Azure Functions
@@ -517,6 +519,7 @@ module.exports = df.orchestrator(function* (context) {
 
 ---
 
+<a id="azure-storage-cdn"></a>
 ## 03_storage_cdn.md — Azure Blob Storage — Object Storage
 
 # Azure: Storage, Blob, and CDN
@@ -814,6 +817,7 @@ az storage blob upload-batch \
 
 ---
 
+<a id="azure-databases"></a>
 ## 04_databases.md — Azure Database for PostgreSQL — Flexible Server
 
 # Azure: Databases
@@ -1050,6 +1054,7 @@ async function getProductCached(productId) {
 
 ---
 
+<a id="azure-networking"></a>
 ## 05_networking.md — Virtual Network (VNet)
 
 # Azure: Networking
@@ -1319,6 +1324,7 @@ az network dns record-set cname set-record \
 
 ---
 
+<a id="azure-aks-acr"></a>
 ## 06_aks_acr.md — Azure Container Registry (ACR)
 
 # Azure: AKS and ACR — Kubernetes on Azure
@@ -1561,6 +1567,7 @@ az aks nodepool add \
 
 ---
 
+<a id="azure-pipelines-devops"></a>
 ## 07_pipelines_devops.md — Why Azure Pipelines?
 
 # Azure DevOps Pipelines — Build, Test, and Deploy
@@ -2012,6 +2019,7 @@ tar xzf vsts-agent-linux-x64-3.x.x.tar.gz
 
 ---
 
+<a id="azure-interview-qa"></a>
 ## 08_interview_qa.md — Azure Fundamentals
 
 # Azure: Comprehensive Interview Q&A

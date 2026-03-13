@@ -33,6 +33,7 @@
 
 ---
 
+<a id="javascript-flatten-array"></a>
 ## 01_flatten_array.js — QUESTION: Flatten a nested array without using .flat() or .flatMap()
 
 /**
@@ -118,6 +119,7 @@ console.log("Depth 1:    ", flattenToDepth([1, [2, [3]]], 1)); // [1,2,[3]]
 
 ---
 
+<a id="javascript-debounce"></a>
 ## 02_debounce.js — QUESTION: Implement debounce function from scratch
 
 /**
@@ -220,6 +222,7 @@ console.log("Debounce functions defined. Run in browser to see async output.");
 
 ---
 
+<a id="javascript-throttle"></a>
 ## 03_throttle.js — QUESTION: Implement throttle function from scratch
 
 /**
@@ -315,6 +318,7 @@ console.log("Throttle functions defined. Run in browser to see async output.");
 
 ---
 
+<a id="javascript-memoize"></a>
 ## 04_memoize.js — QUESTION: Implement memoization from scratch
 
 /**
@@ -421,6 +425,7 @@ console.log(fib(50)); // 12586269025 (fast with memo)
 
 ---
 
+<a id="javascript-curry"></a>
 ## 05_curry.js — QUESTION: Implement currying from scratch
 
 /**
@@ -518,6 +523,7 @@ console.log(devPort(3000));  // dev:PORT:3000
 
 ---
 
+<a id="javascript-deep-clone"></a>
 ## 06_deep_clone.js — QUESTION: Deep clone an object without JSON.parse/JSON.stringify
 
 /**
@@ -650,6 +656,7 @@ console.log("Circular ref:  ", clone.self === clone);           // true (circula
 
 ---
 
+<a id="javascript-promise-all-race"></a>
 ## 07_promise_all_race.js — QUESTION: Implement Promise.all, Promise.race, Promise.allSettled,
 
 /**
@@ -780,6 +787,7 @@ promiseAny([fail1, fail2]).catch((e) => console.log(e.message)); // All promises
 
 ---
 
+<a id="javascript-custom-array-methods"></a>
 ## 08_custom_array_methods.js — QUESTION: Implement Array.prototype.map, filter, reduce, forEach,
 
 /**
@@ -934,6 +942,7 @@ console.log();
 
 ---
 
+<a id="javascript-map-questions"></a>
 ## 09_map_questions.js — QUESTION SET: Map — all common interview questions
 
 /**
@@ -1179,6 +1188,7 @@ console.log(subarraySum([1, 2, 3], 3)); // 2
 
 ---
 
+<a id="javascript-set-questions"></a>
 ## 10_set_questions.js — QUESTION SET: Set — all common interview questions
 
 /**
@@ -1418,6 +1428,7 @@ console.log(arrayIntersection([1, 2, 2, 1], [2, 2])); // [2]
 
 ---
 
+<a id="javascript-stack-queue"></a>
 ## 11_stack_queue.js — QUESTION SET: Stack and Queue
 
 /**
@@ -1692,6 +1703,7 @@ console.log(cq.rear());     // 4
 
 ---
 
+<a id="javascript-linked-list"></a>
 ## 12_linked_list.js — QUESTION SET: Linked List — all common interview questions
 
 /**
@@ -1978,6 +1990,7 @@ console.log(isPalindrome(arrToList([1, 2, 3])));    // false
 
 ---
 
+<a id="javascript-binary-tree-bst"></a>
 ## 13_binary_tree_bst.js — QUESTION SET: Binary Tree & Binary Search Tree (BST)
 
 /**
@@ -2240,6 +2253,7 @@ console.log("Deserialized inorder:", inorder(deserialized)); // [4,2,5,1,3,6]
 
 ---
 
+<a id="javascript-call-apply-bind"></a>
 ## 14_call_apply_bind.js — QUESTION SET: call, apply, bind — Custom Implementations
 
 /**
@@ -2423,6 +2437,7 @@ console.log(Math.max.myApply(null, numbers)); // 9
 
 ---
 
+<a id="javascript-searching-algorithms"></a>
 ## 15_searching_algorithms.js — QUESTION SET: Searching Algorithms
 
 /**
@@ -2693,6 +2708,7 @@ console.log(mySqrt(9));  // 3
 
 ---
 
+<a id="javascript-sorting-algorithms"></a>
 ## 16_sorting_algorithms.js — QUESTION SET: Sorting Algorithms
 
 /**
@@ -2990,6 +3006,7 @@ console.log("\nAll sorts produce correct result:", allSame); // true
 
 ---
 
+<a id="javascript-recursion-backtracking"></a>
 ## 17_recursion_backtracking.js — QUESTION SET: Recursion Patterns
 
 /**
@@ -3330,6 +3347,7 @@ solveNQueens(4).forEach((sol) => { console.log(sol); console.log("---"); });
 
 ---
 
+<a id="javascript-dynamic-programming"></a>
 ## 18_dynamic_programming.js — QUESTION SET: Dynamic Programming (DP)
 
 /**
@@ -3618,6 +3636,7 @@ console.log(maxSubArrayWithIndices([-2, 1, -3, 4, -1, 2, 1, -5, 4]));
 
 ---
 
+<a id="javascript-graph-algorithms"></a>
 ## 19_graph_algorithms.js — QUESTION SET: Graph Algorithms
 
 /**
@@ -3906,6 +3925,7 @@ console.log(hasCycleDirected(directedAcyclic)); // false
 
 ---
 
+<a id="javascript-sliding-window-two-pointer"></a>
 ## 20_sliding_window_two_pointer.js — QUESTION SET: Sliding Window & Two Pointer Patterns
 
 /**
@@ -4192,6 +4212,7 @@ console.log(moveZeroes([0, 1, 0, 3, 12])); // [1, 3, 12, 0, 0]
 
 ---
 
+<a id="javascript-functional-programming"></a>
 ## 21_functional_programming.js — QUESTION SET: Functional Programming Patterns
 
 /**
@@ -4486,6 +4507,7 @@ ps.publish("news", "More news!");       // (no output)
 
 ---
 
+<a id="javascript-array-manipulation"></a>
 ## 22_array_manipulation.js — QUESTION SET: Array Manipulation — Chunk, Unique, Intersection,
 
 /**
@@ -4758,6 +4780,7 @@ console.log(sortArrayByParity([3, 1, 2, 4])); // evens first: [2,4,1,3] or [4,2,
 
 ---
 
+<a id="javascript-string-questions"></a>
 ## 23_string_questions.js — QUESTION SET: String Manipulation
 
 /**
@@ -5011,6 +5034,7 @@ console.log(wordBreak("catsandog", ["cats","dog","sand","and","cat"])); // false
 
 ---
 
+<a id="javascript-weakmap-weakset-symbol-proxy"></a>
 ## 24_weakmap_weakset_symbol_proxy.js — QUESTION SET: WeakMap, WeakSet, Symbol, Proxy, Reflect
 
 /**
@@ -5289,6 +5313,7 @@ console.log(obj.z);    // 0 (default)
 
 ---
 
+<a id="javascript-heap-priority-queue"></a>
 ## 25_heap_priority_queue.js — QUESTION SET: Heap / Priority Queue
 
 /**
@@ -5585,6 +5610,7 @@ console.log(mf.findMedian()); // 2.5
 
 ---
 
+<a id="javascript-theory-interview-qa"></a>
 ## FILE: 26_theory_interview_qa.js
 
 /*

@@ -16,6 +16,7 @@
 
 ---
 
+<a id="kubernetes-core-concepts"></a>
 ## 01_core_concepts.md — Architecture Overview
 
 # Kubernetes: Core Concepts
@@ -305,6 +306,7 @@ kubectl top nodes
 
 ---
 
+<a id="kubernetes-workloads"></a>
 ## 02_workloads.md — Overview
 
 # Kubernetes: Workloads
@@ -703,6 +705,7 @@ spec:
 
 ---
 
+<a id="kubernetes-services-networking"></a>
 ## 03_services_networking.md — How Pod Networking Works
 
 # Kubernetes: Services and Networking
@@ -1008,6 +1011,7 @@ spec:
 
 ---
 
+<a id="kubernetes-storage"></a>
 ## 04_storage.md — Storage Concepts
 
 # Kubernetes: Storage — PersistentVolumes, PVCs, StorageClasses
@@ -1305,6 +1309,7 @@ kubectl get volumesnapshot -n production
 
 ---
 
+<a id="kubernetes-config-secrets"></a>
 ## 05_config_secrets.md — Why configuration management matters
 
 # Kubernetes: ConfigMaps and Secrets
@@ -1640,6 +1645,7 @@ kubectl apply -f secret.yaml
 
 ---
 
+<a id="kubernetes-security"></a>
 ## 06_security.md — Security Layers in Kubernetes
 
 # Kubernetes: Security — RBAC, ServiceAccounts, Pod Security
@@ -1963,6 +1969,7 @@ rules:
 
 ---
 
+<a id="kubernetes-advanced"></a>
 ## 07_advanced.md — Horizontal Pod Autoscaler (HPA)
 
 # Kubernetes: Advanced — HPA, VPA, CRDs, Operators, Affinity
@@ -2319,6 +2326,7 @@ webhooks:
 
 ---
 
+<a id="kubernetes-helm-interview-qa"></a>
 ## 08_helm_interview_qa.md — What is Helm?
 
 # Kubernetes: Helm and Interview Q&A
@@ -2789,6 +2797,7 @@ jobs:
 
 ---
 
+<a id="kubernetes-theory-advanced-qa"></a>
 ## 09_theory_advanced_qa.md — SECTION 1: BASIC
 
 # KUBERNETES — ADVANCED THEORY Q&A

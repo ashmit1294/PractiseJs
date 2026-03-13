@@ -16,6 +16,7 @@
 
 ---
 
+<a id="typescript-basic-types-interfaces"></a>
 ## 01_basic_types_interfaces.ts — QUESTION SET: TypeScript Basic Types & Interfaces
 
 /**
@@ -305,6 +306,7 @@ export { Direction, Color, HttpMethod, Routes };
 
 ---
 
+<a id="typescript-generics"></a>
 ## 02_generics.ts — QUESTION SET: TypeScript Generics
 
 /**
@@ -631,6 +633,7 @@ export type { Repository, Result, ElementOf, Head, Tail, PaginatedResponse };
 
 ---
 
+<a id="typescript-utility-types"></a>
 ## 03_utility_types.ts — QUESTION SET: TypeScript Utility Types
 
 /**
@@ -925,6 +928,7 @@ export type {
 
 ---
 
+<a id="typescript-type-guards"></a>
 ## 04_type_guards.ts — QUESTION SET: TypeScript Type Guards & Narrowing
 
 /**
@@ -1259,6 +1263,7 @@ export {
 
 ---
 
+<a id="typescript-advanced-types"></a>
 ## 05_advanced_types.ts — QUESTION SET: TypeScript Advanced Types
 
 /**
@@ -1595,6 +1600,7 @@ export { toUserId, toEmail };
 
 ---
 
+<a id="typescript-decorators"></a>
 ## 06_decorators.ts — QUESTION SET: TypeScript Decorators & Metadata
 
 /**
@@ -1950,6 +1956,7 @@ export { Singleton, retry, memoize, throttle, Container };
 
 ---
 
+<a id="typescript-design-patterns"></a>
 ## 07_design_patterns.ts — QUESTION SET: TypeScript Design Patterns
 
 /**
@@ -2337,6 +2344,7 @@ export { AppConfig, NotificationFactory, QueryBuilder, TypedEventEmitter, OrderS
 
 ---
 
+<a id="typescript-react-typescript"></a>
 ## 08_react_typescript.tsx — QUESTION SET: TypeScript with React
 
 /**
@@ -2700,6 +2708,7 @@ export { Button, Card, FancyInput, CartComponent, AuthProvider, useAuth, useFetc
 
 ---
 
+<a id="typescript-theory-interview-qa"></a>
 ## FILE: 09_theory_interview_qa.ts
 
 /*
