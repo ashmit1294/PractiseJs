@@ -31,145 +31,145 @@ analysis, and direct interview question-and-answer material.
 
 ### 1. JavaScript
 
-   1. [QUESTION: Flatten a nested array without using .flat() or .flatMap()](#01_flatten_arrayjs-question-flatten-a-nested-array-without-using-flat-or-flatmap)
-   2. [QUESTION: Implement debounce function from scratch](#02_debouncejs-question-implement-debounce-function-from-scratch)
-   3. [QUESTION: Implement throttle function from scratch](#03_throttlejs-question-implement-throttle-function-from-scratch)
-   4. [QUESTION: Implement memoization from scratch](#04_memoizejs-question-implement-memoization-from-scratch)
-   5. [QUESTION: Implement currying from scratch](#05_curryjs-question-implement-currying-from-scratch)
-   6. [QUESTION: Deep clone an object without JSON.parse/JSON.stringify](#06_deep_clonejs-question-deep-clone-an-object-without-jsonparsejsonstringify)
-   7. [QUESTION: Implement Promise.all, Promise.race, Promise.allSettled,](#07_promise_all_racejs-question-implement-promiseall-promiserace-promiseallsettled)
-   8. [QUESTION: Implement Array.prototype.map, filter, reduce, forEach,](#08_custom_array_methodsjs-question-implement-arrayprototypemap-filter-reduce-foreach)
-   9. [Map — all common interview questions](#09_map_questionsjs-question-set-map-all-common-interview-questions)
-   10. [Set — all common interview questions](#10_set_questionsjs-question-set-set-all-common-interview-questions)
-   11. [Stack and Queue](#11_stack_queuejs-question-set-stack-and-queue)
-   12. [Linked List — all common interview questions](#12_linked_listjs-question-set-linked-list-all-common-interview-questions)
-   13. [Binary Tree & Binary Search Tree (BST)](#13_binary_tree_bstjs-question-set-binary-tree-binary-search-tree-bst)
-   14. [call, apply, bind — Custom Implementations](#14_call_apply_bindjs-question-set-call-apply-bind-custom-implementations)
-   15. [Searching Algorithms](#15_searching_algorithmsjs-question-set-searching-algorithms)
-   16. [Sorting Algorithms](#16_sorting_algorithmsjs-question-set-sorting-algorithms)
-   17. [Recursion Patterns](#17_recursion_backtrackingjs-question-set-recursion-patterns)
-   18. [Dynamic Programming (DP)](#18_dynamic_programmingjs-question-set-dynamic-programming-dp)
-   19. [Graph Algorithms](#19_graph_algorithmsjs-question-set-graph-algorithms)
-   20. [Sliding Window & Two Pointer Patterns](#20_sliding_window_two_pointerjs-question-set-sliding-window-two-pointer-patterns)
-   21. [Functional Programming Patterns](#21_functional_programmingjs-question-set-functional-programming-patterns)
-   22. [Array Manipulation — Chunk, Unique, Intersection,](#22_array_manipulationjs-question-set-array-manipulation-chunk-unique-intersection)
-   23. [String Manipulation](#23_string_questionsjs-question-set-string-manipulation)
-   24. [WeakMap, WeakSet, Symbol, Proxy, Reflect](#24_weakmap_weakset_symbol_proxyjs-question-set-weakmap-weakset-symbol-proxy-reflect)
-   25. [Heap / Priority Queue](#25_heap_priority_queuejs-question-set-heap-priority-queue)
-   26. [Theory and Interview Q&A — theory interview qa js](#file-26_theory_interview_qajs)
+   1. [Flatten array](#javascript-flatten-array)
+   2. [Debounce](#javascript-debounce)
+   3. [Throttle](#javascript-throttle)
+   4. [Memoize](#javascript-memoize)
+   5. [Curry](#javascript-curry)
+   6. [Deep clone](#javascript-deep-clone)
+   7. [Promise all race](#javascript-promise-all-race)
+   8. [Custom array methods](#javascript-custom-array-methods)
+   9. [Map questions](#javascript-map-questions)
+   10. [Set questions](#javascript-set-questions)
+   11. [Stack queue](#javascript-stack-queue)
+   12. [Linked list](#javascript-linked-list)
+   13. [Binary tree bst](#javascript-binary-tree-bst)
+   14. [Call apply bind](#javascript-call-apply-bind)
+   15. [Searching algorithms](#javascript-searching-algorithms)
+   16. [Sorting algorithms](#javascript-sorting-algorithms)
+   17. [Recursion backtracking](#javascript-recursion-backtracking)
+   18. [Dynamic programming](#javascript-dynamic-programming)
+   19. [Graph algorithms](#javascript-graph-algorithms)
+   20. [Sliding window two pointer](#javascript-sliding-window-two-pointer)
+   21. [Functional programming](#javascript-functional-programming)
+   22. [Array manipulation](#javascript-array-manipulation)
+   23. [String questions](#javascript-string-questions)
+   24. [Weakmap weakset symbol proxy](#javascript-weakmap-weakset-symbol-proxy)
+   25. [Heap priority queue](#javascript-heap-priority-queue)
+   26. [Theory interview qa](#javascript-theory-interview-qa)
 
 ### 2. TypeScript
 
-   1. [TypeScript Basic Types & Interfaces](#01_basic_types_interfacests-question-set-typescript-basic-types-interfaces)
-   2. [TypeScript Generics](#02_genericsts-question-set-typescript-generics)
-   3. [TypeScript Utility Types](#03_utility_typests-question-set-typescript-utility-types)
-   4. [TypeScript Type Guards & Narrowing](#04_type_guardsts-question-set-typescript-type-guards-narrowing)
-   5. [TypeScript Advanced Types](#05_advanced_typests-question-set-typescript-advanced-types)
-   6. [TypeScript Decorators & Metadata](#06_decoratorsts-question-set-typescript-decorators-metadata)
-   7. [TypeScript Design Patterns](#07_design_patternsts-question-set-typescript-design-patterns)
-   8. [TypeScript with React](#08_react_typescripttsx-question-set-typescript-with-react)
-   9. [Theory and Interview Q&A — theory interview qa ts](#file-09_theory_interview_qats)
+   1. [Basic types interfaces](#typescript-basic-types-interfaces)
+   2. [Generics](#typescript-generics)
+   3. [Utility types](#typescript-utility-types)
+   4. [Type guards](#typescript-type-guards)
+   5. [Advanced types](#typescript-advanced-types)
+   6. [Decorators](#typescript-decorators)
+   7. [Design patterns](#typescript-design-patterns)
+   8. [React typescript](#typescript-react-typescript)
+   9. [Theory interview qa](#typescript-theory-interview-qa)
 
 ### 3. React
 
-   1. [useState & useEffect — most asked React hooks](#01_usestate_useeffectjsx-question-set-usestate-useeffect-most-asked-react-hooks)
-   2. [Custom Hooks](#02_custom_hooksjsx-question-set-custom-hooks)
-   3. [useReducer & useContext](#03_usereducer_usecontextjsx-question-set-usereducer-usecontext)
-   4. [useMemo & useCallback — React Performance Hooks](#04_usememo_usecallbackjsx-question-set-usememo-usecallback-react-performance-hooks)
-   5. [useRef, forwardRef & useImperativeHandle](#05_useref_forwardrefjsx-question-set-useref-forwardref-useimperativehandle)
-   6. [Component Patterns](#06_component_patternsjsx-question-set-component-patterns)
-   7. [React.lazy, Suspense, Error Boundaries & Code Splitting](#07_lazy_suspense_errorboundaryjsx-question-set-reactlazy-suspense-error-boundaries-code-splitting)
-   8. [Advanced React Patterns](#08_advanced_patternsjsx-question-set-advanced-react-patterns)
-   9. [SOLID PRINCIPLES IN REACT](#09_solid_principlesjsx-solid-principles-in-react)
-   10. [Theory and Interview Q&A — theory interview qa jsx](#file-10_theory_interview_qajsx)
+   1. [UseState useEffect](#react-usestate-useeffect)
+   2. [Custom hooks](#react-custom-hooks)
+   3. [UseReducer useContext](#react-usereducer-usecontext)
+   4. [UseMemo useCallback](#react-usememo-usecallback)
+   5. [UseRef forwardRef](#react-useref-forwardref)
+   6. [Component patterns](#react-component-patterns)
+   7. [Lazy suspense errorboundary](#react-lazy-suspense-errorboundary)
+   8. [Advanced patterns](#react-advanced-patterns)
+   9. [Solid principles](#react-solid-principles)
+   10. [Theory interview qa](#react-theory-interview-qa)
 
 ### 4. Node.js
 
-   1. [Node.js Event Loop](#01_event_loopjs-question-set-nodejs-event-loop)
-   2. [Node.js Streams & Buffers](#02_streams_buffersjs-question-set-nodejs-streams-buffers)
-   3. [Express.js Middleware & Patterns](#03_express_middlewarejs-question-set-expressjs-middleware-patterns)
-   4. [Node.js Authentication & JWT](#04_authenticationjs-question-set-nodejs-authentication-jwt)
-   5. [Node.js EventEmitter & Custom Events](#05_event_emitterjs-question-set-nodejs-eventemitter-custom-events)
-   6. [Node.js Cluster, Worker Threads & child_process](#06_cluster_workersjs-question-set-nodejs-cluster-worker-threads-child_process)
-   7. [Node.js File System (fs)](#07_file_systemjs-question-set-nodejs-file-system-fs)
-   8. [Node.js Error Handling](#08_error_handlingjs-question-set-nodejs-error-handling)
-   9. [Node.js REST API Patterns](#09_rest_api_patternsjs-question-set-nodejs-rest-api-patterns)
-   10. [RACE CONDITIONS IN NODE.JS — WHAT THEY ARE AND HOW TO AVOID THEM](#10_race_conditionsjs-race-conditions-in-nodejs-what-they-are-and-how-to-avoid-them)
-   11. [Theory and Interview Q&A — theory interview qa js](#file-11_theory_interview_qajs)
+   1. [Event loop](#nodejs-event-loop)
+   2. [Streams buffers](#nodejs-streams-buffers)
+   3. [Express middleware](#nodejs-express-middleware)
+   4. [Authentication](#nodejs-authentication)
+   5. [Event emitter](#nodejs-event-emitter)
+   6. [Cluster workers](#nodejs-cluster-workers)
+   7. [File system](#nodejs-file-system)
+   8. [Error handling](#nodejs-error-handling)
+   9. [Rest api patterns](#nodejs-rest-api-patterns)
+   10. [Race conditions](#nodejs-race-conditions)
+   11. [Theory interview qa](#nodejs-theory-interview-qa)
 
 ### 5. Docker
 
-   1. [Q1. Simple Node.js Dockerfile](#01_dockerfile_basicsmd-q1-simple-nodejs-dockerfile)
-   2. [Q1. Basic docker-compose.yml structure](#02_docker_composemd-q1-basic-docker-composeyml-structure)
-   3. [Q1. Bridge networks (default and custom)](#03_networkingmd-q1-bridge-networks-default-and-custom)
-   4. [Q1. Named volumes](#04_volumes_storagemd-q1-named-volumes)
-   5. [Q1. Run containers as non-root](#05_securitymd-q1-run-containers-as-non-root)
-   6. [Q1. Basic registry push/pull](#06_cicd_registrymd-q1-basic-registry-pushpull)
-   7. [Q1. Resource limits](#07_productionmd-q1-resource-limits)
-   8. [Q1. What is Docker and how does it differ from a virtual machine?**](#08_interview_qamd-q1-what-is-docker-and-how-does-it-differ-from-a-virtual-machine)
-   9. [SECTION 1: BASIC](#09_theory_advanced_qamd-section-1-basic)
+   1. [Dockerfile basics](#docker-dockerfile-basics)
+   2. [Docker compose](#docker-docker-compose)
+   3. [Networking](#docker-networking)
+   4. [Volumes storage](#docker-volumes-storage)
+   5. [Security](#docker-security)
+   6. [Cicd registry](#docker-cicd-registry)
+   7. [Production](#docker-production)
+   8. [Interview qa](#docker-interview-qa)
+   9. [Theory advanced qa](#docker-theory-advanced-qa)
 
 ### 6. Kubernetes
 
-   1. [Architecture Overview](#01_core_conceptsmd-architecture-overview)
-   2. [Overview](#02_workloadsmd-overview)
-   3. [How Pod Networking Works](#03_services_networkingmd-how-pod-networking-works)
-   4. [Storage Concepts](#04_storagemd-storage-concepts)
-   5. [Why configuration management matters](#05_config_secretsmd-why-configuration-management-matters)
-   6. [Security Layers in Kubernetes](#06_securitymd-security-layers-in-kubernetes)
-   7. [Horizontal Pod Autoscaler (HPA)](#07_advancedmd-horizontal-pod-autoscaler-hpa)
-   8. [What is Helm?](#08_helm_interview_qamd-what-is-helm)
-   9. [SECTION 1: BASIC](#09_theory_advanced_qamd-section-1-basic)
+   1. [Core concepts](#kubernetes-core-concepts)
+   2. [Workloads](#kubernetes-workloads)
+   3. [Services networking](#kubernetes-services-networking)
+   4. [Storage](#kubernetes-storage)
+   5. [Config secrets](#kubernetes-config-secrets)
+   6. [Security](#kubernetes-security)
+   7. [Advanced](#kubernetes-advanced)
+   8. [Helm interview qa](#kubernetes-helm-interview-qa)
+   9. [Theory advanced qa](#kubernetes-theory-advanced-qa)
 
 ### 7. Azure
 
-   1. [What is Azure?](#01_core_services_aadmd-what-is-azure)
-   2. [Azure App Service — Managed Web Hosting](#02_app_service_functionsmd-azure-app-service-managed-web-hosting)
-   3. [Azure Blob Storage — Object Storage](#03_storage_cdnmd-azure-blob-storage-object-storage)
-   4. [Azure Database for PostgreSQL — Flexible Server](#04_databasesmd-azure-database-for-postgresql-flexible-server)
-   5. [Virtual Network (VNet)](#05_networkingmd-virtual-network-vnet)
-   6. [Azure Container Registry (ACR)](#06_aks_acrmd-azure-container-registry-acr)
-   7. [Why Azure Pipelines?](#07_pipelines_devopsmd-why-azure-pipelines)
-   8. [Azure Fundamentals](#08_interview_qamd-azure-fundamentals)
+   1. [Core services aad](#azure-core-services-aad)
+   2. [App service functions](#azure-app-service-functions)
+   3. [Storage cdn](#azure-storage-cdn)
+   4. [Databases](#azure-databases)
+   5. [Networking](#azure-networking)
+   6. [Aks acr](#azure-aks-acr)
+   7. [Pipelines devops](#azure-pipelines-devops)
+   8. [Interview qa](#azure-interview-qa)
 
 ### 8. AWS
 
-   1. [What is AWS?](#01_core_services_iammd-what-is-aws)
-   2. [EC2 — Elastic Compute Cloud](#02_ec2_vpcmd-ec2-elastic-compute-cloud)
-   3. [S3 — Simple Storage Service](#03_s3_cloudfrontmd-s3-simple-storage-service)
-   4. [Lambda — Serverless Functions](#04_lambda_api_gatewaymd-lambda-serverless-functions)
-   5. [RDS — Relational Database Service](#05_rds_dynamodb_cachemd-rds-relational-database-service)
-   6. [Why Event-Driven?](#06_sqs_sns_eventbridgemd-why-event-driven)
-   7. [Container Services — Choosing the Right One](#07_ecs_eks_ecrmd-container-services-choosing-the-right-one)
-   8. [CI/CD Concepts](#08_cicd_interview_qamd-cicd-concepts)
+   1. [Core services iam](#aws-core-services-iam)
+   2. [Ec2 vpc](#aws-ec2-vpc)
+   3. [S3 cloudfront](#aws-s3-cloudfront)
+   4. [Lambda api gateway](#aws-lambda-api-gateway)
+   5. [Rds dynamodb cache](#aws-rds-dynamodb-cache)
+   6. [Sqs sns eventbridge](#aws-sqs-sns-eventbridge)
+   7. [Ecs eks ecr](#aws-ecs-eks-ecr)
+   8. [Cicd interview qa](#aws-cicd-interview-qa)
 
 ### 9. Next.js
 
-   1. [Next.js App Router — Fundamentals](#01_app_router_fundamentalstsx-question-set-nextjs-app-router-fundamentals)
-   2. [Next.js Data Fetching](#02_data_fetching_server_actionstsx-question-set-nextjs-data-fetching)
-   3. [Next.js Routing — Dynamic, Parallel, Intercepting, Middleware](#03_routing_middlewaretsx-question-set-nextjs-routing-dynamic-parallel-intercepting-middleware)
-   4. [Next.js Authentication Patterns](#04_authenticationtsx-question-set-nextjs-authentication-patterns)
-   5. [Next.js Performance Optimization](#05_performance_optimizationtsx-question-set-nextjs-performance-optimization)
-   6. [Next.js Pages Router — Data Fetching](#06_pages_router_data_fetchingtsx-question-set-nextjs-pages-router-data-fetching)
-   7. [Next.js SEO, Metadata & Internationalization](#07_seo_metadata_i18ntsx-question-set-nextjs-seo-metadata-internationalization)
-   8. [Next.js Interview Q&A — Comprehensive](#08_interview_qatsx-question-set-nextjs-interview-qa-comprehensive)
-   9. [Theory and Interview Q&A — theory interview qa tsx](#file-09_theory_interview_qatsx)
+   1. [App router fundamentals](#nextjs-app-router-fundamentals)
+   2. [Data fetching server actions](#nextjs-data-fetching-server-actions)
+   3. [Routing middleware](#nextjs-routing-middleware)
+   4. [Authentication](#nextjs-authentication)
+   5. [Performance optimization](#nextjs-performance-optimization)
+   6. [Pages router data fetching](#nextjs-pages-router-data-fetching)
+   7. [Seo metadata i18n](#nextjs-seo-metadata-i18n)
+   8. [Interview qa](#nextjs-interview-qa)
+   9. [Theory interview qa](#nextjs-theory-interview-qa)
 
 ### 10. GraphQL
 
-   1. [GraphQL — Schema Definition Language (SDL)](#01_schema_types_sdljs-question-set-graphql-schema-definition-language-sdl)
-   2. [GraphQL Resolvers, Context & Middleware](#02_resolvers_contextjs-question-set-graphql-resolvers-context-middleware)
-   3. [GraphQL — DataLoader & N+1 Problem](#03_dataloader_n_plus_1js-question-set-graphql-dataloader-n1-problem)
-   4. [GraphQL Mutations & Subscriptions](#04_mutations_subscriptionsjs-question-set-graphql-mutations-subscriptions)
-   5. [Apollo Client — Queries, Mutations & Cache](#05_apollo_clientjsx-question-set-apollo-client-queries-mutations-cache)
-   6. [GraphQL Security, Error Handling & Performance](#06_security_error_handlingjs-question-set-graphql-security-error-handling-performance)
-   7. [GraphQL Federation & Schema Stitching](#07_federation_stitchingjs-question-set-graphql-federation-schema-stitching)
-   8. [GraphQL — Interview Questions & Advanced Patterns](#08_interview_qa_patternsjs-question-set-graphql-interview-questions-advanced-patterns)
-   9. [Theory and Interview Q&A — theory interview qa js](#file-09_theory_interview_qajs)
+   1. [Schema types SDL](#graphql-schema-types-sdl)
+   2. [Resolvers context](#graphql-resolvers-context)
+   3. [Dataloader n plus 1](#graphql-dataloader-n-plus-1)
+   4. [Mutations subscriptions](#graphql-mutations-subscriptions)
+   5. [Apollo client](#graphql-apollo-client)
+   6. [Security error handling](#graphql-security-error-handling)
+   7. [Federation stitching](#graphql-federation-stitching)
+   8. [Interview qa patterns](#graphql-interview-qa-patterns)
+   9. [Theory interview qa](#graphql-theory-interview-qa)
 
 ### 11. Web Security
 
-   1. [Theory and Interview Q&A — theory interview qa js](#file-01_theory_interview_qajs)
+   1. [Theory interview qa](#web-security-theory-interview-qa)
 
 ---
 
@@ -179,42 +179,9 @@ analysis, and direct interview question-and-answer material.
 
 > DSA, Algorithms, Patterns, Functional Programming
 
+## JavaScript — Flatten array
 
-> **Target:** 7+ year Full Stack MERN Developer | **Files:** 26
-
-## Table of Contents
-
-1. [01_flatten_array.js — QUESTION: Flatten a nested array without using .flat() or .flatMap()](#01_flatten_arrayjs-question-flatten-a-nested-array-without-using-flat-or-flatmap)
-2. [02_debounce.js — QUESTION: Implement debounce function from scratch](#02_debouncejs-question-implement-debounce-function-from-scratch)
-3. [03_throttle.js — QUESTION: Implement throttle function from scratch](#03_throttlejs-question-implement-throttle-function-from-scratch)
-4. [04_memoize.js — QUESTION: Implement memoization from scratch](#04_memoizejs-question-implement-memoization-from-scratch)
-5. [05_curry.js — QUESTION: Implement currying from scratch](#05_curryjs-question-implement-currying-from-scratch)
-6. [06_deep_clone.js — QUESTION: Deep clone an object without JSON.parse/JSON.stringify](#06_deep_clonejs-question-deep-clone-an-object-without-jsonparsejsonstringify)
-7. [07_promise_all_race.js — QUESTION: Implement Promise.all, Promise.race, Promise.allSettled,](#07_promise_all_racejs-question-implement-promiseall-promiserace-promiseallsettled)
-8. [08_custom_array_methods.js — QUESTION: Implement Array.prototype.map, filter, reduce, forEach,](#08_custom_array_methodsjs-question-implement-arrayprototypemap-filter-reduce-foreach)
-9. [09_map_questions.js — QUESTION SET: Map — all common interview questions](#09_map_questionsjs-question-set-map-all-common-interview-questions)
-10. [10_set_questions.js — QUESTION SET: Set — all common interview questions](#10_set_questionsjs-question-set-set-all-common-interview-questions)
-11. [11_stack_queue.js — QUESTION SET: Stack and Queue](#11_stack_queuejs-question-set-stack-and-queue)
-12. [12_linked_list.js — QUESTION SET: Linked List — all common interview questions](#12_linked_listjs-question-set-linked-list-all-common-interview-questions)
-13. [13_binary_tree_bst.js — QUESTION SET: Binary Tree & Binary Search Tree (BST)](#13_binary_tree_bstjs-question-set-binary-tree-binary-search-tree-bst)
-14. [14_call_apply_bind.js — QUESTION SET: call, apply, bind — Custom Implementations](#14_call_apply_bindjs-question-set-call-apply-bind-custom-implementations)
-15. [15_searching_algorithms.js — QUESTION SET: Searching Algorithms](#15_searching_algorithmsjs-question-set-searching-algorithms)
-16. [16_sorting_algorithms.js — QUESTION SET: Sorting Algorithms](#16_sorting_algorithmsjs-question-set-sorting-algorithms)
-17. [17_recursion_backtracking.js — QUESTION SET: Recursion Patterns](#17_recursion_backtrackingjs-question-set-recursion-patterns)
-18. [18_dynamic_programming.js — QUESTION SET: Dynamic Programming (DP)](#18_dynamic_programmingjs-question-set-dynamic-programming-dp)
-19. [19_graph_algorithms.js — QUESTION SET: Graph Algorithms](#19_graph_algorithmsjs-question-set-graph-algorithms)
-20. [20_sliding_window_two_pointer.js — QUESTION SET: Sliding Window & Two Pointer Patterns](#20_sliding_window_two_pointerjs-question-set-sliding-window-two-pointer-patterns)
-21. [21_functional_programming.js — QUESTION SET: Functional Programming Patterns](#21_functional_programmingjs-question-set-functional-programming-patterns)
-22. [22_array_manipulation.js — QUESTION SET: Array Manipulation — Chunk, Unique, Intersection,](#22_array_manipulationjs-question-set-array-manipulation-chunk-unique-intersection)
-23. [23_string_questions.js — QUESTION SET: String Manipulation](#23_string_questionsjs-question-set-string-manipulation)
-24. [24_weakmap_weakset_symbol_proxy.js — QUESTION SET: WeakMap, WeakSet, Symbol, Proxy, Reflect](#24_weakmap_weakset_symbol_proxyjs-question-set-weakmap-weakset-symbol-proxy-reflect)
-25. [25_heap_priority_queue.js — QUESTION SET: Heap / Priority Queue](#25_heap_priority_queuejs-question-set-heap-priority-queue)
-26. [FILE: 26_theory_interview_qa.js](#file-26_theory_interview_qajs)
-
----
-
-## 01_flatten_array.js — QUESTION: Flatten a nested array without using .flat() or .flatMap()
-
+```js
 /**
  * QUESTION: Flatten a nested array without using .flat() or .flatMap()
  *
@@ -295,11 +262,13 @@ console.log("Reduce:     ", flattenReduce(input2));    // [1,2,3,4,5]
 console.log("Iterative:  ", flattenIterative(input1)); // [1,2,3,4,5,6]
 console.log("Depth 2:    ", flattenToDepth([1, [2, [3, [4]]]], 2)); // [1,2,3,[4]]
 console.log("Depth 1:    ", flattenToDepth([1, [2, [3]]], 1)); // [1,2,[3]]
+```
 
 ---
 
-## 02_debounce.js — QUESTION: Implement debounce function from scratch
+## JavaScript — Debounce
 
+```js
 /**
  * QUESTION: Implement debounce function from scratch
  *
@@ -397,11 +366,13 @@ controlled("still typing...");
 controlled.cancel(); // prevent execution entirely
 
 console.log("Debounce functions defined. Run in browser to see async output.");
+```
 
 ---
 
-## 03_throttle.js — QUESTION: Implement throttle function from scratch
+## JavaScript — Throttle
 
+```js
 /**
  * QUESTION: Implement throttle function from scratch
  *
@@ -492,11 +463,13 @@ throttled("c"); // ignored
 // window.addEventListener('scroll', throttle(handleScroll, 200));
 
 console.log("Throttle functions defined. Run in browser to see async output.");
+```
 
 ---
 
-## 04_memoize.js — QUESTION: Implement memoization from scratch
+## JavaScript — Memoize
 
+```js
 /**
  * QUESTION: Implement memoization from scratch
  *
@@ -598,11 +571,13 @@ console.log(add(1, 4)); // 5 (new computation)
 const fib = makeFibMemoized();
 console.log(fib(10)); // 55
 console.log(fib(50)); // 12586269025 (fast with memo)
+```
 
 ---
 
-## 05_curry.js — QUESTION: Implement currying from scratch
+## JavaScript — Curry
 
+```js
 /**
  * QUESTION: Implement currying from scratch
  *
@@ -695,11 +670,13 @@ const getConfig = curry((env, key, defaultVal) => `${env}:${key}:${defaultVal}`)
 const devConfig = getConfig("dev");
 const devPort = devConfig("PORT");
 console.log(devPort(3000));  // dev:PORT:3000
+```
 
 ---
 
-## 06_deep_clone.js — QUESTION: Deep clone an object without JSON.parse/JSON.stringify
+## JavaScript — Deep clone
 
+```js
 /**
  * QUESTION: Deep clone an object without JSON.parse/JSON.stringify
  *
@@ -827,11 +804,13 @@ console.log("RegExp cloned: ", clone.pattern instanceof RegExp); // true
 console.log("Map cloned:    ", clone.scores instanceof Map);   // true
 console.log("Set cloned:    ", clone.tags instanceof Set);      // true
 console.log("Circular ref:  ", clone.self === clone);           // true (circular preserved)
+```
 
 ---
 
-## 07_promise_all_race.js — QUESTION: Implement Promise.all, Promise.race, Promise.allSettled,
+## JavaScript — Promise all race
 
+```js
 /**
  * QUESTION: Implement Promise.all, Promise.race, Promise.allSettled,
  *           and Promise.any from scratch
@@ -957,11 +936,13 @@ const fail2 = Promise.reject("err2");
 const ok = Promise.resolve("success");
 promiseAny([fail1, fail2, ok]).then(console.log);   // "success"
 promiseAny([fail1, fail2]).catch((e) => console.log(e.message)); // All promises were rejected
+```
 
 ---
 
-## 08_custom_array_methods.js — QUESTION: Implement Array.prototype.map, filter, reduce, forEach,
+## JavaScript — Custom array methods
 
+```js
 /**
  * QUESTION: Implement Array.prototype.map, filter, reduce, forEach,
  *           find, findIndex, every, some, flat from scratch
@@ -1111,11 +1092,13 @@ console.log([1, [2, [3, [4]]]].myFlat(2));          // [1,2,3,[4]]
 
 nums.myForEach((x) => process.stdout.write(x + " ")); // 1 2 3 4 5
 console.log();
+```
 
 ---
 
-## 09_map_questions.js — QUESTION SET: Map — all common interview questions
+## JavaScript — Map questions
 
+```js
 /**
  * QUESTION SET: Map — all common interview questions
  *
@@ -1356,11 +1339,13 @@ console.log(firstNonRepeating("aabb"));    // null
 console.log("\n=== Subarray Sum ===");
 console.log(subarraySum([1, 1, 1], 2)); // 2
 console.log(subarraySum([1, 2, 3], 3)); // 2
+```
 
 ---
 
-## 10_set_questions.js — QUESTION SET: Set — all common interview questions
+## JavaScript — Set questions
 
+```js
 /**
  * QUESTION SET: Set — all common interview questions
  *
@@ -1595,11 +1580,13 @@ console.log(containsDuplicate([1, 2, 3, 4])); // false
 
 console.log("\n=== Array Intersection ===");
 console.log(arrayIntersection([1, 2, 2, 1], [2, 2])); // [2]
+```
 
 ---
 
-## 11_stack_queue.js — QUESTION SET: Stack and Queue
+## JavaScript — Stack queue
 
+```js
 /**
  * QUESTION SET: Stack and Queue
  *
@@ -1869,11 +1856,13 @@ cq.dequeue();
 cq.enqueue(4);
 console.log(cq.front());    // 2
 console.log(cq.rear());     // 4
+```
 
 ---
 
-## 12_linked_list.js — QUESTION SET: Linked List — all common interview questions
+## JavaScript — Linked list
 
+```js
 /**
  * QUESTION SET: Linked List — all common interview questions
  *
@@ -2155,11 +2144,13 @@ console.log("\n=== Is Palindrome ===");
 console.log(isPalindrome(arrToList([1, 2, 2, 1]))); // true
 console.log(isPalindrome(arrToList([1, 2, 1])));    // true
 console.log(isPalindrome(arrToList([1, 2, 3])));    // false
+```
 
 ---
 
-## 13_binary_tree_bst.js — QUESTION SET: Binary Tree & Binary Search Tree (BST)
+## JavaScript — Binary tree bst
 
+```js
 /**
  * QUESTION SET: Binary Tree & Binary Search Tree (BST)
  *
@@ -2417,11 +2408,13 @@ const serialized = serialize(root);
 const deserialized = deserialize(serialized);
 console.log("Serialized:  ", serialized);
 console.log("Deserialized inorder:", inorder(deserialized)); // [4,2,5,1,3,6]
+```
 
 ---
 
-## 14_call_apply_bind.js — QUESTION SET: call, apply, bind — Custom Implementations
+## JavaScript — Call apply bind
 
+```js
 /**
  * QUESTION SET: call, apply, bind — Custom Implementations
  *
@@ -2600,11 +2593,13 @@ console.log("\n=== Math.max with apply ===");
 const numbers = [3, 1, 4, 1, 5, 9, 2, 6];
 console.log(Math.max.apply(null, numbers)); // 9
 console.log(Math.max.myApply(null, numbers)); // 9
+```
 
 ---
 
-## 15_searching_algorithms.js — QUESTION SET: Searching Algorithms
+## JavaScript — Searching algorithms
 
+```js
 /**
  * QUESTION SET: Searching Algorithms
  *
@@ -2870,11 +2865,13 @@ console.log("\n=== Integer Sqrt ===");
 console.log(mySqrt(4));  // 2
 console.log(mySqrt(8));  // 2
 console.log(mySqrt(9));  // 3
+```
 
 ---
 
-## 16_sorting_algorithms.js — QUESTION SET: Sorting Algorithms
+## JavaScript — Sorting algorithms
 
+```js
 /**
  * QUESTION SET: Sorting Algorithms
  *
@@ -3167,11 +3164,13 @@ const allSame = [bubbleSort, selectionSort, insertionSort, mergeSort, quickSort,
   .map((fn) => JSON.stringify(fn(arr)))
   .every((result) => result === JSON.stringify(expected));
 console.log("\nAll sorts produce correct result:", allSame); // true
+```
 
 ---
 
-## 17_recursion_backtracking.js — QUESTION SET: Recursion Patterns
+## JavaScript — Recursion backtracking
 
+```js
 /**
  * QUESTION SET: Recursion Patterns
  *
@@ -3507,11 +3506,13 @@ console.log(exist(grid, "ABCB"));   // false
 console.log("\n=== N-Queens (n=4) ===");
 console.log(solveNQueens(4).length); // 2 solutions
 solveNQueens(4).forEach((sol) => { console.log(sol); console.log("---"); });
+```
 
 ---
 
-## 18_dynamic_programming.js — QUESTION SET: Dynamic Programming (DP)
+## JavaScript — Dynamic programming
 
+```js
 /**
  * QUESTION SET: Dynamic Programming (DP)
  *
@@ -3795,11 +3796,13 @@ console.log("\n=== Maximum Subarray ===");
 console.log(maxSubArray([-2, 1, -3, 4, -1, 2, 1, -5, 4])); // 6
 console.log(maxSubArrayWithIndices([-2, 1, -3, 4, -1, 2, 1, -5, 4]));
 // { maxSum: 6, subarray: [4, -1, 2, 1] }
+```
 
 ---
 
-## 19_graph_algorithms.js — QUESTION SET: Graph Algorithms
+## JavaScript — Graph algorithms
 
+```js
 /**
  * QUESTION SET: Graph Algorithms
  *
@@ -4083,11 +4086,13 @@ const directedCyclic = buildGraph([[0,1],[1,2],[2,0]], true);
 console.log(hasCycleDirected(directedCyclic)); // true
 const directedAcyclic = buildGraph([[0,1],[1,2],[2,3]], true);
 console.log(hasCycleDirected(directedAcyclic)); // false
+```
 
 ---
 
-## 20_sliding_window_two_pointer.js — QUESTION SET: Sliding Window & Two Pointer Patterns
+## JavaScript — Sliding window two pointer
 
+```js
 /**
  * QUESTION SET: Sliding Window & Two Pointer Patterns
  *
@@ -4369,11 +4374,13 @@ console.log(arr.slice(0, len)); // [1, 2, 3, 4]
 
 console.log("\n=== Move Zeros ===");
 console.log(moveZeroes([0, 1, 0, 3, 12])); // [1, 3, 12, 0, 0]
+```
 
 ---
 
-## 21_functional_programming.js — QUESTION SET: Functional Programming Patterns
+## JavaScript — Functional programming
 
+```js
 /**
  * QUESTION SET: Functional Programming Patterns
  *
@@ -4663,11 +4670,13 @@ const unsub = ps.subscribe("news", (article) => console.log("News:", article));
 ps.publish("news", "Breaking news!");   // News: Breaking news!
 unsub();                                 // unsubscribe
 ps.publish("news", "More news!");       // (no output)
+```
 
 ---
 
-## 22_array_manipulation.js — QUESTION SET: Array Manipulation — Chunk, Unique, Intersection,
+## JavaScript — Array manipulation
 
+```js
 /**
  * QUESTION SET: Array Manipulation — Chunk, Unique, Intersection,
  * Rotate, Shuffle, Zip, Matrix operations, Kadane's, and more.
@@ -4935,11 +4944,13 @@ console.log(mergeIntervals([[1,4],[4,5]]));                 // [[1,5]]
 
 console.log("\n=== sortByParity ===");
 console.log(sortArrayByParity([3, 1, 2, 4])); // evens first: [2,4,1,3] or [4,2,3,1]
+```
 
 ---
 
-## 23_string_questions.js — QUESTION SET: String Manipulation
+## JavaScript — String questions
 
+```js
 /**
  * QUESTION SET: String Manipulation
  *
@@ -5188,11 +5199,13 @@ console.log(zigzagConvert("PAYPALISHIRING", 3)); // PAHNAPLSIIGYIR
 console.log("\n=== Word Break ===");
 console.log(wordBreak("leetcode", ["leet", "code"])); // true
 console.log(wordBreak("catsandog", ["cats","dog","sand","and","cat"])); // false
+```
 
 ---
 
-## 24_weakmap_weakset_symbol_proxy.js — QUESTION SET: WeakMap, WeakSet, Symbol, Proxy, Reflect
+## JavaScript — Weakmap weakset symbol proxy
 
+```js
 /**
  * QUESTION SET: WeakMap, WeakSet, Symbol, Proxy, Reflect
  *
@@ -5466,11 +5479,13 @@ console.log("\n=== Default Values Proxy ===");
 const obj = withDefaults({ a: 1 }, 0);
 console.log(obj.a);    // 1
 console.log(obj.z);    // 0 (default)
+```
 
 ---
 
-## 25_heap_priority_queue.js — QUESTION SET: Heap / Priority Queue
+## JavaScript — Heap priority queue
 
+```js
 /**
  * QUESTION SET: Heap / Priority Queue
  *
@@ -5762,11 +5777,13 @@ mf.addNum(3);
 console.log(mf.findMedian()); // 2
 mf.addNum(4);
 console.log(mf.findMedian()); // 2.5
+```
 
 ---
 
-## FILE: 26_theory_interview_qa.js
+## JavaScript — Theory interview qa
 
+```js
 /*
 =============================================================
   JAVASCRIPT THEORY — INTERVIEW Q&A
@@ -6338,9 +6355,9 @@ module.exports = {
   withTimeout,
   createValidator,
 };
+```
 
 ---
-
 
 ---
 
@@ -6348,25 +6365,9 @@ module.exports = {
 
 > Types, Generics, Decorators, Design Patterns
 
+## TypeScript — Basic types interfaces
 
-> **Target:** 7+ year Full Stack MERN Developer | **Files:** 9
-
-## Table of Contents
-
-1. [01_basic_types_interfaces.ts — QUESTION SET: TypeScript Basic Types & Interfaces](#01_basic_types_interfacests-question-set-typescript-basic-types-interfaces)
-2. [02_generics.ts — QUESTION SET: TypeScript Generics](#02_genericsts-question-set-typescript-generics)
-3. [03_utility_types.ts — QUESTION SET: TypeScript Utility Types](#03_utility_typests-question-set-typescript-utility-types)
-4. [04_type_guards.ts — QUESTION SET: TypeScript Type Guards & Narrowing](#04_type_guardsts-question-set-typescript-type-guards-narrowing)
-5. [05_advanced_types.ts — QUESTION SET: TypeScript Advanced Types](#05_advanced_typests-question-set-typescript-advanced-types)
-6. [06_decorators.ts — QUESTION SET: TypeScript Decorators & Metadata](#06_decoratorsts-question-set-typescript-decorators-metadata)
-7. [07_design_patterns.ts — QUESTION SET: TypeScript Design Patterns](#07_design_patternsts-question-set-typescript-design-patterns)
-8. [08_react_typescript.tsx — QUESTION SET: TypeScript with React](#08_react_typescripttsx-question-set-typescript-with-react)
-9. [FILE: 09_theory_interview_qa.ts](#file-09_theory_interview_qats)
-
----
-
-## 01_basic_types_interfaces.ts — QUESTION SET: TypeScript Basic Types & Interfaces
-
+```ts
 /**
  * QUESTION SET: TypeScript Basic Types & Interfaces
  *
@@ -6651,11 +6652,13 @@ function getUserInput(): unknown { return "input"; }
 
 export type { User, Admin, Shape, Status, RGB, LogLevel, Route };
 export { Direction, Color, HttpMethod, Routes };
+```
 
 ---
 
-## 02_generics.ts — QUESTION SET: TypeScript Generics
+## TypeScript — Generics
 
+```ts
 /**
  * QUESTION SET: TypeScript Generics
  *
@@ -6977,11 +6980,13 @@ const query = new QueryBuilder<User>()
 
 export { Stack, UserRepository, memoize, promisify, QueryBuilder, succeed, fail };
 export type { Repository, Result, ElementOf, Head, Tail, PaginatedResponse };
+```
 
 ---
 
-## 03_utility_types.ts — QUESTION SET: TypeScript Utility Types
+## TypeScript — Utility types
 
+```ts
 /**
  * QUESTION SET: TypeScript Utility Types
  *
@@ -7271,11 +7276,13 @@ export type {
   DeepReadonly, DeepPartial, Mutable, Nullable, Maybe, ValueOf,
   FunctionKeys, NonFunctionKeys, RequireSome, XOR, FilterByType,
 };
+```
 
 ---
 
-## 04_type_guards.ts — QUESTION SET: TypeScript Type Guards & Narrowing
+## TypeScript — Type guards
 
+```ts
 /**
  * QUESTION SET: TypeScript Type Guards & Narrowing
  *
@@ -7605,11 +7612,13 @@ export {
   isString, isNumber, isUser, isPost, isStringArray, hasKey,
   assertIsString, assertDefined, assert, exhaustiveCheck,
 };
+```
 
 ---
 
-## 05_advanced_types.ts — QUESTION SET: TypeScript Advanced Types
+## TypeScript — Advanced types
 
+```ts
 /**
  * QUESTION SET: TypeScript Advanced Types
  *
@@ -7941,11 +7950,13 @@ palette.green.toUpperCase; // OK — TypeScript knows green is string
 
 export type { JsonValue, DeepPartial, DeepReadonly, TreeNode, UserId, PostId, Email };
 export { toUserId, toEmail };
+```
 
 ---
 
-## 06_decorators.ts — QUESTION SET: TypeScript Decorators & Metadata
+## TypeScript — Decorators
 
+```ts
 /**
  * QUESTION SET: TypeScript Decorators & Metadata
  *
@@ -8296,11 +8307,13 @@ const ctrl = container.resolve<UserController>(UserController);
 */
 
 export { Singleton, retry, memoize, throttle, Container };
+```
 
 ---
 
-## 07_design_patterns.ts — QUESTION SET: TypeScript Design Patterns
+## TypeScript — Design patterns
 
+```ts
 /**
  * QUESTION SET: TypeScript Design Patterns
  *
@@ -8683,11 +8696,13 @@ order.transition("cancel");    // warn: not allowed from delivered
 */
 
 export { AppConfig, NotificationFactory, QueryBuilder, TypedEventEmitter, OrderStateMachine };
+```
 
 ---
 
-## 08_react_typescript.tsx — QUESTION SET: TypeScript with React
+## TypeScript — React typescript
 
+```tsx
 /**
  * QUESTION SET: TypeScript with React
  *
@@ -9046,11 +9061,13 @@ async function fakeLogin(email: string, password: string): Promise<AuthUser> {
 }
 
 export { Button, Card, FancyInput, CartComponent, AuthProvider, useAuth, useFetch, useLocalStorage };
+```
 
 ---
 
-## FILE: 09_theory_interview_qa.ts
+## TypeScript — Theory interview qa
 
+```ts
 /*
 =============================================================
   TYPESCRIPT THEORY — INTERVIEW Q&A
@@ -9437,9 +9454,9 @@ const config = {
 
 export { UserRepository };
 export type { Repository, UserId, ProductId, ValidEmail, RouteParams, DeepReadonly };
+```
 
 ---
-
 
 ---
 
@@ -9447,26 +9464,9 @@ export type { Repository, UserId, ProductId, ValidEmail, RouteParams, DeepReadon
 
 > Hooks, Context, Performance, Advanced Patterns
 
+## React — UseState useEffect
 
-> **Target:** 7+ year Full Stack MERN Developer | **Files:** 10
-
-## Table of Contents
-
-1. [01_useState_useEffect.jsx — QUESTION SET: useState & useEffect — most asked React hooks](#01_usestate_useeffectjsx-question-set-usestate-useeffect-most-asked-react-hooks)
-2. [02_custom_hooks.jsx — QUESTION SET: Custom Hooks](#02_custom_hooksjsx-question-set-custom-hooks)
-3. [03_useReducer_useContext.jsx — QUESTION SET: useReducer & useContext](#03_usereducer_usecontextjsx-question-set-usereducer-usecontext)
-4. [04_useMemo_useCallback.jsx — QUESTION SET: useMemo & useCallback — React Performance Hooks](#04_usememo_usecallbackjsx-question-set-usememo-usecallback-react-performance-hooks)
-5. [05_useRef_forwardRef.jsx — QUESTION SET: useRef, forwardRef & useImperativeHandle](#05_useref_forwardrefjsx-question-set-useref-forwardref-useimperativehandle)
-6. [06_component_patterns.jsx — QUESTION SET: Component Patterns](#06_component_patternsjsx-question-set-component-patterns)
-7. [07_lazy_suspense_errorboundary.jsx — QUESTION SET: React.lazy, Suspense, Error Boundaries & Code Splitting](#07_lazy_suspense_errorboundaryjsx-question-set-reactlazy-suspense-error-boundaries-code-splitting)
-8. [08_advanced_patterns.jsx — QUESTION SET: Advanced React Patterns](#08_advanced_patternsjsx-question-set-advanced-react-patterns)
-9. [09_solid_principles.jsx — SOLID PRINCIPLES IN REACT](#09_solid_principlesjsx-solid-principles-in-react)
-10. [FILE: 10_theory_interview_qa.jsx](#file-10_theory_interview_qajsx)
-
----
-
-## 01_useState_useEffect.jsx — QUESTION SET: useState & useEffect — most asked React hooks
-
+```jsx
 /**
  * QUESTION SET: useState & useEffect — most asked React hooks
  *
@@ -9670,11 +9670,13 @@ function BatchingDemo() {
 */
 
 export { Counter, UserProfile, WindowSize, Timer, BatchingDemo };
+```
 
 ---
 
-## 02_custom_hooks.jsx — QUESTION SET: Custom Hooks
+## React — Custom hooks
 
+```jsx
 /**
  * QUESTION SET: Custom Hooks
  *
@@ -9960,11 +9962,13 @@ export {
   useIntersectionObserver, useMediaQuery, useAsync,
   useWhyDidYouUpdate, useUndoRedo,
 };
+```
 
 ---
 
-## 03_useReducer_useContext.jsx — QUESTION SET: useReducer & useContext
+## React — UseReducer useContext
 
+```jsx
 /**
  * QUESTION SET: useReducer & useContext
  *
@@ -10211,11 +10215,13 @@ export {
   CounterWithReducer, cartReducer, ThemeProvider, useTheme,
   AppProvider, useAppState, useAppDispatch, ModalProvider, useModal,
 };
+```
 
 ---
 
-## 04_useMemo_useCallback.jsx — QUESTION SET: useMemo & useCallback — React Performance Hooks
+## React — UseMemo useCallback
 
+```jsx
 /**
  * QUESTION SET: useMemo & useCallback — React Performance Hooks
  *
@@ -10448,11 +10454,13 @@ function DataTable({ rows: initialRows }) {
 */
 
 export { ExpensiveList, Parent, DataTable, StaleClosureFix };
+```
 
 ---
 
-## 05_useRef_forwardRef.jsx — QUESTION SET: useRef, forwardRef & useImperativeHandle
+## React — UseRef forwardRef
 
+```jsx
 /**
  * QUESTION SET: useRef, forwardRef & useImperativeHandle
  *
@@ -10708,11 +10716,13 @@ export {
   AutoFocusInput, StopwatchWithRef, usePrevious, MeasureBox,
   FancyInput, ParentWithForwardRef, VideoPlayer, VideoControls, ChatWindow,
 };
+```
 
 ---
 
-## 06_component_patterns.jsx — QUESTION SET: Component Patterns
+## React — Component patterns
 
+```jsx
 /**
  * QUESTION SET: Component Patterns
  *
@@ -11006,11 +11016,13 @@ export {
   ControlledInput, UncontrolledForm,
   UserList, UserListContainer,
 };
+```
 
 ---
 
-## 07_lazy_suspense_errorboundary.jsx — QUESTION SET: React.lazy, Suspense, Error Boundaries & Code Splitting
+## React — Lazy suspense errorboundary
 
+```jsx
 /**
  * QUESTION SET: React.lazy, Suspense, Error Boundaries & Code Splitting
  *
@@ -11259,11 +11271,13 @@ function createResource(fetchFn) {
 */
 
 export { Dashboard, Router, ErrorBoundary, SafeBomb, PageLayout };
+```
 
 ---
 
-## 08_advanced_patterns.jsx — QUESTION SET: Advanced React Patterns
+## React — Advanced patterns
 
+```jsx
 /**
  * QUESTION SET: Advanced React Patterns
  *
@@ -11541,11 +11555,13 @@ function deepUpdate(state, path, updater) {
 */
 
 export { Modal, PortalDemo, SearchWithTransition, SearchWithDeferred, FetchButton, OptimisticTodoList };
+```
 
 ---
 
-## 09_solid_principles.jsx — SOLID PRINCIPLES IN REACT
+## React — Solid principles
 
+```jsx
 /**
  * SOLID PRINCIPLES IN REACT
  *
@@ -12028,11 +12044,13 @@ export {
   List, Input, PasswordInput, UserCard, UserList, ProductList,
   ProductCard, SaleProductCard,
 };
+```
 
 ---
 
-## FILE: 10_theory_interview_qa.jsx
+## React — Theory interview qa
 
+```jsx
 /*
 =============================================================
   REACT THEORY — INTERVIEW Q&A
@@ -12628,9 +12646,9 @@ new ModuleFederationPlugin({
 const ProductList = lazy(() => import('productsApp/ProductList'));
 // Products app can be deployed independently — host picks up the new version automatically
 */
+```
 
 ---
-
 
 ---
 
@@ -12638,27 +12656,9 @@ const ProductList = lazy(() => import('productsApp/ProductList'));
 
 > Event Loop, Streams, Auth, REST API, Clustering
 
+## Node.js — Event loop
 
-> **Target:** 7+ year Full Stack MERN Developer | **Files:** 11
-
-## Table of Contents
-
-1. [01_event_loop.js — QUESTION SET: Node.js Event Loop](#01_event_loopjs-question-set-nodejs-event-loop)
-2. [02_streams_buffers.js — QUESTION SET: Node.js Streams & Buffers](#02_streams_buffersjs-question-set-nodejs-streams-buffers)
-3. [03_express_middleware.js — QUESTION SET: Express.js Middleware & Patterns](#03_express_middlewarejs-question-set-expressjs-middleware-patterns)
-4. [04_authentication.js — QUESTION SET: Node.js Authentication & JWT](#04_authenticationjs-question-set-nodejs-authentication-jwt)
-5. [05_event_emitter.js — QUESTION SET: Node.js EventEmitter & Custom Events](#05_event_emitterjs-question-set-nodejs-eventemitter-custom-events)
-6. [06_cluster_workers.js — QUESTION SET: Node.js Cluster, Worker Threads & child_process](#06_cluster_workersjs-question-set-nodejs-cluster-worker-threads-child_process)
-7. [07_file_system.js — QUESTION SET: Node.js File System (fs)](#07_file_systemjs-question-set-nodejs-file-system-fs)
-8. [08_error_handling.js — QUESTION SET: Node.js Error Handling](#08_error_handlingjs-question-set-nodejs-error-handling)
-9. [09_rest_api_patterns.js — QUESTION SET: Node.js REST API Patterns](#09_rest_api_patternsjs-question-set-nodejs-rest-api-patterns)
-10. [10_race_conditions.js — RACE CONDITIONS IN NODE.JS — WHAT THEY ARE AND HOW TO AVOID THEM](#10_race_conditionsjs-race-conditions-in-nodejs-what-they-are-and-how-to-avoid-them)
-11. [FILE: 11_theory_interview_qa.js](#file-11_theory_interview_qajs)
-
----
-
-## 01_event_loop.js — QUESTION SET: Node.js Event Loop
-
+```js
 /**
  * QUESTION SET: Node.js Event Loop
  *
@@ -12869,11 +12869,13 @@ if (isMainThread) {
 */
 
 module.exports = { readFileAsync };
+```
 
 ---
 
-## 02_streams_buffers.js — QUESTION SET: Node.js Streams & Buffers
+## Node.js — Streams buffers
 
+```js
 /**
  * QUESTION SET: Node.js Streams & Buffers
  *
@@ -13133,11 +13135,13 @@ const server = http.createServer((req, res) => {
 */
 
 module.exports = { countLines, compressFile, CounterStream, ArrayCollector, CsvToJson };
+```
 
 ---
 
-## 03_express_middleware.js — QUESTION SET: Express.js Middleware & Patterns
+## Node.js — Express middleware
 
+```js
 /**
  * QUESTION SET: Express.js Middleware & Patterns
  *
@@ -13408,11 +13412,13 @@ function corsMiddleware(options = {}) {
 */
 
 module.exports = { logger, authenticate, authorize, createRateLimiter, validate, AppError, asyncHandler, errorHandler };
+```
 
 ---
 
-## 04_authentication.js — QUESTION SET: Node.js Authentication & JWT
+## Node.js — Authentication
 
+```js
 /**
  * QUESTION SET: Node.js Authentication & JWT
  *
@@ -13707,11 +13713,13 @@ module.exports = {
   authenticate,
   authorize,
 };
+```
 
 ---
 
-## 05_event_emitter.js — QUESTION SET: Node.js EventEmitter & Custom Events
+## Node.js — Event emitter
 
+```js
 /**
  * QUESTION SET: Node.js EventEmitter & Custom Events
  *
@@ -14033,11 +14041,13 @@ async function saveToDatabase(data) {}
 const db = { user: { save: async () => {} } };
 
 module.exports = { MyEventEmitter, EventBus, AsyncEventEmitter };
+```
 
 ---
 
-## 06_cluster_workers.js — QUESTION SET: Node.js Cluster, Worker Threads & child_process
+## Node.js — Cluster workers
 
+```js
 /**
  * QUESTION SET: Node.js Cluster, Worker Threads & child_process
  *
@@ -14338,11 +14348,13 @@ process.on('message', (msg) => {
 */
 
 module.exports = { WorkerPool, runCommand, execCommand };
+```
 
 ---
 
-## 07_file_system.js — QUESTION SET: Node.js File System (fs)
+## Node.js — File system
 
+```js
 /**
  * QUESTION SET: Node.js File System (fs)
  *
@@ -14667,11 +14679,13 @@ module.exports = {
   watchConfig,
   processCsv,
 };
+```
 
 ---
 
-## 08_error_handling.js — QUESTION SET: Node.js Error Handling
+## Node.js — Error handling
 
+```js
 /**
  * QUESTION SET: Node.js Error Handling
  *
@@ -15049,11 +15063,13 @@ module.exports = {
   asyncHandler, errorHandler, setupProcessErrorHandlers, gracefulShutdown,
   Result, CircuitBreaker,
 };
+```
 
 ---
 
-## 09_rest_api_patterns.js — QUESTION SET: Node.js REST API Patterns
+## Node.js — Rest api patterns
 
+```js
 /**
  * QUESTION SET: Node.js REST API Patterns
  *
@@ -15409,11 +15425,13 @@ const db = {};
 const cache = { get: async () => null, setEx: async () => {} };
 
 module.exports = { InMemoryRateLimiter, applyFieldFilter, encodeCursor, decodeCursor, listPosts };
+```
 
 ---
 
-## 10_race_conditions.js — RACE CONDITIONS IN NODE.JS — WHAT THEY ARE AND HOW TO AVOID THEM
+## Node.js — Race conditions
 
+```js
 /**
  * RACE CONDITIONS IN NODE.JS — WHAT THEY ARE AND HOW TO AVOID THEM
  *
@@ -15943,11 +15961,13 @@ module.exports = {
   placeOrderSafe,
   transferMoneySafe,
 };
+```
 
 ---
 
-## FILE: 11_theory_interview_qa.js
+## Node.js — Theory interview qa
 
+```js
 /*
 =============================================================
   NODE.JS THEORY — INTERVIEW Q&A
@@ -16386,9 +16406,9 @@ async function callAPI(path) {
 }
 
 module.exports = { gzipFile, processArray, callAPI };
+```
 
 ---
-
 
 ---
 
@@ -16396,24 +16416,7 @@ module.exports = { gzipFile, processArray, callAPI };
 
 > Dockerfile, Compose, Networking, Security, CI/CD
 
-
-> **Target:** 7+ year Full Stack MERN Developer | **Files:** 9
-
-## Table of Contents
-
-1. [01_dockerfile_basics.md — Q1. Simple Node.js Dockerfile](#01_dockerfile_basicsmd-q1-simple-nodejs-dockerfile)
-2. [02_docker_compose.md — Q1. Basic docker-compose.yml structure](#02_docker_composemd-q1-basic-docker-composeyml-structure)
-3. [03_networking.md — Q1. Bridge networks (default and custom)](#03_networkingmd-q1-bridge-networks-default-and-custom)
-4. [04_volumes_storage.md — Q1. Named volumes](#04_volumes_storagemd-q1-named-volumes)
-5. [05_security.md — Q1. Run containers as non-root](#05_securitymd-q1-run-containers-as-non-root)
-6. [06_cicd_registry.md — Q1. Basic registry push/pull](#06_cicd_registrymd-q1-basic-registry-pushpull)
-7. [07_production.md — Q1. Resource limits](#07_productionmd-q1-resource-limits)
-8. [08_interview_qa.md — Q1. What is Docker and how does it differ from a virtual machine?**](#08_interview_qamd-q1-what-is-docker-and-how-does-it-differ-from-a-virtual-machine)
-9. [09_theory_advanced_qa.md — SECTION 1: BASIC](#09_theory_advanced_qamd-section-1-basic)
-
----
-
-## 01_dockerfile_basics.md — Q1. Simple Node.js Dockerfile
+## Docker — Dockerfile basics
 
 # Docker: Dockerfile Fundamentals
 
@@ -16741,7 +16744,7 @@ docker scout cves myapp:latest
 
 ---
 
-## 02_docker_compose.md — Q1. Basic docker-compose.yml structure
+## Docker — Docker compose
 
 # Docker: docker-compose & Multi-Container Apps
 
@@ -17099,7 +17102,7 @@ services:
 
 ---
 
-## 03_networking.md — Q1. Bridge networks (default and custom)
+## Docker — Networking
 
 # Docker: Networking
 
@@ -17304,7 +17307,7 @@ docker run --rm --net container:myapp nicolaka/netshoot tcpdump -i eth0 port 300
 
 ---
 
-## 04_volumes_storage.md — Q1. Named volumes
+## Docker — Volumes storage
 
 # Docker: Volumes & Storage
 
@@ -17473,7 +17476,7 @@ volumes:
 
 ---
 
-## 05_security.md — Q1. Run containers as non-root
+## Docker — Security
 
 # Docker: Security Best Practices
 
@@ -17789,7 +17792,7 @@ CMD ["node", "dist/index.js"]
 
 ---
 
-## 06_cicd_registry.md — Q1. Basic registry push/pull
+## Docker — Cicd registry
 
 # Docker: CI/CD and Registry
 
@@ -18078,7 +18081,7 @@ cosign attach sbom --sbom sbom.json ghcr.io/username/myapp:latest
 
 ---
 
-## 07_production.md — Q1. Resource limits
+## Docker — Production
 
 # Docker: Production Operations
 
@@ -18404,7 +18407,7 @@ docker service scale myapp_api=5
 
 ---
 
-## 08_interview_qa.md — Q1. What is Docker and how does it differ from a virtual machine?**
+## Docker — Interview qa
 
 # Docker: Interview Q&A (Comprehensive)
 
@@ -18607,7 +18610,7 @@ docker cp <id>:/app/log.txt .     # copy file out of container
 
 ---
 
-## 09_theory_advanced_qa.md — SECTION 1: BASIC
+## Docker — Theory advanced qa
 
 # DOCKER — ADVANCED THEORY Q&A
 > **Level:** Advanced | **For:** 7+ years experience  
@@ -18971,31 +18974,13 @@ docker pull myrepo/myapp:latest   # verifies Notary signature
 
 ---
 
-
 ---
 
 # Kubernetes
 
 > Pods, Workloads, Networking, Storage, Security, Helm
 
-
-> **Target:** 7+ year Full Stack MERN Developer | **Files:** 9
-
-## Table of Contents
-
-1. [01_core_concepts.md — Architecture Overview](#01_core_conceptsmd-architecture-overview)
-2. [02_workloads.md — Overview](#02_workloadsmd-overview)
-3. [03_services_networking.md — How Pod Networking Works](#03_services_networkingmd-how-pod-networking-works)
-4. [04_storage.md — Storage Concepts](#04_storagemd-storage-concepts)
-5. [05_config_secrets.md — Why configuration management matters](#05_config_secretsmd-why-configuration-management-matters)
-6. [06_security.md — Security Layers in Kubernetes](#06_securitymd-security-layers-in-kubernetes)
-7. [07_advanced.md — Horizontal Pod Autoscaler (HPA)](#07_advancedmd-horizontal-pod-autoscaler-hpa)
-8. [08_helm_interview_qa.md — What is Helm?](#08_helm_interview_qamd-what-is-helm)
-9. [09_theory_advanced_qa.md — SECTION 1: BASIC](#09_theory_advanced_qamd-section-1-basic)
-
----
-
-## 01_core_concepts.md — Architecture Overview
+## Kubernetes — Core concepts
 
 # Kubernetes: Core Concepts
 
@@ -19284,7 +19269,7 @@ kubectl top nodes
 
 ---
 
-## 02_workloads.md — Overview
+## Kubernetes — Workloads
 
 # Kubernetes: Workloads
 
@@ -19682,7 +19667,7 @@ spec:
 
 ---
 
-## 03_services_networking.md — How Pod Networking Works
+## Kubernetes — Services networking
 
 # Kubernetes: Services and Networking
 
@@ -19987,7 +19972,7 @@ spec:
 
 ---
 
-## 04_storage.md — Storage Concepts
+## Kubernetes — Storage
 
 # Kubernetes: Storage — PersistentVolumes, PVCs, StorageClasses
 
@@ -20284,7 +20269,7 @@ kubectl get volumesnapshot -n production
 
 ---
 
-## 05_config_secrets.md — Why configuration management matters
+## Kubernetes — Config secrets
 
 # Kubernetes: ConfigMaps and Secrets
 
@@ -20619,7 +20604,7 @@ kubectl apply -f secret.yaml
 
 ---
 
-## 06_security.md — Security Layers in Kubernetes
+## Kubernetes — Security
 
 # Kubernetes: Security — RBAC, ServiceAccounts, Pod Security
 
@@ -20942,7 +20927,7 @@ rules:
 
 ---
 
-## 07_advanced.md — Horizontal Pod Autoscaler (HPA)
+## Kubernetes — Advanced
 
 # Kubernetes: Advanced — HPA, VPA, CRDs, Operators, Affinity
 
@@ -21298,7 +21283,7 @@ webhooks:
 
 ---
 
-## 08_helm_interview_qa.md — What is Helm?
+## Kubernetes — Helm interview qa
 
 # Kubernetes: Helm and Interview Q&A
 
@@ -21768,7 +21753,7 @@ jobs:
 
 ---
 
-## 09_theory_advanced_qa.md — SECTION 1: BASIC
+## Kubernetes — Theory advanced qa
 
 # KUBERNETES — ADVANCED THEORY Q&A
 > **Level:** Advanced | **For:** 7+ years experience  
@@ -22211,30 +22196,13 @@ spec:
 
 ---
 
-
 ---
 
 # Azure
 
 > AAD, App Service, Storage, Databases, AKS, Pipelines
 
-
-> **Target:** 7+ year Full Stack MERN Developer | **Files:** 8
-
-## Table of Contents
-
-1. [01_core_services_aad.md — What is Azure?](#01_core_services_aadmd-what-is-azure)
-2. [02_app_service_functions.md — Azure App Service — Managed Web Hosting](#02_app_service_functionsmd-azure-app-service-managed-web-hosting)
-3. [03_storage_cdn.md — Azure Blob Storage — Object Storage](#03_storage_cdnmd-azure-blob-storage-object-storage)
-4. [04_databases.md — Azure Database for PostgreSQL — Flexible Server](#04_databasesmd-azure-database-for-postgresql-flexible-server)
-5. [05_networking.md — Virtual Network (VNet)](#05_networkingmd-virtual-network-vnet)
-6. [06_aks_acr.md — Azure Container Registry (ACR)](#06_aks_acrmd-azure-container-registry-acr)
-7. [07_pipelines_devops.md — Why Azure Pipelines?](#07_pipelines_devopsmd-why-azure-pipelines)
-8. [08_interview_qa.md — Azure Fundamentals](#08_interview_qamd-azure-fundamentals)
-
----
-
-## 01_core_services_aad.md — What is Azure?
+## Azure — Core services aad
 
 # Azure: Core Services and Azure Active Directory (Entra ID)
 
@@ -22421,7 +22389,7 @@ Cost Management:
 
 ---
 
-## 02_app_service_functions.md — Azure App Service — Managed Web Hosting
+## Azure — App service functions
 
 # Azure: App Service and Azure Functions
 
@@ -22736,7 +22704,7 @@ module.exports = df.orchestrator(function* (context) {
 
 ---
 
-## 03_storage_cdn.md — Azure Blob Storage — Object Storage
+## Azure — Storage cdn
 
 # Azure: Storage, Blob, and CDN
 
@@ -23033,7 +23001,7 @@ az storage blob upload-batch \
 
 ---
 
-## 04_databases.md — Azure Database for PostgreSQL — Flexible Server
+## Azure — Databases
 
 # Azure: Databases
 
@@ -23269,7 +23237,7 @@ async function getProductCached(productId) {
 
 ---
 
-## 05_networking.md — Virtual Network (VNet)
+## Azure — Networking
 
 # Azure: Networking
 
@@ -23538,7 +23506,7 @@ az network dns record-set cname set-record \
 
 ---
 
-## 06_aks_acr.md — Azure Container Registry (ACR)
+## Azure — Aks acr
 
 # Azure: AKS and ACR — Kubernetes on Azure
 
@@ -23780,7 +23748,7 @@ az aks nodepool add \
 
 ---
 
-## 07_pipelines_devops.md — Why Azure Pipelines?
+## Azure — Pipelines devops
 
 # Azure DevOps Pipelines — Build, Test, and Deploy
 
@@ -24231,7 +24199,7 @@ tar xzf vsts-agent-linux-x64-3.x.x.tar.gz
 
 ---
 
-## 08_interview_qa.md — Azure Fundamentals
+## Azure — Interview qa
 
 # Azure: Comprehensive Interview Q&A
 
@@ -24377,30 +24345,13 @@ az monitor metrics alert create \
 
 ---
 
-
 ---
 
 # AWS
 
 > IAM, EC2, S3, Lambda, RDS, SQS, ECS/EKS
 
-
-> **Target:** 7+ year Full Stack MERN Developer | **Files:** 8
-
-## Table of Contents
-
-1. [01_core_services_iam.md — What is AWS?](#01_core_services_iammd-what-is-aws)
-2. [02_ec2_vpc.md — EC2 — Elastic Compute Cloud](#02_ec2_vpcmd-ec2-elastic-compute-cloud)
-3. [03_s3_cloudfront.md — S3 — Simple Storage Service](#03_s3_cloudfrontmd-s3-simple-storage-service)
-4. [04_lambda_api_gateway.md — Lambda — Serverless Functions](#04_lambda_api_gatewaymd-lambda-serverless-functions)
-5. [05_rds_dynamodb_cache.md — RDS — Relational Database Service](#05_rds_dynamodb_cachemd-rds-relational-database-service)
-6. [06_sqs_sns_eventbridge.md — Why Event-Driven?](#06_sqs_sns_eventbridgemd-why-event-driven)
-7. [07_ecs_eks_ecr.md — Container Services — Choosing the Right One](#07_ecs_eks_ecrmd-container-services-choosing-the-right-one)
-8. [08_cicd_interview_qa.md — CI/CD Concepts](#08_cicd_interview_qamd-cicd-concepts)
-
----
-
-## 01_core_services_iam.md — What is AWS?
+## AWS — Core services iam
 
 # AWS: Core Services Overview
 
@@ -24584,7 +24535,7 @@ await s3.send(new PutObjectCommand({ Bucket: 'mybucket', Key: 'file.txt', Body: 
 
 ---
 
-## 02_ec2_vpc.md — EC2 — Elastic Compute Cloud
+## AWS — Ec2 vpc
 
 # AWS: EC2 and VPC Networking
 
@@ -24870,7 +24821,7 @@ aws autoscaling put-scaling-policy \
 
 ---
 
-## 03_s3_cloudfront.md — S3 — Simple Storage Service
+## AWS — S3 cloudfront
 
 # AWS: S3 and CloudFront
 
@@ -25233,7 +25184,7 @@ aws cloudfront create-invalidation \
 
 ---
 
-## 04_lambda_api_gateway.md — Lambda — Serverless Functions
+## AWS — Lambda api gateway
 
 # AWS: Lambda and API Gateway
 
@@ -25572,7 +25523,7 @@ log('info', 'Processing request', { userId: '123', action: 'getUser' });
 
 ---
 
-## 05_rds_dynamodb_cache.md — RDS — Relational Database Service
+## AWS — Rds dynamodb cache
 
 # AWS: RDS, DynamoDB, and ElastiCache
 
@@ -25895,7 +25846,7 @@ async function updateUser(userId, updates) {
 
 ---
 
-## 06_sqs_sns_eventbridge.md — Why Event-Driven?
+## AWS — Sqs sns eventbridge
 
 # AWS: SQS, SNS, and EventBridge — Event-Driven Architecture
 
@@ -26216,7 +26167,7 @@ exports.handler = async (event) => {
 
 ---
 
-## 07_ecs_eks_ecr.md — Container Services — Choosing the Right One
+## AWS — Ecs eks ecr
 
 # AWS: ECS, EKS, and ECR — Containers on AWS
 
@@ -26493,7 +26444,7 @@ Use When           simple containers  K8s workloads         event-driven short t
 
 ---
 
-## 08_cicd_interview_qa.md — CI/CD Concepts
+## AWS — Cicd interview qa
 
 # AWS: CI/CD and Comprehensive Interview Q&A
 
@@ -26888,32 +26839,15 @@ jobs:
 
 ---
 
-
 ---
 
 # Next.js
 
 > App Router, Data Fetching, Auth, SEO, Performance
 
+## Next.js — App router fundamentals
 
-> **Target:** 7+ year Full Stack MERN Developer | **Files:** 9
-
-## Table of Contents
-
-1. [01_app_router_fundamentals.tsx — QUESTION SET: Next.js App Router — Fundamentals](#01_app_router_fundamentalstsx-question-set-nextjs-app-router-fundamentals)
-2. [02_data_fetching_server_actions.tsx — QUESTION SET: Next.js Data Fetching](#02_data_fetching_server_actionstsx-question-set-nextjs-data-fetching)
-3. [03_routing_middleware.tsx — QUESTION SET: Next.js Routing — Dynamic, Parallel, Intercepting, Middleware](#03_routing_middlewaretsx-question-set-nextjs-routing-dynamic-parallel-intercepting-middleware)
-4. [04_authentication.tsx — QUESTION SET: Next.js Authentication Patterns](#04_authenticationtsx-question-set-nextjs-authentication-patterns)
-5. [05_performance_optimization.tsx — QUESTION SET: Next.js Performance Optimization](#05_performance_optimizationtsx-question-set-nextjs-performance-optimization)
-6. [06_pages_router_data_fetching.tsx — QUESTION SET: Next.js Pages Router — Data Fetching](#06_pages_router_data_fetchingtsx-question-set-nextjs-pages-router-data-fetching)
-7. [07_seo_metadata_i18n.tsx — QUESTION SET: Next.js SEO, Metadata & Internationalization](#07_seo_metadata_i18ntsx-question-set-nextjs-seo-metadata-internationalization)
-8. [08_interview_qa.tsx — QUESTION SET: Next.js Interview Q&A — Comprehensive](#08_interview_qatsx-question-set-nextjs-interview-qa-comprehensive)
-9. [FILE: 09_theory_interview_qa.tsx](#file-09_theory_interview_qatsx)
-
----
-
-## 01_app_router_fundamentals.tsx — QUESTION SET: Next.js App Router — Fundamentals
-
+```tsx
 /**
  * QUESTION SET: Next.js App Router — Fundamentals
  *
@@ -27214,11 +27148,13 @@ export default function DashboardError({
 */
 
 export {};
+```
 
 ---
 
-## 02_data_fetching_server_actions.tsx — QUESTION SET: Next.js Data Fetching
+## Next.js — Data fetching server actions
 
+```tsx
 /**
  * QUESTION SET: Next.js Data Fetching
  *
@@ -27524,11 +27460,13 @@ export async function GET_BY_ID(
 */
 
 export {};
+```
 
 ---
 
-## 03_routing_middleware.tsx — QUESTION SET: Next.js Routing — Dynamic, Parallel, Intercepting, Middleware
+## Next.js — Routing middleware
 
+```tsx
 /**
  * QUESTION SET: Next.js Routing — Dynamic, Parallel, Intercepting, Middleware
  *
@@ -27815,11 +27753,13 @@ export async function POST(request: NextRequest) {
 */
 
 export {};
+```
 
 ---
 
-## 04_authentication.tsx — QUESTION SET: Next.js Authentication Patterns
+## Next.js — Authentication
 
+```tsx
 /**
  * QUESTION SET: Next.js Authentication Patterns
  *
@@ -28125,11 +28065,13 @@ export async function publishPostAction(postId: string) {
 */
 
 export {};
+```
 
 ---
 
-## 05_performance_optimization.tsx — QUESTION SET: Next.js Performance Optimization
+## Next.js — Performance optimization
 
+```tsx
 /**
  * QUESTION SET: Next.js Performance Optimization
  *
@@ -28415,11 +28357,13 @@ async function DynamicRecommendations({ productId }) {
 */
 
 export {};
+```
 
 ---
 
-## 06_pages_router_data_fetching.tsx — QUESTION SET: Next.js Pages Router — Data Fetching
+## Next.js — Pages router data fetching
 
+```tsx
 /**
  * QUESTION SET: Next.js Pages Router — Data Fetching
  * (Legacy but still widely used and heavily interviewed)
@@ -28717,11 +28661,13 @@ export default async function handler(
 */
 
 export {};
+```
 
 ---
 
-## 07_seo_metadata_i18n.tsx — QUESTION SET: Next.js SEO, Metadata & Internationalization
+## Next.js — Seo metadata i18n
 
+```tsx
 /**
  * QUESTION SET: Next.js SEO, Metadata & Internationalization
  *
@@ -29069,11 +29015,13 @@ export default function robots(): MetadataRoute.Robots {
 */
 
 export {};
+```
 
 ---
 
-## 08_interview_qa.tsx — QUESTION SET: Next.js Interview Q&A — Comprehensive
+## Next.js — Interview qa
 
+```tsx
 /**
  * QUESTION SET: Next.js Interview Q&A — Comprehensive
  *
@@ -29748,11 +29696,13 @@ Next.js 14:
 */
 
 export {};
+```
 
 ---
 
-## FILE: 09_theory_interview_qa.tsx
+## Next.js — Theory interview qa
 
+```tsx
 /*
 =============================================================
   NEXT.JS THEORY — INTERVIEW Q&A
@@ -30367,9 +30317,9 @@ const Chart = dynamic(() => import('recharts').then(m => m.LineChart), { ssr: fa
 // E) Check Next.js build output for large first-load JS:
 // next build → shows First Load JS per route
 // Target: < 100KB for critical routes
+```
 
 ---
-
 
 ---
 
@@ -30377,25 +30327,9 @@ const Chart = dynamic(() => import('recharts').then(m => m.LineChart), { ssr: fa
 
 > Schema, Resolvers, DataLoader, Federation, Apollo
 
+## GraphQL — Schema types SDL
 
-> **Target:** 7+ year Full Stack MERN Developer | **Files:** 9
-
-## Table of Contents
-
-1. [01_schema_types_SDL.js — QUESTION SET: GraphQL — Schema Definition Language (SDL)](#01_schema_types_sdljs-question-set-graphql-schema-definition-language-sdl)
-2. [02_resolvers_context.js — QUESTION SET: GraphQL Resolvers, Context & Middleware](#02_resolvers_contextjs-question-set-graphql-resolvers-context-middleware)
-3. [03_dataloader_n_plus_1.js — QUESTION SET: GraphQL — DataLoader & N+1 Problem](#03_dataloader_n_plus_1js-question-set-graphql-dataloader-n1-problem)
-4. [04_mutations_subscriptions.js — QUESTION SET: GraphQL Mutations & Subscriptions](#04_mutations_subscriptionsjs-question-set-graphql-mutations-subscriptions)
-5. [05_apollo_client.jsx — QUESTION SET: Apollo Client — Queries, Mutations & Cache](#05_apollo_clientjsx-question-set-apollo-client-queries-mutations-cache)
-6. [06_security_error_handling.js — QUESTION SET: GraphQL Security, Error Handling & Performance](#06_security_error_handlingjs-question-set-graphql-security-error-handling-performance)
-7. [07_federation_stitching.js — QUESTION SET: GraphQL Federation & Schema Stitching](#07_federation_stitchingjs-question-set-graphql-federation-schema-stitching)
-8. [08_interview_qa_patterns.js — QUESTION SET: GraphQL — Interview Questions & Advanced Patterns](#08_interview_qa_patternsjs-question-set-graphql-interview-questions-advanced-patterns)
-9. [FILE: 09_theory_interview_qa.js](#file-09_theory_interview_qajs)
-
----
-
-## 01_schema_types_SDL.js — QUESTION SET: GraphQL — Schema Definition Language (SDL)
-
+```js
 /**
  * QUESTION SET: GraphQL — Schema Definition Language (SDL)
  *
@@ -30667,11 +30601,13 @@ const mergedTypeDefs = mergeTypeDefs([userTypeDefs, postTypeDefs]);
 */
 
 module.exports = { typeDefs };
+```
 
 ---
 
-## 02_resolvers_context.js — QUESTION SET: GraphQL Resolvers, Context & Middleware
+## GraphQL — Resolvers context
 
+```js
 /**
  * QUESTION SET: GraphQL Resolvers, Context & Middleware
  *
@@ -30951,11 +30887,13 @@ const permissions = shield({
 */
 
 module.exports = { resolvers, createContext };
+```
 
 ---
 
-## 03_dataloader_n_plus_1.js — QUESTION SET: GraphQL — DataLoader & N+1 Problem
+## GraphQL — Dataloader n plus 1
 
+```js
 /**
  * QUESTION SET: GraphQL — DataLoader & N+1 Problem
  *
@@ -31199,11 +31137,13 @@ function hashQuery(query) {
 */
 
 module.exports = { createLoaders, batchLoadUsers, batchLoadPostsByAuthor };
+```
 
 ---
 
-## 04_mutations_subscriptions.js — QUESTION SET: GraphQL Mutations & Subscriptions
+## GraphQL — Mutations subscriptions
 
+```js
 /**
  * QUESTION SET: GraphQL Mutations & Subscriptions
  *
@@ -31492,11 +31432,13 @@ function createRestNotifier(pubsub) {
 */
 
 module.exports = { mutationResolvers, subscriptionResolvers, startServer, createRestNotifier };
+```
 
 ---
 
-## 05_apollo_client.jsx — QUESTION SET: Apollo Client — Queries, Mutations & Cache
+## GraphQL — Apollo client
 
+```jsx
 /**
  * QUESTION SET: Apollo Client — Queries, Mutations & Cache
  *
@@ -31836,11 +31778,13 @@ function cacheManipulationExamples(client) {
 */
 
 export { client };
+```
 
 ---
 
-## 06_security_error_handling.js — QUESTION SET: GraphQL Security, Error Handling & Performance
+## GraphQL — Security error handling
 
+```js
 /**
  * QUESTION SET: GraphQL Security, Error Handling & Performance
  *
@@ -32139,11 +32083,13 @@ function authDirectiveTransformer(schema) {
 */
 
 module.exports = { NotFoundError, ValidationError, AuthError, formatError };
+```
 
 ---
 
-## 07_federation_stitching.js — QUESTION SET: GraphQL Federation & Schema Stitching
+## GraphQL — Federation stitching
 
+```js
 /**
  * QUESTION SET: GraphQL Federation & Schema Stitching
  *
@@ -32417,11 +32363,13 @@ const stitchedSchema = stitchSchemas({
 */
 
 module.exports = { usersResolvers, postsResolvers, reviewsResolvers };
+```
 
 ---
 
-## 08_interview_qa_patterns.js — QUESTION SET: GraphQL — Interview Questions & Advanced Patterns
+## GraphQL — Interview qa patterns
 
+```js
 /**
  * QUESTION SET: GraphQL — Interview Questions & Advanced Patterns
  *
@@ -32712,11 +32660,13 @@ const directiveExamples = gql`
 */
 
 module.exports = { encodeCursor, decodeCursor, offsetPaginationResolvers, cursorPaginationResolvers };
+```
 
 ---
 
-## FILE: 09_theory_interview_qa.js
+## GraphQL — Theory interview qa
 
+```js
 /*
 =============================================================
   GRAPHQL THEORY — INTERVIEW Q&A
@@ -33196,9 +33146,9 @@ function protectedResolver(parent, args, context) {
 }
 
 module.exports = { encodeCursor, decodeCursor };
+```
 
 ---
-
 
 ---
 
@@ -33206,17 +33156,9 @@ module.exports = { encodeCursor, decodeCursor };
 
 > OWASP, Auth, XSS, CSRF, Injection, Best Practices
 
+## Web Security — Theory interview qa
 
-> **Target:** 7+ year Full Stack MERN Developer | **Files:** 1
-
-## Table of Contents
-
-9. [FILE: 01_theory_interview_qa.js](#file-01_theory_interview_qajs)
-
----
-
-## FILE: 01_theory_interview_qa.js
-
+```js
 /*
 =============================================================
   WEB SECURITY — THEORY / INTERVIEW Q&A
@@ -33878,7 +33820,7 @@ const db2 = { invoices: { findOne: async () => null, findById: async () => null 
 app.get = () => {};
 
 module.exports = { loginSafe, deepMergeSafe, isPrivateIP, loadEnv };
+```
 
 ---
-
 
