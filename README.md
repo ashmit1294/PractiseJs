@@ -1,4 +1,4 @@
-﻿# Full Stack MERN Developer — Interview Revision Reference
+# Full Stack MERN Developer — Interview Revision Reference
 
 **Level:** 7+ Years Full Stack (MERN)  |  **Topics:** 11  |  **Last Updated:** March 13, 2026
 
@@ -16418,16 +16418,16 @@ module.exports = { gzipFile, processArray, callAPI };
 
 ## Docker — Dockerfile basics
 
-# Docker: Dockerfile Fundamentals
+### Docker: Dockerfile Fundamentals
 
-## What is a Dockerfile?
+#### What is a Dockerfile?
 
 A text document containing instructions to build a Docker image.
 Each instruction creates a new layer in the image.
 
 ---
 
-## Key Dockerfile Instructions
+#### Key Dockerfile Instructions
 
 | Instruction | Purpose |
 |-------------|---------|
@@ -16447,7 +16447,7 @@ Each instruction creates a new layer in the image.
 
 ---
 
-## Q1. Simple Node.js Dockerfile
+#### Q1. Simple Node.js Dockerfile
 
 ```dockerfile
 # Bad — no layer caching optimisation
@@ -16478,7 +16478,7 @@ CMD ["node", "src/index.js"]
 
 ---
 
-## Q2. Multi-stage build — smaller production image
+#### Q2. Multi-stage build — smaller production image
 
 ```dockerfile
 # ── Stage 1: Build ──────────────────────────────────────────
@@ -16521,7 +16521,7 @@ CMD ["node", "dist/index.js"]
 
 ---
 
-## Q3. .dockerignore — exclude files from build context
+#### Q3. .dockerignore — exclude files from build context
 
 ```dockerignore
 node_modules
@@ -16545,7 +16545,7 @@ is sent to the Docker daemon before each build.
 
 ---
 
-## Q4. ARG vs ENV
+#### Q4. ARG vs ENV
 
 ```dockerfile
 # ARG — build-time only, not available in running container
@@ -16568,7 +16568,7 @@ ENV NODE_ENV=production \
 
 ---
 
-## Q5. ENTRYPOINT vs CMD
+#### Q5. ENTRYPOINT vs CMD
 
 ```dockerfile
 # CMD only — easily overridden by docker run arguments
@@ -16595,7 +16595,7 @@ Always use **exec form** in production so `SIGTERM` reaches the process.
 
 ---
 
-## Q6. Layer caching best practices
+#### Q6. Layer caching best practices
 
 ```dockerfile
 # Order from LEAST frequently changing to MOST frequently changing
@@ -16622,7 +16622,7 @@ RUN npm run build
 
 ---
 
-## Q7. HEALTHCHECK
+#### Q7. HEALTHCHECK
 
 ```dockerfile
 HEALTHCHECK \
@@ -16635,7 +16635,7 @@ HEALTHCHECK \
 
 ---
 
-## Q8. Security best practices
+#### Q8. Security best practices
 
 ```dockerfile
 FROM node:20-alpine
@@ -16674,7 +16674,7 @@ CMD ["node", "dist/index.js"]
 
 ---
 
-## Q9. Distroless images
+#### Q9. Distroless images
 
 ```dockerfile
 # FROM node:20-alpine     ~65MB
@@ -16699,7 +16699,7 @@ Distroless: no shell available → harder for attackers to execute commands if t
 
 ---
 
-## Q10. Build & run commands reference
+#### Q10. Build & run commands reference
 
 ```bash
 # Build
@@ -16725,7 +16725,7 @@ docker scout cves myapp:latest
 
 ---
 
-## Interview Questions
+#### Interview Questions
 
 **Q: What is the difference between an image and a container?**
 > Image: read-only template (layers). Container: running instance of an image (image + writable layer).
@@ -16746,9 +16746,9 @@ docker scout cves myapp:latest
 
 ## Docker — Docker compose
 
-# Docker: docker-compose & Multi-Container Apps
+### Docker: docker-compose & Multi-Container Apps
 
-## What is Docker Compose?
+#### What is Docker Compose?
 
 A tool to define and run **multi-container** applications.
 Configuration lives in `docker-compose.yml` (or `compose.yaml`).
@@ -16756,7 +16756,7 @@ A single command (`docker compose up`) starts your entire stack.
 
 ---
 
-## Q1. Basic docker-compose.yml structure
+#### Q1. Basic docker-compose.yml structure
 
 ```yaml
 # compose.yaml (preferred file name in newer versions)
@@ -16816,7 +16816,7 @@ networks:
 
 ---
 
-## Q2. Environment variable management
+#### Q2. Environment variable management
 
 ```yaml
 # Option 1: inline (avoid for secrets)
@@ -16850,7 +16850,7 @@ API_KEY=abc123
 
 ---
 
-## Q3. Volumes — bind mounts vs named volumes
+#### Q3. Volumes — bind mounts vs named volumes
 
 ```yaml
 services:
@@ -16884,7 +16884,7 @@ volumes:
 
 ---
 
-## Q4. Service profiles — conditional services
+#### Q4. Service profiles — conditional services
 
 ```yaml
 services:
@@ -16915,7 +16915,7 @@ docker compose --profile dev --profile test up
 
 ---
 
-## Q5. Full-stack development compose
+#### Q5. Full-stack development compose
 
 ```yaml
 services:
@@ -16980,7 +16980,7 @@ volumes:
 
 ---
 
-## Q6. Override files — compose.override.yml
+#### Q6. Override files — compose.override.yml
 
 ```yaml
 # compose.yml — base (production compatible)
@@ -17017,7 +17017,7 @@ docker compose -f compose.yml -f compose.prod.yml up
 
 ---
 
-## Q7. Common docker compose commands
+#### Q7. Common docker compose commands
 
 ```bash
 # Start services
@@ -17048,7 +17048,7 @@ docker compose top                             # process list inside containers
 
 ---
 
-## Q8. Health checks and restart policies
+#### Q8. Health checks and restart policies
 
 ```yaml
 services:
@@ -17073,7 +17073,7 @@ services:
 
 ---
 
-## Interview Questions
+#### Interview Questions
 
 **Q: What is the difference between `docker compose up` and `docker compose start`?**
 > `up` creates AND starts containers. `start` only starts already-created containers.
@@ -17104,9 +17104,9 @@ services:
 
 ## Docker — Networking
 
-# Docker: Networking
+### Docker: Networking
 
-## Docker Network Types
+#### Docker Network Types
 
 | Driver    | Description |
 |-----------|-------------|
@@ -17118,7 +17118,7 @@ services:
 
 ---
 
-## Q1. Bridge networks (default and custom)
+#### Q1. Bridge networks (default and custom)
 
 ```bash
 # Default bridge network — auto-assigned IPs, containers talk via IP only
@@ -17137,7 +17137,7 @@ docker run -d --name app2 --network my-network nginx
 
 ---
 
-## Q2. Network commands
+#### Q2. Network commands
 
 ```bash
 # Create
@@ -17158,7 +17158,7 @@ docker network prune
 
 ---
 
-## Q3. Expose vs publish ports
+#### Q3. Expose vs publish ports
 
 ```dockerfile
 EXPOSE 3000   # documents intent — informational only, no binding
@@ -17175,7 +17175,7 @@ docker port myapp                      # show port mappings
 
 ---
 
-## Q4. Inter-service communication in compose
+#### Q4. Inter-service communication in compose
 
 ```yaml
 services:
@@ -17206,7 +17206,7 @@ networks:
 
 ---
 
-## Q5. Host networking (Linux only)
+#### Q5. Host networking (Linux only)
 
 ```bash
 # Container shares host network interface directly
@@ -17221,7 +17221,7 @@ docker run --network host nginx
 
 ---
 
-## Q6. DNS and service discovery
+#### Q6. DNS and service discovery
 
 ```bash
 # Inside a container on a custom network, you can reach other containers by:
@@ -17246,7 +17246,7 @@ services:
 
 ---
 
-## Q7. Overlay network (Swarm / multi-host)
+#### Q7. Overlay network (Swarm / multi-host)
 
 ```bash
 # Overlay spans multiple Docker hosts
@@ -17260,7 +17260,7 @@ docker network create --driver overlay --opt encrypted secure-net
 
 ---
 
-## Q8. Network troubleshooting
+#### Q8. Network troubleshooting
 
 ```bash
 # Check connectivity from inside a container
@@ -17284,7 +17284,7 @@ docker run --rm --net container:myapp nicolaka/netshoot tcpdump -i eth0 port 300
 
 ---
 
-## Interview Questions
+#### Interview Questions
 
 **Q: Why should you use custom bridge networks instead of the default?**
 > Custom bridge networks provide automatic DNS resolution between containers by name. The default bridge network only allows IP-based communication; you'd need to look up IPs or use `--link` (deprecated).
@@ -17309,9 +17309,9 @@ docker run --rm --net container:myapp nicolaka/netshoot tcpdump -i eth0 port 300
 
 ## Docker — Volumes storage
 
-# Docker: Volumes & Storage
+### Docker: Volumes & Storage
 
-## Storage Types
+#### Storage Types
 
 | Type        | Description | Persistence |
 |-------------|-------------|-------------|
@@ -17322,7 +17322,7 @@ docker run --rm --net container:myapp nicolaka/netshoot tcpdump -i eth0 port 300
 
 ---
 
-## Q1. Named volumes
+#### Q1. Named volumes
 
 ```bash
 # Create
@@ -17352,7 +17352,7 @@ volumes:
 
 ---
 
-## Q2. Bind mounts — hot reload development
+#### Q2. Bind mounts — hot reload development
 
 ```yaml
 services:
@@ -17373,7 +17373,7 @@ services:
 
 ---
 
-## Q3. tmpfs — sensitive / temporary data
+#### Q3. tmpfs — sensitive / temporary data
 
 ```bash
 # Secrets in memory — never on disk
@@ -17389,7 +17389,7 @@ services:
 
 ---
 
-## Q4. Volume backup and restore
+#### Q4. Volume backup and restore
 
 ```bash
 # Backup named volume to a tar file
@@ -17407,7 +17407,7 @@ docker run --rm \
 
 ---
 
-## Q5. Volume drivers — remote storage
+#### Q5. Volume drivers — remote storage
 
 ```yaml
 # NFS volume — shared across multiple hosts
@@ -17429,7 +17429,7 @@ volumes:
 
 ---
 
-## Q6. Copy-on-Write (CoW) semantics
+#### Q6. Copy-on-Write (CoW) semantics
 
 **Image layers** are read-only. When a container modifies a file:
 1. Docker copies the file from the read-only layer to the container's writable layer (CoW).
@@ -17442,7 +17442,7 @@ volumes:
 
 ---
 
-## Q7. Volumes vs bind mounts — when to use each
+#### Q7. Volumes vs bind mounts — when to use each
 
 | Scenario | Recommendation |
 |----------|----------------|
@@ -17456,7 +17456,7 @@ volumes:
 
 ---
 
-## Interview Questions
+#### Interview Questions
 
 **Q: What is the difference between a named volume and a bind mount?**
 > Named volume: Docker manages the location (`/var/lib/docker/volumes/`). Portable, not tied to host filesystem layout. Preferred for databases and persistent data.
@@ -17478,9 +17478,9 @@ volumes:
 
 ## Docker — Security
 
-# Docker: Security Best Practices
+### Docker: Security Best Practices
 
-## OWASP Top Docker Security Issues
+#### OWASP Top Docker Security Issues
 
 1. Privileged containers
 2. Running as root
@@ -17493,7 +17493,7 @@ volumes:
 
 ---
 
-## Q1. Run containers as non-root
+#### Q1. Run containers as non-root
 
 ```dockerfile
 FROM node:20-alpine
@@ -17521,7 +17521,7 @@ docker run --user 1001:1001 myapp
 
 ---
 
-## Q2. Never put secrets in images
+#### Q2. Never put secrets in images
 
 ```dockerfile
 # BAD — secret baked into image layer (visible in docker history)
@@ -17564,7 +17564,7 @@ docker service create --secret db_password myapp
 
 ---
 
-## Q3. Use minimal base images
+#### Q3. Use minimal base images
 
 ```dockerfile
 # Option 1: alpine — minimal (~5MB), musl libc
@@ -17591,7 +17591,7 @@ CMD ["/app"]
 
 ---
 
-## Q4. Pin image versions
+#### Q4. Pin image versions
 
 ```dockerfile
 # BAD — 'latest' can change unexpectedly
@@ -17610,7 +17610,7 @@ FROM node:20-alpine@sha256:4b64...abc123
 
 ---
 
-## Q5. Drop Linux capabilities
+#### Q5. Drop Linux capabilities
 
 ```bash
 # Containers run with a reduced set of capabilities by default
@@ -17637,7 +17637,7 @@ services:
 
 ---
 
-## Q6. Read-only filesystem
+#### Q6. Read-only filesystem
 
 ```bash
 # Container filesystem is read-only — prevents attacker writing files
@@ -17657,7 +17657,7 @@ services:
 
 ---
 
-## Q7. Resource limits
+#### Q7. Resource limits
 
 ```bash
 # CPU and memory limits prevent DoS / runaway processes
@@ -17685,7 +17685,7 @@ services:
 
 ---
 
-## Q8. Image scanning
+#### Q8. Image scanning
 
 ```bash
 # Docker Scout (built into Docker Desktop)
@@ -17721,7 +17721,7 @@ anchore-cli image vuln myapp:latest all
 
 ---
 
-## Q9. Security checklist
+#### Q9. Security checklist
 
 ```dockerfile
 # Security-hardened Node.js Dockerfile
@@ -17773,7 +17773,7 @@ CMD ["node", "dist/index.js"]
 
 ---
 
-## Interview Questions
+#### Interview Questions
 
 **Q: Why is running containers as root dangerous?**
 > If an attacker breaks out of the container (container escape vulnerability), root in the container means root on the host. Non-root user limits the blast radius of a breach.
@@ -17794,9 +17794,9 @@ CMD ["node", "dist/index.js"]
 
 ## Docker — Cicd registry
 
-# Docker: CI/CD and Registry
+### Docker: CI/CD and Registry
 
-## Registry Overview
+#### Registry Overview
 
 | Registry | Free Tier | Auth | Best For |
 |----------|-----------|------|----------|
@@ -17809,7 +17809,7 @@ CMD ["node", "dist/index.js"]
 
 ---
 
-## Q1. Basic registry push/pull
+#### Q1. Basic registry push/pull
 
 ```bash
 # Docker Hub
@@ -17838,7 +17838,7 @@ docker push $REPO:1.0.0
 
 ---
 
-## Q2. Semantic versioning tagging strategy
+#### Q2. Semantic versioning tagging strategy
 
 ```bash
 # Good tagging strategy
@@ -17862,7 +17862,7 @@ docker build \
 
 ---
 
-## Q3. Multi-platform builds with buildx
+#### Q3. Multi-platform builds with buildx
 
 ```bash
 # Multi-platform builds (amd64 + arm64) using Docker buildx + QEMU
@@ -17893,7 +17893,7 @@ RUN echo "Building on $BUILDPLATFORM for $TARGETPLATFORM"
 
 ---
 
-## Q4. Layer caching in CI
+#### Q4. Layer caching in CI
 
 ```bash
 # Without caching: every CI run rebuilds from scratch (~3 min)
@@ -17920,7 +17920,7 @@ docker buildx build \
 
 ---
 
-## Q5. GitHub Actions complete workflow
+#### Q5. GitHub Actions complete workflow
 
 ```yaml
 # .github/workflows/ci.yml
@@ -18020,7 +18020,7 @@ jobs:
 
 ---
 
-## Q6. Docker in Docker (DinD) vs bind-mounting socket
+#### Q6. Docker in Docker (DinD) vs bind-mounting socket
 
 ```yaml
 # Pattern 1: Docker socket bind-mount (DANGEROUS — see security notes)
@@ -18042,7 +18042,7 @@ services:
 
 ---
 
-## Q7. Image signing with cosign
+#### Q7. Image signing with cosign
 
 ```bash
 # Sign with GitHub OIDC (keyless signing)
@@ -18062,7 +18062,7 @@ cosign attach sbom --sbom sbom.json ghcr.io/username/myapp:latest
 
 ---
 
-## Interview Questions
+#### Interview Questions
 
 **Q: What is multi-platform build and when is it needed?**
 > A multi-platform build produces a single image manifest that works on multiple CPU architectures (amd64, arm64). Needed when: deploying to AWS Graviton instances, Apple Silicon Macs, or Raspberry Pi. Use `docker buildx build --platform linux/amd64,linux/arm64`.
@@ -18083,9 +18083,9 @@ cosign attach sbom --sbom sbom.json ghcr.io/username/myapp:latest
 
 ## Docker — Production
 
-# Docker: Production Operations
+### Docker: Production Operations
 
-## Key Production Concerns
+#### Key Production Concerns
 1. Resource limits (prevent runaway containers)
 2. Logging (centralized, structured)
 3. Health checks (restart failing containers automatically)
@@ -18095,7 +18095,7 @@ cosign attach sbom --sbom sbom.json ghcr.io/username/myapp:latest
 
 ---
 
-## Q1. Resource limits
+#### Q1. Resource limits
 
 ```bash
 # Memory limits
@@ -18144,7 +18144,7 @@ services:
 
 ---
 
-## Q2. Logging drivers
+#### Q2. Logging drivers
 
 ```bash
 # Default: json-file (stored in /var/lib/docker/containers/<id>/<id>-json.log)
@@ -18200,7 +18200,7 @@ docker logs --tail 100 myapp        # last 100 lines
 
 ---
 
-## Q3. Restart policies
+#### Q3. Restart policies
 
 | Policy | Behaviour |
 |--------|-----------|
@@ -18224,7 +18224,7 @@ services:
 
 ---
 
-## Q4. HEALTHCHECK in depth
+#### Q4. HEALTHCHECK in depth
 
 ```dockerfile
 # Interval: how often to check (default 30s)
@@ -18268,7 +18268,7 @@ app.get('/health', (req, res) => {
 
 ---
 
-## Q5. Graceful shutdown in Node.js
+#### Q5. Graceful shutdown in Node.js
 
 ```javascript
 // index.js — critical for zero-downtime deployments
@@ -18309,7 +18309,7 @@ CMD node dist/index.js            # WRONG — shell is PID 1, node never gets SI
 
 ---
 
-## Q6. docker stats and monitoring
+#### Q6. docker stats and monitoring
 
 ```bash
 # Live stats (CPU, memory, net, block I/O)
@@ -18362,7 +18362,7 @@ services:
 
 ---
 
-## Q7. Rolling updates (Docker Swarm)
+#### Q7. Rolling updates (Docker Swarm)
 
 ```bash
 # Initialize Swarm
@@ -18388,7 +18388,7 @@ docker service scale myapp_api=5
 
 ---
 
-## Interview Questions
+#### Interview Questions
 
 **Q: What happens when a container exceeds its memory limit?**
 > The kernel OOM (Out of Memory) killer terminates the container process immediately (SIGKILL — no graceful shutdown). The container exits with error code 137. Set `--memory-reservation` lower than `--memory` as the soft limit for scheduling, and `--memory-swap` equal to `--memory` to disable swap.
@@ -18409,9 +18409,9 @@ docker service scale myapp_api=5
 
 ## Docker — Interview qa
 
-# Docker: Interview Q&A (Comprehensive)
+### Docker: Interview Q&A (Comprehensive)
 
-## Fundamentals
+#### Fundamentals
 
 **Q1. What is Docker and how does it differ from a virtual machine?**
 > Docker containers share the host OS kernel; each VMs has its own full OS kernel. Containers start in milliseconds and use far less memory (MBs vs GBs). Isolation: VMs use hardware-level hypervisor isolation (stronger); containers use Linux namespaces + cgroups (weaker, but sufficient for most workloads).
@@ -18454,7 +18454,7 @@ CMD ["dist/index.js"]       # docker run myapp → node dist/index.js
 
 ---
 
-## Networking
+#### Networking
 
 **Q6. Explain Docker network drivers**
 > - **bridge** (default): isolated virtual switch on the host; containers on same bridge can talk by IP. Default bridge has no DNS; custom bridge resolves by container name.
@@ -18475,7 +18475,7 @@ CMD ["dist/index.js"]       # docker run myapp → node dist/index.js
 
 ---
 
-## Storage
+#### Storage
 
 **Q9. What are the three types of Docker storage?**
 > 1. **Named volumes** (`docker volume create`): managed by Docker, stored in `/var/lib/docker/volumes/`. Persists beyond container lifecycle. Best for databases.
@@ -18489,7 +18489,7 @@ CMD ["dist/index.js"]       # docker run myapp → node dist/index.js
 
 ---
 
-## Security
+#### Security
 
 **Q11. What are Linux capabilities in Docker?**
 > Linux capabilities split root privileges into fine-grained units (`NET_BIND_SERVICE`, `CHOWN`, `SYS_PTRACE`, etc.). Docker containers run with a reduced set by default. Best practice: `--cap-drop ALL` then `--cap-add` only what's needed. Never use `--privileged` in production — it gives full kernel access.
@@ -18508,7 +18508,7 @@ CMD ["dist/index.js"]       # docker run myapp → node dist/index.js
 
 ---
 
-## Operations
+#### Operations
 
 **Q14. Explain restart policies**
 > - `no`: never restart (default).
@@ -18612,15 +18612,15 @@ docker cp <id>:/app/log.txt .     # copy file out of container
 
 ## Docker — Theory advanced qa
 
-# DOCKER — ADVANCED THEORY Q&A
+### DOCKER — ADVANCED THEORY Q&A
 > **Level:** Advanced | **For:** 7+ years experience  
 > Companion to `08_interview_qa.md` — covers internals, production patterns, and edge cases
 
 ---
 
-## SECTION 1: BASIC
+#### SECTION 1: BASIC
 
-### Q1 [BASIC]: What is the difference between a Docker image and a container?
+##### Q1 [BASIC]: What is the difference between a Docker image and a container?
 **A:** An image is a **read-only, layered filesystem snapshot** — a blueprint.  
 A container is a **running instance of an image** — a process with its own isolated namespace.  
 Multiple containers can run from the same image simultaneously without interfering.
@@ -18653,7 +18653,7 @@ Container (adds writable layer on top):
 
 ---
 
-### Q2 [BASIC]: What is the purpose of .dockerignore?
+##### Q2 [BASIC]: What is the purpose of .dockerignore?
 **A:** `.dockerignore` prevents files from being sent in the **build context** (the tar archive Docker sends to the daemon before building).
 
 Without it: `node_modules/` (500MB+), `.git/`, logs — all are sent over, making builds slow.
@@ -18678,9 +18678,9 @@ docker build --no-cache -t test . 2>&1 | head -5
 
 ---
 
-## SECTION 2: INTERMEDIATE
+#### SECTION 2: INTERMEDIATE
 
-### Q3 [INTERMEDIATE]: What is OverlayFS and how do Docker image layers work?
+##### Q3 [INTERMEDIATE]: What is OverlayFS and how do Docker image layers work?
 **A:** Docker uses **OverlayFS** (overlay filesystem) on Linux to stack read-only image layers + a writable container layer into a single merged filesystem view.
 
 ```
@@ -18718,7 +18718,7 @@ RUN npm ci                       # ← re-runs even if package.json unchanged
 
 ---
 
-### Q4 [INTERMEDIATE]: How does multi-stage build work and what are cache mounts?
+##### Q4 [INTERMEDIATE]: How does multi-stage build work and what are cache mounts?
 **A:** Multi-stage: use multiple `FROM` statements. Each stage builds in isolation.  
 Final stage only copies **artifacts** — build tools/dependencies stay in intermediate stages.
 
@@ -18765,7 +18765,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \  # pip cache
 
 ---
 
-### Q5 [INTERMEDIATE]: What is containerd and how does it relate to Docker?
+##### Q5 [INTERMEDIATE]: What is containerd and how does it relate to Docker?
 **A:** The Docker stack was decomposed into independent components:
 
 ```
@@ -18791,9 +18791,9 @@ ctr images list        # containerd CLI (low-level)
 
 ---
 
-## SECTION 3: ADVANCED
+#### SECTION 3: ADVANCED
 
-### Q6 [ADVANCED]: How do you build multi-platform images with buildx?
+##### Q6 [ADVANCED]: How do you build multi-platform images with buildx?
 **A:** `docker buildx` uses BuildKit under the hood and can produce images for multiple CPU architectures (AMD64, ARM64, ARMv7) in a single build.
 
 ```bash
@@ -18826,7 +18826,7 @@ docker buildx build --platform linux/arm64 -t myapp:arm64 .
 
 ---
 
-### Q7 [ADVANCED]: How do you implement rootless Docker and why does it matter for security?
+##### Q7 [ADVANCED]: How do you implement rootless Docker and why does it matter for security?
 **A:** Default Docker: daemon runs as **root** on the host. Container escape → root on host.  
 Rootless mode: Docker daemon runs as an **unprivileged user** — container escape gets only user-level access.
 
@@ -18865,7 +18865,7 @@ CMD ["node", "server.js"]
 
 ---
 
-### Q8 [ADVANCED]: What is the OCI Image Specification? How is an image really stored?
+##### Q8 [ADVANCED]: What is the OCI Image Specification? How is an image really stored?
 **A:** OCI (Open Container Initiative) Image Spec defines the standard image format that all compliant registries and runtimes understand.
 
 ```json
@@ -18903,7 +18903,7 @@ docker manifest inspect node:20
 
 ---
 
-### Q9 [ADVANCED]: How do you diagnose and fix container performance issues?
+##### Q9 [ADVANCED]: How do you diagnose and fix container performance issues?
 **A:** Container performance issues fall into: CPU throttling, memory pressure, I/O contention, and network bottlenecks.
 
 ```bash
@@ -18941,7 +18941,7 @@ docker run -d \
 
 ---
 
-### Q10 [ADVANCED]: What are security scanning best practices for Docker images?
+##### Q10 [ADVANCED]: What are security scanning best practices for Docker images?
 **A:** Images can contain vulnerable OS packages, leaked secrets, or misconfigured permissions. Scanning must be part of CI/CD.
 
 ```bash
@@ -18982,9 +18982,9 @@ docker pull myrepo/myapp:latest   # verifies Notary signature
 
 ## Kubernetes — Core concepts
 
-# Kubernetes: Core Concepts
+### Kubernetes: Core Concepts
 
-## Architecture Overview
+#### Architecture Overview
 
 ```
 Control Plane                    Worker Nodes
@@ -19007,7 +19007,7 @@ Control Plane                    Worker Nodes
 
 ---
 
-## Pods
+#### Pods
 
 ```yaml
 # Minimal Pod (rarely used directly — use Deployment instead)
@@ -19051,7 +19051,7 @@ spec:
 
 ---
 
-## ReplicaSet
+#### ReplicaSet
 
 ```yaml
 # Ensures N replicas of a Pod are running at all times
@@ -19077,7 +19077,7 @@ spec:
 
 ---
 
-## Deployment
+#### Deployment
 
 ```yaml
 # Deployment manages ReplicaSets for rolling updates + rollbacks
@@ -19131,7 +19131,7 @@ spec:
 
 ---
 
-## Services
+#### Services
 
 ```yaml
 # ClusterIP — internal only (default)
@@ -19179,7 +19179,7 @@ spec:
 
 ---
 
-## Namespaces
+#### Namespaces
 
 ```bash
 # Logical partitioning within a cluster
@@ -19212,7 +19212,7 @@ spec:
 
 ---
 
-## Essential kubectl Commands
+#### Essential kubectl Commands
 
 ```bash
 # Cluster info
@@ -19247,7 +19247,7 @@ kubectl top nodes
 
 ---
 
-## Interview Questions
+#### Interview Questions
 
 **Q: What is the difference between a Pod and a container?**
 > A Pod is the smallest deployable unit in Kubernetes. It can contain one or more tightly-coupled containers that share the same network namespace (same IP, localhost) and can share volumes. Docker containers are the actual runtimes; Pods are the K8s abstraction that wraps them.
@@ -19271,9 +19271,9 @@ kubectl top nodes
 
 ## Kubernetes — Workloads
 
-# Kubernetes: Workloads
+### Kubernetes: Workloads
 
-## Overview
+#### Overview
 Kubernetes workload resources manage how your application Pods run.
 Each type is designed for a specific use case — choosing the right one is critical.
 
@@ -19287,7 +19287,7 @@ Each type is designed for a specific use case — choosing the right one is crit
 
 ---
 
-## Deployment — updating and rolling back
+#### Deployment — updating and rolling back
 
 ```yaml
 # A complete production Deployment with all key settings explained
@@ -19401,7 +19401,7 @@ kubectl rollout undo deployment/api --to-revision=1  # rollback to specific revi
 
 ---
 
-## StatefulSet — for stateful applications (databases, Redis)
+#### StatefulSet — for stateful applications (databases, Redis)
 
 ```yaml
 # StatefulSets give each Pod a STABLE identity: api-0, api-1, api-2
@@ -19487,7 +19487,7 @@ spec:
 
 ---
 
-## DaemonSet — run exactly one Pod per node
+#### DaemonSet — run exactly one Pod per node
 
 ```yaml
 # Use case: log collector (Fluent Bit), metrics agent (node-exporter), security agent
@@ -19544,7 +19544,7 @@ spec:
 
 ---
 
-## Job — run a task to completion once
+#### Job — run a task to completion once
 
 ```yaml
 # Jobs run until completions are reached (re-runs on failure).
@@ -19577,7 +19577,7 @@ spec:
 
 ---
 
-## CronJob — scheduled Jobs (like cron)
+#### CronJob — scheduled Jobs (like cron)
 
 ```yaml
 # Runs a Job on a schedule defined using cron syntax.
@@ -19623,7 +19623,7 @@ spec:
 
 ---
 
-## Pod Disruption Budget (PDB)
+#### Pod Disruption Budget (PDB)
 
 ```yaml
 # PDB protects against too many Pods being simultaneously unavailable
@@ -19643,7 +19643,7 @@ spec:
 
 ---
 
-## Interview Questions
+#### Interview Questions
 
 **Q: What is the difference between Deployment and StatefulSet?**
 > Deployment Pods are interchangeable: they share the same PVC, have random names (api-abc12), and can be replaced in any order. StatefulSet Pods have stable identities: ordered names (postgres-0, postgres-1), their own PVCs that persist if the Pod is deleted, and are created/deleted in a predictable order. Use StatefulSet for anything that stores data on disk and needs stable network identity (databases, Kafka, ZooKeeper).
@@ -19669,9 +19669,9 @@ spec:
 
 ## Kubernetes — Services networking
 
-# Kubernetes: Services and Networking
+### Kubernetes: Services and Networking
 
-## How Pod Networking Works
+#### How Pod Networking Works
 Every Pod gets its own IP address. Pods on the same cluster can talk to each other
 directly by IP. A Service is a stable "virtual IP + DNS name" that load-balances
 across a set of matching Pods — even as Pods are replaced.
@@ -19682,7 +19682,7 @@ Client → Service (stable ClusterIP + DNS) → kube-proxy (iptables/IPVS) → P
 
 ---
 
-## Service Types
+#### Service Types
 
 | Type | Accessible From | How |
 |------|----------------|-----|
@@ -19693,7 +19693,7 @@ Client → Service (stable ClusterIP + DNS) → kube-proxy (iptables/IPVS) → P
 
 ---
 
-## ClusterIP — internal services
+#### ClusterIP — internal services
 
 ```yaml
 # ClusterIP is the default. Assigns a stable virtual IP inside the cluster.
@@ -19718,7 +19718,7 @@ spec:
 
 ---
 
-## NodePort — simple external access (dev/testing)
+#### NodePort — simple external access (dev/testing)
 
 ```yaml
 # NodePort opens port 30080 on EVERY node. Not for production — exposes raw node IPs.
@@ -19739,7 +19739,7 @@ spec:
 
 ---
 
-## LoadBalancer — production external access
+#### LoadBalancer — production external access
 
 ```yaml
 # Provisions a cloud load balancer (AWS NLB/ALB, GCP LB, Azure LB).
@@ -19769,7 +19769,7 @@ spec:
 
 ---
 
-## Ingress — HTTP routing (one LB for many services)
+#### Ingress — HTTP routing (one LB for many services)
 
 ```yaml
 # Ingress handles HTTP/HTTPS routing at layer 7 (host + path based).
@@ -19821,7 +19821,7 @@ spec:
 
 ---
 
-## DNS in Kubernetes
+#### DNS in Kubernetes
 
 ```bash
 # Pods communicate using Service DNS names — no hard-coded IPs needed
@@ -19845,7 +19845,7 @@ DATABASE_URL=postgresql://postgres:5432/myapp
 
 ---
 
-## NetworkPolicy — firewall rules for Pods
+#### NetworkPolicy — firewall rules for Pods
 
 ```yaml
 # By default, all Pods can talk to all other Pods (no firewall).
@@ -19906,7 +19906,7 @@ spec:
 
 ---
 
-## Headless Service + StatefulSet DNS
+#### Headless Service + StatefulSet DNS
 
 ```yaml
 # Headless Service (clusterIP: None) returns Pod IPs directly instead of a
@@ -19931,7 +19931,7 @@ spec:
 
 ---
 
-## ExternalName Service — connect to external services
+#### ExternalName Service — connect to external services
 
 ```yaml
 # Allows internal code to use a K8s DNS name but actually connect to an external host.
@@ -19950,7 +19950,7 @@ spec:
 
 ---
 
-## Interview Questions
+#### Interview Questions
 
 **Q: What is a Kubernetes Service and why is it needed?**
 > Pods are ephemeral — they get new IPs every time they restart. A Service provides a stable virtual IP and DNS name that always routes to the current healthy Pods via label selector. Without a Service, clients would have to track Pod IPs manually.
@@ -19974,9 +19974,9 @@ spec:
 
 ## Kubernetes — Storage
 
-# Kubernetes: Storage — PersistentVolumes, PVCs, StorageClasses
+### Kubernetes: Storage — PersistentVolumes, PVCs, StorageClasses
 
-## Storage Concepts
+#### Storage Concepts
 
 ```
 StorageClass  →  provisions a PersistentVolume (PV)
@@ -19993,7 +19993,7 @@ StorageClass  →  provisions a PersistentVolume (PV)
 
 ---
 
-## Access Modes
+#### Access Modes
 
 | Mode | Abbreviation | Meaning |
 |------|-------------|---------|
@@ -20004,7 +20004,7 @@ StorageClass  →  provisions a PersistentVolume (PV)
 
 ---
 
-## StorageClasses (cloud-native)
+#### StorageClasses (cloud-native)
 
 ```yaml
 # AWS: gp3 SSD (EBS) — faster and cheaper than gp2
@@ -20056,7 +20056,7 @@ allowVolumeExpansion: true
 
 ---
 
-## PersistentVolumeClaim (PVC)
+#### PersistentVolumeClaim (PVC)
 
 ```yaml
 # A PVC is a request: "I need 20Gi of RWO storage from the gp3 class"
@@ -20077,7 +20077,7 @@ spec:
 
 ---
 
-## Using a PVC in a Pod / Deployment
+#### Using a PVC in a Pod / Deployment
 
 ```yaml
 apiVersion: apps/v1
@@ -20103,7 +20103,7 @@ spec:
 
 ---
 
-## StatefulSet volumeClaimTemplates (auto PVC per Pod)
+#### StatefulSet volumeClaimTemplates (auto PVC per Pod)
 
 ```yaml
 # StatefulSet creates a PVC per replica automatically.
@@ -20143,7 +20143,7 @@ spec:
 
 ---
 
-## Manually provisioned PV (on-premise / NFS)
+#### Manually provisioned PV (on-premise / NFS)
 
 ```yaml
 # When there is no cloud StorageClass, create a PV manually
@@ -20180,7 +20180,7 @@ spec:
 
 ---
 
-## Volume Snapshots (backup)
+#### Volume Snapshots (backup)
 
 ```yaml
 # Snapshot = point-in-time copy of a PV (cloud-native backup)
@@ -20225,7 +20225,7 @@ spec:
 
 ---
 
-## Common kubectl Storage Commands
+#### Common kubectl Storage Commands
 
 ```bash
 # PVC / PV
@@ -20250,7 +20250,7 @@ kubectl get volumesnapshot -n production
 
 ---
 
-## Interview Questions
+#### Interview Questions
 
 **Q: What is the difference between a PV and a PVC?**
 > PV is the actual storage resource (an EBS volume, NFS share, etc.) — created by an admin or auto-provisioned by a StorageClass. PVC is a request for storage by a Pod — "I need 20Gi RWO." Kubernetes binds a matching PVC to a PV. The Pod interacts only with the PVC; it doesn't need to know the underlying storage type.
@@ -20271,9 +20271,9 @@ kubectl get volumesnapshot -n production
 
 ## Kubernetes — Config secrets
 
-# Kubernetes: ConfigMaps and Secrets
+### Kubernetes: ConfigMaps and Secrets
 
-## Why configuration management matters
+#### Why configuration management matters
 Hard-coding config values in container images is an anti-pattern:
 - An image built with `NODE_ENV=staging` cannot be promoted to production
 - Database passwords in images are a security failure
@@ -20284,7 +20284,7 @@ The same image runs in dev, staging, and production — only the config changes.
 
 ---
 
-## ConfigMap — non-sensitive configuration
+#### ConfigMap — non-sensitive configuration
 
 ```yaml
 # ConfigMap stores arbitrary key-value pairs or entire config files.
@@ -20328,7 +20328,7 @@ data:
 
 ---
 
-## Secret — sensitive configuration
+#### Secret — sensitive configuration
 
 ```yaml
 # Secrets are like ConfigMaps but for sensitive data.
@@ -20354,7 +20354,7 @@ stringData:                        # alternative: plain text (K8s base64-encodes
 
 ---
 
-## Injecting ConfigMap as environment variables
+#### Injecting ConfigMap as environment variables
 
 ```yaml
 # Method 1: envFrom — inject ALL keys as env vars at once
@@ -20395,7 +20395,7 @@ spec:
 
 ---
 
-## Mounting ConfigMap as files inside a container
+#### Mounting ConfigMap as files inside a container
 
 ```yaml
 # Useful for config files (nginx.conf, app.json, .env).
@@ -20423,7 +20423,7 @@ spec:
 
 ---
 
-## Mounting Secrets as files
+#### Mounting Secrets as files
 
 ```yaml
 # TLS certificates are best mounted as files, not env vars
@@ -20444,7 +20444,7 @@ spec:
 
 ---
 
-## TLS Secret
+#### TLS Secret
 
 ```bash
 # Create TLS secret from certificate files
@@ -20458,7 +20458,7 @@ kubectl create secret tls api-tls-secret \
 
 ---
 
-## External Secrets Operator (production best practice)
+#### External Secrets Operator (production best practice)
 
 ```yaml
 # Problem: storing plain base64 Secrets in Git is insecure.
@@ -20513,7 +20513,7 @@ spec:
 
 ---
 
-## Azure Key Vault integration (Azure-specific)
+#### Azure Key Vault integration (Azure-specific)
 
 ```yaml
 # Use Azure Key Vault Provider for Secrets Store CSI Driver
@@ -20559,7 +20559,7 @@ spec:
 
 ---
 
-## kubectl Commands
+#### kubectl Commands
 
 ```bash
 # ConfigMaps
@@ -20585,7 +20585,7 @@ kubectl apply -f secret.yaml
 
 ---
 
-## Interview Questions
+#### Interview Questions
 
 **Q: What is the difference between ConfigMap and Secret?**
 > Both store key-value config for Pods. Secrets are intended for sensitive data: they are stored separately in etcd and can be encrypted at rest (with proper cluster config). The key difference is intent and access control — you can RBAC-restrict access to Secrets separately. In practice: ConfigMap for non-sensitive config, Secret for passwords/tokens/certs.
@@ -20606,9 +20606,9 @@ kubectl apply -f secret.yaml
 
 ## Kubernetes — Security
 
-# Kubernetes: Security — RBAC, ServiceAccounts, Pod Security
+### Kubernetes: Security — RBAC, ServiceAccounts, Pod Security
 
-## Security Layers in Kubernetes
+#### Security Layers in Kubernetes
 
 ```
 ┌─────────────────────────────────────────────────┐
@@ -20622,7 +20622,7 @@ kubectl apply -f secret.yaml
 
 ---
 
-## RBAC — Role-Based Access Control
+#### RBAC — Role-Based Access Control
 
 ```
 Role / ClusterRole       ← defines WHAT actions are allowed
@@ -20639,7 +20639,7 @@ RoleBinding / ClusterRoleBinding  ← defines WHO gets those actions
 
 ---
 
-## Role and RoleBinding (namespace-scoped)
+#### Role and RoleBinding (namespace-scoped)
 
 ```yaml
 # Role: allow reading (get, list, watch) Pods and their logs in the 'staging' namespace.
@@ -20681,7 +20681,7 @@ roleRef:
 
 ---
 
-## ClusterRole and ClusterRoleBinding (cluster-wide)
+#### ClusterRole and ClusterRoleBinding (cluster-wide)
 
 ```yaml
 # ClusterRole: allow reading all nodes and persistent volumes (cluster-level resources)
@@ -20713,7 +20713,7 @@ roleRef:
 
 ---
 
-## ServiceAccounts
+#### ServiceAccounts
 
 ```yaml
 # Every Pod runs under a ServiceAccount (default: 'default' SA in its namespace).
@@ -20749,7 +20749,7 @@ spec:
 
 ---
 
-## Pod Security Admission (PSA) — K8s 1.25+
+#### Pod Security Admission (PSA) — K8s 1.25+
 
 ```yaml
 # PSA enforces security policies at the namespace level (replaced PodSecurityPolicy).
@@ -20796,7 +20796,7 @@ spec:
 
 ---
 
-## NetworkPolicy for security (namespace isolation)
+#### NetworkPolicy for security (namespace isolation)
 
 ```yaml
 # Default-deny: deny all ingress and egress in 'production' namespace.
@@ -20854,7 +20854,7 @@ spec:
 
 ---
 
-## RBAC Audit — test permissions
+#### RBAC Audit — test permissions
 
 ```bash
 # Can 'alice' create Pods in 'production'?
@@ -20874,7 +20874,7 @@ kubectl describe rolebinding -n production | grep -A3 "api-sa"
 
 ---
 
-## Audit Logging (detect suspicious activity)
+#### Audit Logging (detect suspicious activity)
 
 ```yaml
 # Enable API server audit log (set in kube-apiserver flags)
@@ -20908,7 +20908,7 @@ rules:
 
 ---
 
-## Interview Questions
+#### Interview Questions
 
 **Q: What is the difference between Role and ClusterRole?**
 > Role is namespace-scoped — its permissions apply only within the namespace it is created in. ClusterRole is cluster-wide — it can grant permissions on cluster-level resources (nodes, PVs) or be reused across namespaces via RoleBindings. You can bind a ClusterRole via a RoleBinding to limit it to one namespace.
@@ -20929,9 +20929,9 @@ rules:
 
 ## Kubernetes — Advanced
 
-# Kubernetes: Advanced — HPA, VPA, CRDs, Operators, Affinity
+### Kubernetes: Advanced — HPA, VPA, CRDs, Operators, Affinity
 
-## Horizontal Pod Autoscaler (HPA)
+#### Horizontal Pod Autoscaler (HPA)
 
 ```
 HPA watches metrics → scales Deployment replicas up or down automatically
@@ -21006,7 +21006,7 @@ kubectl describe hpa api-hpa -n production   # shows scaling events and decision
 
 ---
 
-## Vertical Pod Autoscaler (VPA)
+#### Vertical Pod Autoscaler (VPA)
 
 ```yaml
 # VPA adjusts CPU/memory requests and limits automatically based on actual usage.
@@ -21053,7 +21053,7 @@ kubectl describe vpa api-vpa -n production
 
 ---
 
-## Custom Resource Definitions (CRD) — extend the K8s API
+#### Custom Resource Definitions (CRD) — extend the K8s API
 
 ```yaml
 # CRDs let you add your own resource types to Kubernetes.
@@ -21110,7 +21110,7 @@ spec:
 
 ---
 
-## Operators — automate Day-2 operations
+#### Operators — automate Day-2 operations
 
 ```
 An Operator = CRD + a controller that watches the CRD and reconciles desired state.
@@ -21165,7 +21165,7 @@ watch.watch(
 
 ---
 
-## Affinity and Anti-Affinity — control Pod placement
+#### Affinity and Anti-Affinity — control Pod placement
 
 ```yaml
 # NodeAffinity: schedule Pods only on specific nodes
@@ -21202,7 +21202,7 @@ spec:
 
 ---
 
-## Taints and Tolerations — reserve nodes for specific workloads
+#### Taints and Tolerations — reserve nodes for specific workloads
 
 ```bash
 # Taint a node: "only GPU workloads can run here"
@@ -21230,7 +21230,7 @@ spec:
 
 ---
 
-## Admission Webhooks — intercept and mutate/validate API requests
+#### Admission Webhooks — intercept and mutate/validate API requests
 
 ```yaml
 # MutatingAdmissionWebhook: auto-modify Pods before saving to etcd
@@ -21263,7 +21263,7 @@ webhooks:
 
 ---
 
-## Interview Questions
+#### Interview Questions
 
 **Q: What is the difference between HPA and VPA?**
 > HPA scales horizontally — it changes the NUMBER of Pod replicas based on CPU, memory, or custom metrics. VPA scales vertically — it adjusts the CPU/memory requests and limits of existing Pods. They solve different problems: HPA for handling load spikes, VPA for right-sizing under-resourced Pods. They can be combined but require care (VPA must not fight HPA on memory-based metrics).
@@ -21285,9 +21285,9 @@ webhooks:
 
 ## Kubernetes — Helm interview qa
 
-# Kubernetes: Helm and Interview Q&A
+### Kubernetes: Helm and Interview Q&A
 
-## What is Helm?
+#### What is Helm?
 Helm is the package manager for Kubernetes. It bundles all the YAML files needed
 to deploy an application into a "Chart" — a reusable, parameterised template.
 
@@ -21299,7 +21299,7 @@ Release        = a deployed instance of a chart into a cluster
 
 ---
 
-## Helm Chart Structure
+#### Helm Chart Structure
 
 ```
 mychart/
@@ -21320,7 +21320,7 @@ mychart/
 
 ---
 
-## Chart.yaml
+#### Chart.yaml
 
 ```yaml
 # Describes the chart itself
@@ -21344,7 +21344,7 @@ dependencies:
 
 ---
 
-## values.yaml — defaults
+#### values.yaml — defaults
 
 ```yaml
 # All template values are sourced from here (or overridden at deploy time)
@@ -21393,7 +21393,7 @@ postgresql:
 
 ---
 
-## templates/deployment.yaml
+#### templates/deployment.yaml
 
 ```yaml
 # Templates use Go templating syntax.
@@ -21437,7 +21437,7 @@ spec:
 
 ---
 
-## templates/_helpers.tpl
+#### templates/_helpers.tpl
 
 ```
 {{/*
@@ -21467,7 +21467,7 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 
 ---
 
-## Helm CLI Commands
+#### Helm CLI Commands
 
 ```bash
 # ── INSTALL & UPGRADE ────────────────────────────────────────────────────────
@@ -21526,7 +21526,7 @@ helm install my-db bitnami/postgresql --version 13.x.x
 
 ---
 
-## Helm in CI/CD (Azure DevOps Pipeline)
+#### Helm in CI/CD (Azure DevOps Pipeline)
 
 ```yaml
 # azure-pipelines.yml — build, push image, deploy with Helm to AKS
@@ -21662,7 +21662,7 @@ stages:
 
 ---
 
-## Helm in CI/CD (GitHub Actions)
+#### Helm in CI/CD (GitHub Actions)
 
 ```yaml
 # .github/workflows/deploy.yml
@@ -21703,7 +21703,7 @@ jobs:
 
 ---
 
-## Comprehensive Interview Q&A
+#### Comprehensive Interview Q&A
 
 **Q: What is the difference between kubectl apply and helm upgrade?**
 > `kubectl apply` is imperative at the resource level — you manage each YAML file separately. `helm upgrade` manages ALL the resources of a release as a unit: it tracks what was deployed, diffs against the new chart, and updates/creates/deletes resources accordingly. Helm also provides rollback history, versioning, and parameterisation across environments.
@@ -21755,15 +21755,15 @@ jobs:
 
 ## Kubernetes — Theory advanced qa
 
-# KUBERNETES — ADVANCED THEORY Q&A
+### KUBERNETES — ADVANCED THEORY Q&A
 > **Level:** Advanced | **For:** 7+ years experience  
 > Companion to `08_helm_interview_qa.md` — covers internals, controller patterns, and production
 
 ---
 
-## SECTION 1: BASIC
+#### SECTION 1: BASIC
 
-### Q1 [BASIC]: What are the core components of a Kubernetes cluster?
+##### Q1 [BASIC]: What are the core components of a Kubernetes cluster?
 **A:** Kubernetes has two planes: **Control Plane** (brain) and **Data Plane** (workers).
 
 ```
@@ -21796,7 +21796,7 @@ kubectl top nodes    # CPU/memory usage (requires metrics-server)
 
 ---
 
-### Q2 [BASIC]: What is the difference between a Deployment, StatefulSet, and DaemonSet?
+##### Q2 [BASIC]: What is the difference between a Deployment, StatefulSet, and DaemonSet?
 **A:**
 | Controller | Pods | Pod Identity | Storage | Use Case |
 |-----------|------|------|---------|--------|
@@ -21839,9 +21839,9 @@ spec:
 
 ---
 
-## SECTION 2: INTERMEDIATE
+#### SECTION 2: INTERMEDIATE
 
-### Q3 [INTERMEDIATE]: How does etcd maintain consistency in Kubernetes?
+##### Q3 [INTERMEDIATE]: How does etcd maintain consistency in Kubernetes?
 **A:** etcd uses the **Raft consensus algorithm** to maintain consistency across multiple etcd nodes.
 
 ```
@@ -21876,7 +21876,7 @@ ETCDCTL_API=3 etcdctl get / --prefix --keys-only | head -20
 
 ---
 
-### Q4 [INTERMEDIATE]: How does kube-proxy work? iptables vs IPVS mode.
+##### Q4 [INTERMEDIATE]: How does kube-proxy work? iptables vs IPVS mode.
 **A:** kube-proxy watches the API server for Service/Endpoints changes and programs the kernel networking rules to implement Service load balancing.
 
 ```
@@ -21914,7 +21914,7 @@ ipvsadm -Ln --stats            # show connection stats per service
 
 ---
 
-### Q5 [INTERMEDIATE]: How does the Kubernetes scheduler make placement decisions?
+##### Q5 [INTERMEDIATE]: How does the Kubernetes scheduler make placement decisions?
 **A:** Scheduling is a two-phase process: **Filtering** (which nodes are eligible?) then **Scoring** (which is best?).
 
 ```
@@ -21965,9 +21965,9 @@ spec:
 
 ---
 
-## SECTION 3: ADVANCED
+#### SECTION 3: ADVANCED
 
-### Q6 [ADVANCED]: How does the controller reconciliation loop work? Implement a custom controller pattern.
+##### Q6 [ADVANCED]: How does the controller reconciliation loop work? Implement a custom controller pattern.
 **A:** Every Kubernetes controller implements the **control loop**: observe desired state → compare with current state → act to reconcile.
 
 ```
@@ -22025,7 +22025,7 @@ func (r *MyAppReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 
 ---
 
-### Q7 [ADVANCED]: How does the API server admission chain work?
+##### Q7 [ADVANCED]: How does the API server admission chain work?
 **A:** Every write request to the API server passes through a pipeline before being persisted to etcd.
 
 ```
@@ -22071,7 +22071,7 @@ webhooks:
 
 ---
 
-### Q8 [ADVANCED]: How does CNI (Container Network Interface) work? Calico vs Cilium.
+##### Q8 [ADVANCED]: How does CNI (Container Network Interface) work? Calico vs Cilium.
 **A:** CNI plugins connect pod network namespaces to the cluster network.
 
 ```
@@ -22114,7 +22114,7 @@ hubble observe --type drop   # show dropped packets (policy violations)
 
 ---
 
-### Q9 [ADVANCED]: How do you implement leader election for a controller?
+##### Q9 [ADVANCED]: How do you implement leader election for a controller?
 **A:** If you run multiple replicas of your controller for HA, only ONE should actively reconcile (split-brain = dangerous). Kubernetes uses a **Lease** object for leader election.
 
 ```yaml
@@ -22148,7 +22148,7 @@ mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 
 ---
 
-### Q10 [ADVANCED]: How does Kubernetes Handle Node Failure and Pod Rescheduling?
+##### Q10 [ADVANCED]: How does Kubernetes Handle Node Failure and Pod Rescheduling?
 **A:** Node failure detection and pod rescheduling flow:
 
 ```
@@ -22204,9 +22204,9 @@ spec:
 
 ## Azure — Core services aad
 
-# Azure: Core Services and Azure Active Directory (Entra ID)
+### Azure: Core Services and Azure Active Directory (Entra ID)
 
-## What is Azure?
+#### What is Azure?
 
 ```
 Microsoft Azure is a cloud computing platform with 200+ services.
@@ -22225,7 +22225,7 @@ Key concepts:
 
 ---
 
-## Resource Group — Organization Unit
+#### Resource Group — Organization Unit
 
 ```bash
 # Create a resource group (all resources go here)
@@ -22243,7 +22243,7 @@ az group delete --name rg-my-app-prod --yes --no-wait
 
 ---
 
-## Azure Active Directory (Microsoft Entra ID)
+#### Azure Active Directory (Microsoft Entra ID)
 
 ```
 Azure AD (now called Microsoft Entra ID) is Azure's identity and access management service.
@@ -22261,7 +22261,7 @@ Key concepts:
 
 ---
 
-## Managed Identity — Credential-Free Auth
+#### Managed Identity — Credential-Free Auth
 
 ```javascript
 // Without Managed Identity — BAD: hardcoded secret that expires and leaks
@@ -22288,7 +22288,7 @@ const storageClient = new BlobServiceClient(
 
 ---
 
-## Role-Based Access Control (RBAC)
+#### Role-Based Access Control (RBAC)
 
 ```
 Azure RBAC controls who can do what on which resource.
@@ -22320,7 +22320,7 @@ az role assignment list \
 
 ---
 
-## Azure CLI Essentials
+#### Azure CLI Essentials
 
 ```bash
 # Install (Windows)
@@ -22343,7 +22343,7 @@ az storage account create --help
 
 ---
 
-## Azure Pricing Model
+#### Azure Pricing Model
 
 ```
 On-demand (Pay-as-you-go):
@@ -22368,7 +22368,7 @@ Cost Management:
 
 ---
 
-## Interview Questions
+#### Interview Questions
 
 **Q: What is a Resource Group in Azure?**
 > A logical container for related Azure resources. Every Azure resource must belong to exactly one resource group. You can apply policies, access control (RBAC), and tags at the resource group level — affecting all resources inside. Deleting a resource group deletes all resources in it. Typical pattern: one resource group per application per environment (rg-orders-api-prod).
@@ -22391,9 +22391,9 @@ Cost Management:
 
 ## Azure — App service functions
 
-# Azure: App Service and Azure Functions
+### Azure: App Service and Azure Functions
 
-## Azure App Service — Managed Web Hosting
+#### Azure App Service — Managed Web Hosting
 
 ```
 App Service is a fully managed PaaS (Platform as a Service) for hosting:
@@ -22413,7 +22413,7 @@ App Service Plan determines:
 
 ---
 
-## Deploying a Node.js App to App Service
+#### Deploying a Node.js App to App Service
 
 ```bash
 # Step 1: Create an App Service Plan (the compute tier)
@@ -22460,7 +22460,7 @@ az webapp deployment source config-zip \
 
 ---
 
-## Deployment Slots — Zero-Downtime Deployments
+#### Deployment Slots — Zero-Downtime Deployments
 
 ```
 Deployment slots are separate live environments within one App Service app.
@@ -22515,7 +22515,7 @@ az webapp deployment slot swap \
 
 ---
 
-## Auto-scaling App Service
+#### Auto-scaling App Service
 
 ```bash
 # Auto-scale rule: add instance when average CPU > 70%,
@@ -22544,7 +22544,7 @@ az monitor autoscale rule create \
 
 ---
 
-## Azure Functions — Serverless Compute
+#### Azure Functions — Serverless Compute
 
 ```
 Azure Functions lets you run small pieces of code (functions) triggered by events.
@@ -22562,7 +22562,7 @@ Triggers:
 
 ---
 
-## Azure Functions — Node.js Example
+#### Azure Functions — Node.js Example
 
 ```javascript
 // func init my-app --javascript   ← create Functions project
@@ -22614,7 +22614,7 @@ module.exports = async function (context, req) {
 
 ---
 
-## Timer Trigger (Cron Function)
+#### Timer Trigger (Cron Function)
 
 ```javascript
 // TimerTrigger/index.js — runs on a schedule
@@ -22643,7 +22643,7 @@ module.exports = async function (context, myTimer) {
 
 ---
 
-## Azure Durable Functions
+#### Azure Durable Functions
 
 ```
 Durable Functions extend Azure Functions with state and orchestration.
@@ -22683,7 +22683,7 @@ module.exports = df.orchestrator(function* (context) {
 
 ---
 
-## Interview Questions
+#### Interview Questions
 
 **Q: What is a deployment slot and why use it?**
 > A slot is a live staging environment within the same App Service app. Deploy to staging, test thoroughly, then swap with a single atomic operation — traffic switches instantly with no downtime. If the new version has issues, swap back. The previous version stays warm in the staging slot until you're confident.
@@ -22706,9 +22706,9 @@ module.exports = df.orchestrator(function* (context) {
 
 ## Azure — Storage cdn
 
-# Azure: Storage, Blob, and CDN
+### Azure: Storage, Blob, and CDN
 
-## Azure Blob Storage — Object Storage
+#### Azure Blob Storage — Object Storage
 
 ```
 Azure Blob Storage stores unstructured data: images, videos, documents, logs, backups.
@@ -22732,7 +22732,7 @@ Access tiers per blob:
 
 ---
 
-## Blob Storage — Node.js SDK Operations
+#### Blob Storage — Node.js SDK Operations
 
 ```javascript
 const {
@@ -22833,7 +22833,7 @@ async function deleteBlob(containerName, blobName) {
 
 ---
 
-## Storage Account Lifecycle Management
+#### Storage Account Lifecycle Management
 
 ```json
 // Lifecycle policy: automatically transition or delete blobs based on age
@@ -22866,7 +22866,7 @@ async function deleteBlob(containerName, blobName) {
 
 ---
 
-## Azure Blob Trigger for Functions
+#### Azure Blob Trigger for Functions
 
 ```javascript
 // Automatically process files when uploaded to a container
@@ -22897,7 +22897,7 @@ module.exports = async function (context, myBlob) {
 
 ---
 
-## Azure CDN and Azure Front Door
+#### Azure CDN and Azure Front Door
 
 ```
 Azure CDN: caches static content at edge points-of-presence (PoP) worldwide.
@@ -22953,7 +22953,7 @@ az afd route create \
 
 ---
 
-## Static Website Hosting on Blob Storage
+#### Static Website Hosting on Blob Storage
 
 ```bash
 # Enable static website hosting on a storage account
@@ -22978,7 +22978,7 @@ az storage blob upload-batch \
 
 ---
 
-## Interview Questions
+#### Interview Questions
 
 **Q: What is an SAS token in Azure Blob Storage?**
 > Shared Access Signature — a token appended to a blob URL that grants time-limited, fine-grained access (read/write/delete) to a storage resource without sharing the storage account key. User Delegation SAS is signed using Managed Identity credentials (preferred — no key required). Account SAS uses the storage key directly (avoid in production). Always set short expiry for SAS tokens.
@@ -23003,9 +23003,9 @@ az storage blob upload-batch \
 
 ## Azure — Databases
 
-# Azure: Databases
+### Azure: Databases
 
-## Azure Database for PostgreSQL — Flexible Server
+#### Azure Database for PostgreSQL — Flexible Server
 
 ```
 Managed Postgres on Azure.
@@ -23050,7 +23050,7 @@ az postgres flexible-server create \
 
 ---
 
-## Cosmos DB — Multi-Model Globally Distributed Database
+#### Cosmos DB — Multi-Model Globally Distributed Database
 
 ```
 Azure Cosmos DB is a fully managed NoSQL database.
@@ -23122,7 +23122,7 @@ async function upsertUser(user) {
 
 ---
 
-## Cosmos DB Consistency Levels
+#### Cosmos DB Consistency Levels
 
 ```
 Cosmos DB offers 5 consistency levels (choose per-operation or at account level):
@@ -23148,7 +23148,7 @@ Cosmos DB offers 5 consistency levels (choose per-operation or at account level)
 
 ---
 
-## Azure SQL — Managed SQL Server
+#### Azure SQL — Managed SQL Server
 
 ```
 Azure SQL is a fully managed SQL Server database.
@@ -23163,7 +23163,7 @@ Tiers:
 
 ---
 
-## Azure Cache for Redis
+#### Azure Cache for Redis
 
 ```
 Managed Redis on Azure.
@@ -23217,7 +23217,7 @@ async function getProductCached(productId) {
 
 ---
 
-## Interview Questions
+#### Interview Questions
 
 **Q: What is the Cosmos DB partition key and how do you choose a good one?**
 > The partition key determines how Azure distributes items across physical partitions. A good partition key: high cardinality (many unique values — userId, tenantId), evenly distributed (no "hot" partitions with most traffic), included in most query filters (so queries hit one partition, not all). Bad choices: createdAt (time-clustering → hot partition), status (only 3 values → 3 partitions max → bottleneck).
@@ -23239,9 +23239,9 @@ async function getProductCached(productId) {
 
 ## Azure — Networking
 
-# Azure: Networking
+### Azure: Networking
 
-## Virtual Network (VNet)
+#### Virtual Network (VNet)
 
 ```
 A VNet is your private isolated network in Azure, similar to a physical on-premises network.
@@ -23282,7 +23282,7 @@ az network vnet subnet create \
 
 ---
 
-## Network Security Groups (NSG)
+#### Network Security Groups (NSG)
 
 ```
 NSG is a stateful firewall applied to a subnet or NIC (network interface).
@@ -23338,7 +23338,7 @@ az network vnet subnet update \
 
 ---
 
-## Azure Load Balancer vs Application Gateway
+#### Azure Load Balancer vs Application Gateway
 
 ```
 Azure Load Balancer (Layer 4):
@@ -23383,7 +23383,7 @@ az network application-gateway waf-config set \
 
 ---
 
-## Private Endpoints
+#### Private Endpoints
 
 ```
 A Private Endpoint maps an Azure service (Storage, Cosmos DB, Azure SQL, Key Vault)
@@ -23425,7 +23425,7 @@ az network private-dns link vnet create \
 
 ---
 
-## VNet Peering
+#### VNet Peering
 
 ```
 VNet Peering connects two VNets for private communication.
@@ -23458,7 +23458,7 @@ az network vnet peering create \
 
 ---
 
-## Azure DNS
+#### Azure DNS
 
 ```bash
 # Create a custom DNS zone (for your domain)
@@ -23484,7 +23484,7 @@ az network dns record-set cname set-record \
 
 ---
 
-## Interview Questions
+#### Interview Questions
 
 **Q: What is the difference between an NSG and an Application Gateway WAF?**
 > NSG: stateful Layer 4 firewall at subnet/NIC level. Controls which IP addresses and ports can communicate. Fast and simple. Cannot inspect HTTP content.
@@ -23508,9 +23508,9 @@ az network dns record-set cname set-record \
 
 ## Azure — Aks acr
 
-# Azure: AKS and ACR — Kubernetes on Azure
+### Azure: AKS and ACR — Kubernetes on Azure
 
-## Azure Container Registry (ACR)
+#### Azure Container Registry (ACR)
 
 ```
 ACR is Azure's private Docker image registry.
@@ -23555,7 +23555,7 @@ az acr config soft-delete enable \
 
 ---
 
-## AKS — Azure Kubernetes Service
+#### AKS — Azure Kubernetes Service
 
 ```
 AKS is managed Kubernetes on Azure.
@@ -23601,7 +23601,7 @@ kubectl get pods -A
 
 ---
 
-## Azure AD Workload Identity (AKS IRSA Equivalent)
+#### Azure AD Workload Identity (AKS IRSA Equivalent)
 
 ```
 Problem: pods need to access Azure services (Key Vault, Storage, Cosmos DB) securely.
@@ -23674,7 +23674,7 @@ spec:
 
 ---
 
-## Azure Monitor Container Insights
+#### Azure Monitor Container Insights
 
 ```bash
 # Enable Container Insights on an existing cluster
@@ -23703,7 +23703,7 @@ KubePodInventory
 
 ---
 
-## AKS Node Pools
+#### AKS Node Pools
 
 ```bash
 # Add a spot node pool for cost savings on batch workloads
@@ -23728,7 +23728,7 @@ az aks nodepool add \
 
 ---
 
-## Interview Questions
+#### Interview Questions
 
 **Q: How does AKS differ from self-managed Kubernetes?**
 > AKS: Azure manages the Kubernetes control plane (API server, etcd, scheduler) for free. You only manage worker nodes (VM sizes, counts). Automatic upgrades, HA control plane, native Azure integrations (Azure AD, Monitor, Key Vault). Self-managed: you provision, patch, and HA your own control plane — much more operational burden for unlikely extra customization.
@@ -23750,9 +23750,9 @@ az aks nodepool add \
 
 ## Azure — Pipelines devops
 
-# Azure DevOps Pipelines — Build, Test, and Deploy
+### Azure DevOps Pipelines — Build, Test, and Deploy
 
-## Why Azure Pipelines?
+#### Why Azure Pipelines?
 
 ```
 Azure Pipelines is a CI/CD service in Azure DevOps.
@@ -23769,7 +23769,7 @@ Key advantages:
 
 ---
 
-## Pipeline Anatomy
+#### Pipeline Anatomy
 
 ```yaml
 # azure-pipelines.yml — lives in the root of your repository
@@ -23807,7 +23807,7 @@ stages:                            # top-level grouping (Build / Test / Deploy S
 
 ---
 
-## Stage 1 — Build and Push Docker Image
+#### Stage 1 — Build and Push Docker Image
 
 ```yaml
 stages:
@@ -23914,7 +23914,7 @@ stages:
 
 ---
 
-## Stage 2 — Deploy to Staging (App Service)
+#### Stage 2 — Deploy to Staging (App Service)
 
 ```yaml
   - stage: DeployStaging
@@ -23964,7 +23964,7 @@ stages:
 
 ---
 
-## Stage 3 — Manual Approval Gate + Production Deploy
+#### Stage 3 — Manual Approval Gate + Production Deploy
 
 ```yaml
   - stage: DeployProduction
@@ -24013,7 +24013,7 @@ stages:
 
 ---
 
-## AKS Deployment via Helm in Azure Pipelines
+#### AKS Deployment via Helm in Azure Pipelines
 
 ```yaml
   - stage: DeployAKS
@@ -24066,7 +24066,7 @@ stages:
 
 ---
 
-## Reusable Pipeline Templates
+#### Reusable Pipeline Templates
 
 ```yaml
 # templates/steps-build.yml — reusable build steps template
@@ -24108,7 +24108,7 @@ steps:
 
 ---
 
-## Variable Groups and Key Vault Integration
+#### Variable Groups and Key Vault Integration
 
 ```yaml
 # Link an Azure Key Vault to a Variable Group in Azure DevOps.
@@ -24138,7 +24138,7 @@ steps:
 
 ---
 
-## Self-Hosted vs Microsoft-Hosted Agents
+#### Self-Hosted vs Microsoft-Hosted Agents
 
 ```
 Microsoft-Hosted Agents:
@@ -24176,7 +24176,7 @@ tar xzf vsts-agent-linux-x64-3.x.x.tar.gz
 
 ---
 
-## Interview Questions
+#### Interview Questions
 
 **Q: What is the difference between a stage, job, and step in Azure Pipelines?**
 > Stage: top-level grouping (Build, Test, Deploy-Staging, Deploy-Prod). Stages run sequentially by default. Can have approval gates between stages.
@@ -24201,9 +24201,9 @@ tar xzf vsts-agent-linux-x64-3.x.x.tar.gz
 
 ## Azure — Interview qa
 
-# Azure: Comprehensive Interview Q&A
+### Azure: Comprehensive Interview Q&A
 
-## Azure Fundamentals
+#### Azure Fundamentals
 
 **Q: What is Azure and how is it organized?**
 > Azure is Microsoft's cloud platform with 200+ services for compute, storage, databases, AI, networking, DevOps, and more. Organisation hierarchy: Management Groups (for governance across multiple subscriptions) → Subscriptions (billing boundary) → Resource Groups (logical containers for related resources) → Resources (VMs, storage accounts, databases). Every resource lives in exactly one resource group and one region.
@@ -24220,7 +24220,7 @@ tar xzf vsts-agent-linux-x64-3.x.x.tar.gz
 
 ---
 
-## Identity and Security
+#### Identity and Security
 
 **Q: What is Microsoft Entra ID (Azure Active Directory)?**
 > Azure's cloud-based identity management service. Provides: user authentication (login), multi-factor authentication, single sign-on (SSO) across apps, app registration for OAuth 2.0/OIDC, conditional access policies, privileged identity management (JIT admin access). Every Azure subscription is backed by an Entra ID tenant.
@@ -24253,7 +24253,7 @@ const dbPassword = dbPasswordSecret.value;
 
 ---
 
-## Compute
+#### Compute
 
 **Q: What is the difference between Azure VMs and Azure App Service?**
 > Azure VM (IaaS): full control of the OS. You install software, manage patches, configure networking, scale manually. More work, more control. Use when you need a specific OS configuration, or to run software that App Service doesn't support (game servers, legacy apps).
@@ -24264,7 +24264,7 @@ const dbPassword = dbPasswordSecret.value;
 
 ---
 
-## Databases
+#### Databases
 
 **Q: What is the difference between Azure SQL, Azure Database for PostgreSQL, and Cosmos DB?**
 > Azure SQL: managed SQL Server. Use when your app already uses SQL Server, T-SQL features, or .NET Entity Framework with SQL Server provider.
@@ -24276,7 +24276,7 @@ const dbPassword = dbPasswordSecret.value;
 
 ---
 
-## Azure Pipelines and DevOps
+#### Azure Pipelines and DevOps
 
 **Q: Walk me through a complete Azure DevOps CI/CD pipeline for a Node.js app.**
 > 1. Developer pushes code to `main` branch.
@@ -24304,7 +24304,7 @@ const dbPassword = dbPasswordSecret.value;
 
 ---
 
-## Monitoring and Operations
+#### Monitoring and Operations
 
 **Q: What is Azure Monitor and Application Insights?**
 > Azure Monitor: platform for collecting metrics, logs, and traces from Azure resources (VMs, databases, App Service). Centralises all telemetry. Supports alerting on any metric.
@@ -24330,7 +24330,7 @@ az monitor metrics alert create \
 
 ---
 
-## Cost Optimization
+#### Cost Optimization
 
 **Q: What strategies reduce Azure costs?**
 > Reserved Instances: commit 1 or 3 years for up to 72% savings on VMs and databases. Use for predictable, stable production workloads.
@@ -24353,16 +24353,16 @@ az monitor metrics alert create \
 
 ## AWS — Core services iam
 
-# AWS: Core Services Overview
+### AWS: Core Services Overview
 
-## What is AWS?
+#### What is AWS?
 Amazon Web Services is a cloud platform offering 200+ services — from virtual servers
 to AI, databases, networking, and developer tools. This folder covers the services
 most commonly asked about in interviews for full-stack, backend, and DevOps roles.
 
 ---
 
-## AWS Global Infrastructure
+#### AWS Global Infrastructure
 
 ```
 Region          = geographic area (e.g., us-east-1, eu-west-1, ap-southeast-1)
@@ -24382,7 +24382,7 @@ Best practice: deploy across at least 2 AZs for high availability.
 
 ---
 
-## IAM — Identity and Access Management
+#### IAM — Identity and Access Management
 
 ```
 Every API call to AWS asks:
@@ -24429,7 +24429,7 @@ aws sts get-caller-identity
 
 ---
 
-## Core Compute Services
+#### Core Compute Services
 
 | Service | What it Does | Use Case |
 |---------|-------------|----------|
@@ -24442,7 +24442,7 @@ aws sts get-caller-identity
 
 ---
 
-## Core Storage Services
+#### Core Storage Services
 
 | Service | Type | Use Case |
 |---------|------|----------|
@@ -24453,7 +24453,7 @@ aws sts get-caller-identity
 
 ---
 
-## Core Database Services
+#### Core Database Services
 
 | Service | Type | Use Case |
 |---------|------|----------|
@@ -24465,7 +24465,7 @@ aws sts get-caller-identity
 
 ---
 
-## Core Networking Services
+#### Core Networking Services
 
 | Service | What it Does |
 |---------|-------------|
@@ -24477,7 +24477,7 @@ aws sts get-caller-identity
 
 ---
 
-## How to interact with AWS
+#### How to interact with AWS
 
 ```bash
 # AWS CLI — install: pip install awscli
@@ -24504,7 +24504,7 @@ await s3.send(new PutObjectCommand({ Bucket: 'mybucket', Key: 'file.txt', Body: 
 
 ---
 
-## Pricing model (simplified)
+#### Pricing model (simplified)
 
 | Model | Explanation | Best For |
 |-------|-------------|----------|
@@ -24515,7 +24515,7 @@ await s3.send(new PutObjectCommand({ Bucket: 'mybucket', Key: 'file.txt', Body: 
 
 ---
 
-## Interview Questions
+#### Interview Questions
 
 **Q: What is the difference between a Region and an Availability Zone?**
 > A Region is a geographic area (e.g., US East — Virginia). Within a Region there are 3+ AZs — physically separate data centres with independent power and networking. Deploying across 2+ AZs protects against a single data centre failure. Regions are fully independent — useful for data residency requirements.
@@ -24537,15 +24537,15 @@ await s3.send(new PutObjectCommand({ Bucket: 'mybucket', Key: 'file.txt', Body: 
 
 ## AWS — Ec2 vpc
 
-# AWS: EC2 and VPC Networking
+### AWS: EC2 and VPC Networking
 
-## EC2 — Elastic Compute Cloud
+#### EC2 — Elastic Compute Cloud
 EC2 lets you rent virtual machines (called "instances") on demand.
 You pick an AMI (OS image), instance type (CPU/RAM size), and storage.
 
 ---
 
-## Instance Types
+#### Instance Types
 
 ```
 Naming convention: <family><generation>.<size>
@@ -24568,7 +24568,7 @@ Examples:
 
 ---
 
-## Launch an EC2 Instance (AWS CLI)
+#### Launch an EC2 Instance (AWS CLI)
 
 ```bash
 # Launch a t3.micro instance running Amazon Linux 2023
@@ -24593,7 +24593,7 @@ node dist/index.js
 
 ---
 
-## VPC — Virtual Private Cloud
+#### VPC — Virtual Private Cloud
 
 ```
 VPC = your own isolated network within AWS.
@@ -24615,7 +24615,7 @@ VPC CIDR: 10.0.0.0/16    → gives you 65536 IP addresses
 
 ---
 
-## VPC with Terraform (Infrastructure as Code)
+#### VPC with Terraform (Infrastructure as Code)
 
 ```hcl
 # Terraform — define your VPC, subnets, routing in code
@@ -24711,7 +24711,7 @@ resource "aws_route_table" "private" {
 
 ---
 
-## Security Groups
+#### Security Groups
 
 ```bash
 # Security Groups = stateful virtual firewall at the instance level.
@@ -24740,7 +24740,7 @@ aws ec2 authorize-security-group-ingress \
 
 ---
 
-## Application Load Balancer (ALB)
+#### Application Load Balancer (ALB)
 
 ```bash
 # ALB operates at layer 7 (HTTP/HTTPS).
@@ -24771,7 +24771,7 @@ aws elbv2 register-targets \
 
 ---
 
-## Auto Scaling Group (ASG)
+#### Auto Scaling Group (ASG)
 
 ```bash
 # ASG automatically launches/terminates EC2 instances based on demand.
@@ -24801,7 +24801,7 @@ aws autoscaling put-scaling-policy \
 
 ---
 
-## Interview Questions
+#### Interview Questions
 
 **Q: What is the difference between a public and private subnet?**
 > A public subnet has a route to an Internet Gateway (IGW) — resources can receive inbound internet traffic if they have a public IP. A private subnet does not have a route to the IGW — no direct inbound from the internet. Private instances can make outbound requests through a NAT Gateway. Best practice: put load balancers in public subnets, application servers and databases in private subnets.
@@ -24823,9 +24823,9 @@ aws autoscaling put-scaling-policy \
 
 ## AWS — S3 cloudfront
 
-# AWS: S3 and CloudFront
+### AWS: S3 and CloudFront
 
-## S3 — Simple Storage Service
+#### S3 — Simple Storage Service
 S3 is an object store. You store files (objects) in containers (buckets).
 Unlike a filesystem (folders and files), S3 has flat keys that look like paths.
 
@@ -24837,7 +24837,7 @@ s3://my-bucket/images/profile/alice.jpg
 
 ---
 
-## Core S3 Concepts
+#### Core S3 Concepts
 
 | Concept | Explanation |
 |---------|-------------|
@@ -24851,7 +24851,7 @@ s3://my-bucket/images/profile/alice.jpg
 
 ---
 
-## S3 Storage Classes
+#### S3 Storage Classes
 
 | Class | Access Pattern | Cost |
 |-------|---------------|------|
@@ -24865,7 +24865,7 @@ s3://my-bucket/images/profile/alice.jpg
 
 ---
 
-## Common S3 Operations
+#### Common S3 Operations
 
 ```javascript
 // AWS SDK v3 (modular — only import what you need)
@@ -24980,7 +24980,7 @@ async function copyFile(sourceKey, destKey) {
 
 ---
 
-## Bucket Policy — control access declaratively
+#### Bucket Policy — control access declaratively
 
 ```json
 // Bucket policy: allow only a specific IAM role to write objects.
@@ -25015,7 +25015,7 @@ async function copyFile(sourceKey, destKey) {
 
 ---
 
-## S3 Lifecycle Rules — auto-move objects to cheaper storage
+#### S3 Lifecycle Rules — auto-move objects to cheaper storage
 
 ```json
 // Example: move objects older than 30 days to Standard-IA,
@@ -25039,7 +25039,7 @@ async function copyFile(sourceKey, destKey) {
 
 ---
 
-## S3 Event Notifications
+#### S3 Event Notifications
 
 ```javascript
 // S3 can trigger Lambda when objects are created/deleted.
@@ -25063,7 +25063,7 @@ exports.handler = async (event) => {
 
 ---
 
-## CloudFront — Content Delivery Network (CDN)
+#### CloudFront — Content Delivery Network (CDN)
 
 ```
 CloudFront = global CDN with 400+ edge locations.
@@ -25084,7 +25084,7 @@ User in London → CloudFront edge (London) → cache hit? serve immediately
 
 ---
 
-## CloudFront Distribution (Terraform)
+#### CloudFront Distribution (Terraform)
 
 ```hcl
 resource "aws_cloudfront_distribution" "cdn" {
@@ -25149,7 +25149,7 @@ resource "aws_cloudfront_distribution" "cdn" {
 
 ---
 
-## Cache Invalidation
+#### Cache Invalidation
 
 ```bash
 # When you deploy new assets, tell CloudFront to purge old cached versions
@@ -25165,7 +25165,7 @@ aws cloudfront create-invalidation \
 
 ---
 
-## Interview Questions
+#### Interview Questions
 
 **Q: What is S3 and how is it different from a traditional filesystem?**
 > S3 is a flat key-value object store — there are no real "folders". What looks like a path (`images/profile/alice.jpg`) is actually the entire key string. Objects are accessed via HTTP PUT/GET, not filesystem calls. S3 is infinitely scalable, globally distributed, 99.999999999% (11 nines) durable, and priced per GB stored + per request.
@@ -25186,9 +25186,9 @@ aws cloudfront create-invalidation \
 
 ## AWS — Lambda api gateway
 
-# AWS: Lambda and API Gateway
+### AWS: Lambda and API Gateway
 
-## Lambda — Serverless Functions
+#### Lambda — Serverless Functions
 
 ```
 Traditional server: runs 24/7, you pay even when idle
@@ -25199,7 +25199,7 @@ Maximum: 15 minutes execution time, 10GB RAM, 10GB ephemeral storage (/tmp)
 
 ---
 
-## Lambda Triggers (Event Sources)
+#### Lambda Triggers (Event Sources)
 
 | Trigger | Description |
 |---------|-------------|
@@ -25213,7 +25213,7 @@ Maximum: 15 minutes execution time, 10GB RAM, 10GB ephemeral storage (/tmp)
 
 ---
 
-## Basic Lambda Function (Node.js)
+#### Basic Lambda Function (Node.js)
 
 ```javascript
 // Every Lambda function has a handler function.
@@ -25250,7 +25250,7 @@ exports.handler = async (event, context) => {
 
 ---
 
-## Environment Variables and Secrets in Lambda
+#### Environment Variables and Secrets in Lambda
 
 ```javascript
 // Environment variables are set in Lambda configuration, NOT hard-coded.
@@ -25284,7 +25284,7 @@ async function getSecret() {
 
 ---
 
-## Lambda Layers — share code across functions
+#### Lambda Layers — share code across functions
 
 ```bash
 # A Layer is a zip file containing shared dependencies (node_modules, utilities).
@@ -25310,7 +25310,7 @@ aws lambda update-function-configuration \
 
 ---
 
-## Lambda Concurrency
+#### Lambda Concurrency
 
 ```bash
 # Lambda scales automatically: each request gets its own execution environment.
@@ -25333,7 +25333,7 @@ aws lambda put-provisioned-concurrency-config \
 
 ---
 
-## Serverless Framework (deploy Lambda easily)
+#### Serverless Framework (deploy Lambda easily)
 
 ```yaml
 # serverless.yml — defines functions, events, and AWS resources
@@ -25426,7 +25426,7 @@ npx serverless remove --stage production
 
 ---
 
-## API Gateway
+#### API Gateway
 
 ```
 API Gateway is a fully managed HTTP API frontend.
@@ -25470,7 +25470,7 @@ module.exports.handler = serverless(app);
 
 ---
 
-## Lambda Best Practices
+#### Lambda Best Practices
 
 ```javascript
 // 1. Initialise clients OUTSIDE the handler (reused across warm invocations)
@@ -25503,7 +25503,7 @@ log('info', 'Processing request', { userId: '123', action: 'getUser' });
 
 ---
 
-## Interview Questions
+#### Interview Questions
 
 **Q: What is a Lambda cold start and how do you minimise it?**
 > On first invocation (or after inactivity), AWS creates a new execution environment: downloads code, initialises the runtime, runs module-level code. This can take 100ms–1s. Minimise by: using smaller zip files, keeping node_modules lean (use Rollup/esbuild to bundle), using Provisioned Concurrency for latency-critical APIs, preferring Node.js/Python (faster than Java/.NET for cold starts), and initialising SDK clients outside the handler.
@@ -25525,9 +25525,9 @@ log('info', 'Processing request', { userId: '123', action: 'getUser' });
 
 ## AWS — Rds dynamodb cache
 
-# AWS: RDS, DynamoDB, and ElastiCache
+### AWS: RDS, DynamoDB, and ElastiCache
 
-## RDS — Relational Database Service
+#### RDS — Relational Database Service
 
 ```
 RDS is a managed relational database.
@@ -25539,7 +25539,7 @@ Supported engines: PostgreSQL, MySQL, MariaDB, Oracle, SQL Server, Aurora
 
 ---
 
-## RDS Setup Considerations
+#### RDS Setup Considerations
 
 ```
 Multi-AZ Deployment:
@@ -25557,7 +25557,7 @@ Read Replicas (horizontal read scaling):
 
 ---
 
-## Connecting to RDS from Node.js (PostgreSQL)
+#### Connecting to RDS from Node.js (PostgreSQL)
 
 ```javascript
 // Production PostgreSQL connection with connection pooling
@@ -25624,7 +25624,7 @@ async function transferMoney(fromId, toId, amount) {
 
 ---
 
-## RDS Proxy (for Lambda + RDS)
+#### RDS Proxy (for Lambda + RDS)
 
 ```
 Problem: Lambda can scale to thousands of concurrent executions.
@@ -25649,7 +25649,7 @@ const pool = new Pool({
 
 ---
 
-## DynamoDB — NoSQL Key-Value + Document Store
+#### DynamoDB — NoSQL Key-Value + Document Store
 
 ```
 DynamoDB is a fully managed, serverless NoSQL database.
@@ -25667,7 +25667,7 @@ Data model:
 
 ---
 
-## DynamoDB Access Patterns
+#### DynamoDB Access Patterns
 
 ```javascript
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
@@ -25741,7 +25741,7 @@ async function getUserOrders(userId) {
 
 ---
 
-## DynamoDB Single-Table Design
+#### DynamoDB Single-Table Design
 
 ```javascript
 // Single-table design: store ALL entity types in ONE table using PK/SK conventions.
@@ -25765,7 +25765,7 @@ async function getUserOrders(userId) {
 
 ---
 
-## ElastiCache — Managed Redis / Memcached
+#### ElastiCache — Managed Redis / Memcached
 
 ```
 ElastiCache is managed Redis or Memcached.
@@ -25825,7 +25825,7 @@ async function updateUser(userId, updates) {
 
 ---
 
-## Interview Questions
+#### Interview Questions
 
 **Q: When would you choose DynamoDB over PostgreSQL (RDS)?**
 > DynamoDB: unlimited scale with consistent latency, fully serverless, great for high-throughput key-value access (user sessions, product lookups, IoT events). No joins — all access patterns must be known upfront and modelled via keys and indexes.
@@ -25848,9 +25848,9 @@ async function updateUser(userId, updates) {
 
 ## AWS — Sqs sns eventbridge
 
-# AWS: SQS, SNS, and EventBridge — Event-Driven Architecture
+### AWS: SQS, SNS, and EventBridge — Event-Driven Architecture
 
-## Why Event-Driven?
+#### Why Event-Driven?
 
 ```
 Instead of Service A calling Service B directly (synchronous coupling):
@@ -25866,7 +25866,7 @@ Event-driven: A publishes an event; B processes it when ready (decoupled)
 
 ---
 
-## SQS — Simple Queue Service
+#### SQS — Simple Queue Service
 
 ```
 SQS is a fully managed message queue.
@@ -25885,7 +25885,7 @@ FIFO Queue:
 
 ---
 
-## SQS — Node.js SDK Operations
+#### SQS — Node.js SDK Operations
 
 ```javascript
 const { SQSClient, SendMessageCommand, ReceiveMessageCommand,
@@ -25982,7 +25982,7 @@ async function deleteMessage(receiptHandle) {
 
 ---
 
-## Dead Letter Queue (DLQ)
+#### Dead Letter Queue (DLQ)
 
 ```
 A DLQ is a separate SQS queue that receives messages that could NOT be
@@ -26014,7 +26014,7 @@ resource "aws_sqs_queue" "orders" {
 
 ---
 
-## SNS — Simple Notification Service
+#### SNS — Simple Notification Service
 
 ```
 SNS is a pub/sub messaging service.
@@ -26062,7 +26062,7 @@ async function publishOrderPlaced(order) {
 
 ---
 
-## EventBridge — Event Bus & Scheduler
+#### EventBridge — Event Bus & Scheduler
 
 ```
 EventBridge is a serverless event router.
@@ -26114,7 +26114,7 @@ async function publishEvent(detailType, detail) {
 
 ---
 
-## SQS Lambda Trigger (Event Source Mapping)
+#### SQS Lambda Trigger (Event Source Mapping)
 
 ```javascript
 // When you add SQS as a Lambda trigger, Lambda polls the queue automatically —
@@ -26146,7 +26146,7 @@ exports.handler = async (event) => {
 
 ---
 
-## Interview Questions
+#### Interview Questions
 
 **Q: What is the difference between SQS, SNS, and EventBridge?**
 > SQS: queue — messages wait for a consumer to pull and process them. One message goes to one consumer. Good for background jobs, work queues, rate limiting.
@@ -26169,9 +26169,9 @@ exports.handler = async (event) => {
 
 ## AWS — Ecs eks ecr
 
-# AWS: ECS, EKS, and ECR — Containers on AWS
+### AWS: ECS, EKS, and ECR — Containers on AWS
 
-## Container Services — Choosing the Right One
+#### Container Services — Choosing the Right One
 
 ```
 Three ways to run containers on AWS:
@@ -26196,7 +26196,7 @@ When to choose:
 
 ---
 
-## ECR — Elastic Container Registry
+#### ECR — Elastic Container Registry
 
 ```bash
 # ── Log in to ECR ──────────────────────────────────────────────────────────
@@ -26240,7 +26240,7 @@ aws ecr put-lifecycle-policy \
 
 ---
 
-## ECS — Elastic Container Service
+#### ECS — Elastic Container Service
 
 ```
 ECS Core Concepts:
@@ -26330,7 +26330,7 @@ aws ecs update-service \
 
 ---
 
-## EKS — Elastic Kubernetes Service
+#### EKS — Elastic Kubernetes Service
 
 ```
 EKS runs a fully upstream Kubernetes control plane managed by AWS.
@@ -26364,7 +26364,7 @@ kubectl get pods -A
 
 ---
 
-## IRSA — IAM Roles for Service Accounts (EKS)
+#### IRSA — IAM Roles for Service Accounts (EKS)
 
 ```
 Problem: Pods on EKS need to access AWS services (S3, DynamoDB).
@@ -26406,7 +26406,7 @@ spec:
 
 ---
 
-## Comparison Table
+#### Comparison Table
 
 ```
 Feature            ECS Fargate        EKS                   Lambda
@@ -26423,7 +26423,7 @@ Use When           simple containers  K8s workloads         event-driven short t
 
 ---
 
-## Interview Questions
+#### Interview Questions
 
 **Q: What is the difference between ECS and EKS?**
 > ECS: AWS-proprietary container orchestration. Simpler to learn — no Kubernetes concepts (no Pods, Nodes, Helm). Supports Fargate (serverless). Best for teams that want to run containers without learning Kubernetes.
@@ -26446,9 +26446,9 @@ Use When           simple containers  K8s workloads         event-driven short t
 
 ## AWS — Cicd interview qa
 
-# AWS: CI/CD and Comprehensive Interview Q&A
+### AWS: CI/CD and Comprehensive Interview Q&A
 
-## CI/CD Concepts
+#### CI/CD Concepts
 
 ```
 CI — Continuous Integration:
@@ -26467,7 +26467,7 @@ CD — Continuous Delivery/Deployment:
 
 ---
 
-## AWS CodeBuild — Build Server
+#### AWS CodeBuild — Build Server
 
 ```
 CodeBuild runs your build commands inside a managed container.
@@ -26546,7 +26546,7 @@ cache:
 
 ---
 
-## AWS CodePipeline — Multi-Stage Pipeline
+#### AWS CodePipeline — Multi-Stage Pipeline
 
 ```
 CodePipeline orchestrates stages: Source → Build → Test → Deploy-Staging → Approve → Deploy-Prod
@@ -26659,7 +26659,7 @@ resource "aws_codepipeline" "app_pipeline" {
 
 ---
 
-## GitHub Actions Pipeline (Alternative to CodePipeline)
+#### GitHub Actions Pipeline (Alternative to CodePipeline)
 
 ```yaml
 # .github/workflows/deploy.yml
@@ -26746,9 +26746,9 @@ jobs:
 
 ---
 
-## Comprehensive AWS Interview Q&A
+#### Comprehensive AWS Interview Q&A
 
-### IAM & Security
+##### IAM & Security
 
 **Q: What is the principle of least privilege?**
 > Grant only the permissions required to perform a specific task — nothing more. Instead of attaching `AdministratorAccess` to everything, create a narrowly scoped IAM policy (e.g., `s3:GetObject` on `arn:aws:s3:::my-specific-bucket/*`). Limits the blast radius if credentials are compromised.
@@ -26762,7 +26762,7 @@ jobs:
 
 ---
 
-### Networking & VPC
+##### Networking & VPC
 
 **Q: What is a VPC and why do you use subnets?**
 > VPC is your private isolated network in AWS. Subnets divide it: public subnets (have route to Internet Gateway — for ALB, NAT) and private subnets (no direct internet route — for databases, app servers). This limits the attack surface: DB servers are never directly reachable from the internet.
@@ -26776,7 +26776,7 @@ jobs:
 
 ---
 
-### Compute & Scaling
+##### Compute & Scaling
 
 **Q: What is an Auto Scaling Group and how does Target Tracking work?**
 > ASG maintains a fleet of EC2 instances, automatically scaling in/out. Target Tracking policy: you set a metric target (e.g., average CPU 60%). ASG uses CloudWatch alarms to add instances when CPU > 60% and removes instances when CPU < 60%. No manual scaling rules needed.
@@ -26787,7 +26787,7 @@ jobs:
 
 ---
 
-### Storage
+##### Storage
 
 **Q: What are the S3 storage classes and when do you use them?**
 > Standard: frequently accessed data. Extra cost for retrieval is zero but per-GB cost higher.
@@ -26798,7 +26798,7 @@ jobs:
 
 ---
 
-### Database
+##### Database
 
 **Q: Aurora vs RDS — what is the difference?**
 > Aurora is AWS's cloud-native MySQL/PostgreSQL-compatible database. It's faster than standard RDS (5x MySQL, 3x PostgreSQL) because of Aurora's distributed storage architecture (6 copies across 3 AZs, but appears as one volume). Aurora Serverless v2 auto-scales capacity. RDS is managed open-source engines — simpler and cheaper for small workloads.
@@ -26808,7 +26808,7 @@ jobs:
 
 ---
 
-### Lambda & Serverless
+##### Lambda & Serverless
 
 **Q: What is a Lambda cold start and how do you mitigate it?**
 > A cold start happens when Lambda hasn't been invoked recently and needs to create a new execution environment (container): download code, start Node.js runtime, run module-level code. Takes 100ms-1s. Mitigations: reduce package size (smaller layer = faster download), move initialization outside the handler function, use Provisioned Concurrency (keeps N environments warm — costs money but eliminates cold starts for predictable traffic).
@@ -26818,7 +26818,7 @@ jobs:
 
 ---
 
-### CI/CD & DevOps
+##### CI/CD & DevOps
 
 **Q: What is the difference between CodeBuild, CodePipeline, and CodeDeploy?**
 > CodeBuild: runs build commands (like GitHub Actions runner / Azure DevOps agent). Executes your `buildspec.yml`.
@@ -33823,4 +33823,3 @@ module.exports = { loginSafe, deepMergeSafe, isPrivateIP, loadEnv };
 ```
 
 ---
-
