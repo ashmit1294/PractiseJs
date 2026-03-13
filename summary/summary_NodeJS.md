@@ -3785,6 +3785,7 @@ module.exports = { gzipFile, processArray, callAPI };
 
 ---
 
+<a id="nodejs-scenarios"></a>
 ## Scenario-Based Interview Questions
 
 ---

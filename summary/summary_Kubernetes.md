@@ -3244,6 +3244,7 @@ spec:
 
 ---
 
+<a id="kubernetes-scenarios"></a>
 ## Scenario-Based Interview Questions
 
 ---

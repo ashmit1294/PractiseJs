@@ -2850,6 +2850,7 @@ module.exports = { encodeCursor, decodeCursor };
 
 ---
 
+<a id="graphql-scenarios"></a>
 ## Scenario-Based Interview Questions
 
 ---

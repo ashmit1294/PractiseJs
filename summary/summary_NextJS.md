@@ -3503,6 +3503,7 @@ const Chart = dynamic(() => import('recharts').then(m => m.LineChart), { ssr: fa
 
 ---
 
+<a id="nextjs-scenarios"></a>
 ## Scenario-Based Interview Questions
 
 ---

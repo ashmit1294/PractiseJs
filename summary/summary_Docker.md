@@ -2586,6 +2586,7 @@ docker pull myrepo/myapp:latest   # verifies Notary signature
 
 ---
 
+<a id="docker-scenarios"></a>
 ## Scenario-Based Interview Questions
 
 ---

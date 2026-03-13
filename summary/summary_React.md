@@ -3215,6 +3215,7 @@ const ProductList = lazy(() => import('productsApp/ProductList'));
 
 ---
 
+<a id="react-scenarios"></a>
 ## Scenario-Based Interview Questions
 
 ---

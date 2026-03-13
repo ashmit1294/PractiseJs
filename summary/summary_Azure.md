@@ -2169,6 +2169,7 @@ az monitor metrics alert create \
 
 ---
 
+<a id="azure-scenarios"></a>
 ## Scenario-Based Interview Questions
 
 ---

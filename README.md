@@ -57,6 +57,11 @@ analysis, and direct interview question-and-answer material.
    24. [Weakmap weakset symbol proxy](summary/summary_JavaScript.md#javascript-weakmap-weakset-symbol-proxy)
    25. [Heap priority queue](summary/summary_JavaScript.md#javascript-heap-priority-queue)
    26. [Theory interview qa](summary/summary_JavaScript.md#javascript-theory-interview-qa)
+   27. [GroupBy and aggregate](summary/summary_JavaScript.md#javascript-groupby-aggregate)
+   28. [Array advanced patterns](summary/summary_JavaScript.md#javascript-array-advanced)
+   29. [Promise patterns](summary/summary_JavaScript.md#javascript-promise-patterns)
+   30. [Design patterns](summary/summary_JavaScript.md#javascript-design-patterns)
+   - [Scenario-Based Questions](summary/summary_JavaScript.md#javascript-scenarios)
 
 ### 2. TypeScript
 
@@ -69,6 +74,7 @@ analysis, and direct interview question-and-answer material.
    7. [Design patterns](summary/summary_TypeScript.md#typescript-design-patterns)
    8. [React typescript](summary/summary_TypeScript.md#typescript-react-typescript)
    9. [Theory interview qa](summary/summary_TypeScript.md#typescript-theory-interview-qa)
+   - [Scenario-Based Questions](summary/summary_TypeScript.md#typescript-scenarios)
 
 ### 3. React
 
@@ -82,6 +88,7 @@ analysis, and direct interview question-and-answer material.
    8. [Advanced patterns](summary/summary_React.md#react-advanced-patterns)
    9. [Solid principles](summary/summary_React.md#react-solid-principles)
    10. [Theory interview qa](summary/summary_React.md#react-theory-interview-qa)
+   - [Scenario-Based Questions](summary/summary_React.md#react-scenarios)
 
 ### 4. Node.js
 
@@ -96,6 +103,7 @@ analysis, and direct interview question-and-answer material.
    9. [Rest api patterns](summary/summary_NodeJS.md#nodejs-rest-api-patterns)
    10. [Race conditions](summary/summary_NodeJS.md#nodejs-race-conditions)
    11. [Theory interview qa](summary/summary_NodeJS.md#nodejs-theory-interview-qa)
+   - [Scenario-Based Questions](summary/summary_NodeJS.md#nodejs-scenarios)
 
 ### 5. Docker
 
@@ -108,6 +116,7 @@ analysis, and direct interview question-and-answer material.
    7. [Production](summary/summary_Docker.md#docker-production)
    8. [Interview qa](summary/summary_Docker.md#docker-interview-qa)
    9. [Theory advanced qa](summary/summary_Docker.md#docker-theory-advanced-qa)
+   - [Scenario-Based Questions](summary/summary_Docker.md#docker-scenarios)
 
 ### 6. Kubernetes
 
@@ -120,6 +129,7 @@ analysis, and direct interview question-and-answer material.
    7. [Advanced](summary/summary_Kubernetes.md#kubernetes-advanced)
    8. [Helm interview qa](summary/summary_Kubernetes.md#kubernetes-helm-interview-qa)
    9. [Theory advanced qa](summary/summary_Kubernetes.md#kubernetes-theory-advanced-qa)
+   - [Scenario-Based Questions](summary/summary_Kubernetes.md#kubernetes-scenarios)
 
 ### 7. Azure
 
@@ -131,6 +141,7 @@ analysis, and direct interview question-and-answer material.
    6. [Aks acr](summary/summary_Azure.md#azure-aks-acr)
    7. [Pipelines devops](summary/summary_Azure.md#azure-pipelines-devops)
    8. [Interview qa](summary/summary_Azure.md#azure-interview-qa)
+   - [Scenario-Based Questions](summary/summary_Azure.md#azure-scenarios)
 
 ### 8. AWS
 
@@ -142,6 +153,7 @@ analysis, and direct interview question-and-answer material.
    6. [Sqs sns eventbridge](summary/summary_AWS.md#aws-sqs-sns-eventbridge)
    7. [Ecs eks ecr](summary/summary_AWS.md#aws-ecs-eks-ecr)
    8. [Cicd interview qa](summary/summary_AWS.md#aws-cicd-interview-qa)
+   - [Scenario-Based Questions](summary/summary_AWS.md#aws-scenarios)
 
 ### 9. Next.js
 
@@ -154,6 +166,7 @@ analysis, and direct interview question-and-answer material.
    7. [Seo metadata i18n](summary/summary_NextJS.md#nextjs-seo-metadata-i18n)
    8. [Interview qa](summary/summary_NextJS.md#nextjs-interview-qa)
    9. [Theory interview qa](summary/summary_NextJS.md#nextjs-theory-interview-qa)
+   - [Scenario-Based Questions](summary/summary_NextJS.md#nextjs-scenarios)
 
 ### 10. GraphQL
 
@@ -166,10 +179,12 @@ analysis, and direct interview question-and-answer material.
    7. [Federation stitching](summary/summary_GraphQL.md#graphql-federation-stitching)
    8. [Interview qa patterns](summary/summary_GraphQL.md#graphql-interview-qa-patterns)
    9. [Theory interview qa](summary/summary_GraphQL.md#graphql-theory-interview-qa)
+   - [Scenario-Based Questions](summary/summary_GraphQL.md#graphql-scenarios)
 
 ### 11. Web Security
 
    1. [Theory interview qa](summary/summary_WebSecurity.md#web-security-theory-interview-qa)
+   - [Scenario-Based Questions](summary/summary_WebSecurity.md#web-security-scenarios)
 
 ---
 

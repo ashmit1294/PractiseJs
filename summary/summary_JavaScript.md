@@ -6241,6 +6241,750 @@ module.exports = {
 
 ---
 
+
+---
+
+<a id="javascript-groupby-aggregate"></a>
+## 27_groupby_aggregate.js — QUESTION SET: GroupBy, Aggregate, and Object Transformation
+
+```javascript
+// ─────────────────────────────────────────────────────────
+// Q1. Group array items by a key and collect values into arrays
+// ─────────────────────────────────────────────────────────
+// Input:  [{ cat: 'a', val: 1 }, { cat: 'b', val: 2 }, { cat: 'a', val: 3 }]
+// Output: { a: [1, 3], b: [2] }
+
+function groupByKey(arr, keyFn, valueFn = x => x) {
+  return arr.reduce((acc, item) => {
+    const k = typeof keyFn === 'function' ? keyFn(item) : item[keyFn];
+    const v = typeof valueFn === 'function' ? valueFn(item) : item[valueFn];
+    if (!acc[k]) acc[k] = [];
+    acc[k].push(v);
+    return acc;
+  }, {});
+}
+
+// Usage
+const orders = [
+  { category: 'fruit',  name: 'apple' },
+  { category: 'veg',    name: 'carrot' },
+  { category: 'fruit',  name: 'banana' },
+  { category: 'veg',    name: 'broccoli' },
+];
+console.log(groupByKey(orders, 'category', 'name'));
+// { fruit: ['apple', 'banana'], veg: ['carrot', 'broccoli'] }
+
+// ─────────────────────────────────────────────────────────
+// Q2. Merge objects with same key — combine duplicate keys into arrays
+// ─────────────────────────────────────────────────────────
+// Input:  [{ a: 1 }, { b: 2 }, { a: 3 }, { b: 4 }, { c: 5 }]
+// Output: { a: [1, 3], b: [2, 4], c: [5] }
+
+function mergeByKey(arr) {
+  return arr.reduce((acc, obj) => {
+    Object.entries(obj).forEach(([key, value]) => {
+      if (!acc[key]) acc[key] = [];
+      acc[key].push(value);
+    });
+    return acc;
+  }, {});
+}
+
+console.log(mergeByKey([{ a: 1 }, { b: 2 }, { a: 3 }, { b: 4 }, { c: 5 }]));
+// { a: [1, 3], b: [2, 4], c: [5] }
+
+// ─────────────────────────────────────────────────────────
+// Q3. Sum values for duplicate keys
+// ─────────────────────────────────────────────────────────
+// Input:  [{ key: 'a', val: 10 }, { key: 'b', val: 20 }, { key: 'a', val: 5 }]
+// Output: { a: 15, b: 20 }
+
+function sumByKey(arr, keyProp, valProp) {
+  return arr.reduce((acc, item) => {
+    const k = item[keyProp];
+    acc[k] = (acc[k] || 0) + item[valProp];
+    return acc;
+  }, {});
+}
+
+// ─────────────────────────────────────────────────────────
+// Q4. Count occurrences of each value in an array
+// ─────────────────────────────────────────────────────────
+// Input:  ['a', 'b', 'a', 'c', 'b', 'a']
+// Output: { a: 3, b: 2, c: 1 }
+
+const countOccurrences = arr =>
+  arr.reduce((acc, val) => ({ ...acc, [val]: (acc[val] || 0) + 1 }), {});
+
+// ─────────────────────────────────────────────────────────
+// Q5. Invert an object — swap keys and values
+// ─────────────────────────────────────────────────────────
+// Input:  { a: 1, b: 2, c: 3 }
+// Output: { 1: 'a', 2: 'b', 3: 'c' }
+
+const invertObject = obj =>
+  Object.fromEntries(Object.entries(obj).map(([k, v]) => [v, k]));
+
+// When values are not unique, collect keys into arrays:
+function invertObjectMulti(obj) {
+  return Object.entries(obj).reduce((acc, [k, v]) => {
+    if (!acc[v]) acc[v] = [];
+    acc[v].push(k);
+    return acc;
+  }, {});
+}
+
+// ─────────────────────────────────────────────────────────
+// Q6. Flatten a nested object to dot-notation keys
+// ─────────────────────────────────────────────────────────
+// Input:  { a: { b: { c: 1 } }, d: 2 }
+// Output: { 'a.b.c': 1, 'd': 2 }
+
+function flattenObject(obj, prefix = '') {
+  return Object.entries(obj).reduce((acc, [key, val]) => {
+    const fullKey = prefix ? `${prefix}.${key}` : key;
+    if (val && typeof val === 'object' && !Array.isArray(val)) {
+      Object.assign(acc, flattenObject(val, fullKey));
+    } else {
+      acc[fullKey] = val;
+    }
+    return acc;
+  }, {});
+}
+
+// ─────────────────────────────────────────────────────────
+// Q7. Unflatten dot-notation keys back into a nested object
+// ─────────────────────────────────────────────────────────
+// Input:  { 'a.b.c': 1, 'd.e': 2, 'f': 3 }
+// Output: { a: { b: { c: 1 } }, d: { e: 2 }, f: 3 }
+
+function unflattenObject(flat) {
+  return Object.entries(flat).reduce((acc, [key, val]) => {
+    key.split('.').reduce((obj, part, i, arr) => {
+      if (i === arr.length - 1) {
+        obj[part] = val;
+      } else {
+        obj[part] = obj[part] || {};
+      }
+      return obj[part];
+    }, acc);
+    return acc;
+  }, {});
+}
+
+// ─────────────────────────────────────────────────────────
+// Q8. Deep merge two objects
+// ─────────────────────────────────────────────────────────
+// Nested objects are merged recursively; arrays are concatenated
+
+function deepMerge(target, source) {
+  const result = { ...target };
+  for (const key of Object.keys(source)) {
+    if (
+      source[key] && typeof source[key] === 'object' && !Array.isArray(source[key]) &&
+      target[key] && typeof target[key] === 'object' && !Array.isArray(target[key])
+    ) {
+      result[key] = deepMerge(target[key], source[key]);
+    } else if (Array.isArray(source[key]) && Array.isArray(target[key])) {
+      result[key] = [...target[key], ...source[key]];
+    } else {
+      result[key] = source[key];
+    }
+  }
+  return result;
+}
+
+// ─────────────────────────────────────────────────────────
+// Q9. Pick / Omit specific keys from an object
+// ─────────────────────────────────────────────────────────
+
+const pick = (obj, keys) =>
+  Object.fromEntries(keys.filter(k => k in obj).map(k => [k, obj[k]]));
+
+const omit = (obj, keys) =>
+  Object.fromEntries(Object.entries(obj).filter(([k]) => !keys.includes(k)));
+
+// ─────────────────────────────────────────────────────────
+// Q10. Transform array of objects — re-shape keys (rename + filter)
+// ─────────────────────────────────────────────────────────
+// Input:  [{ userId: 1, firstName: 'Alice', age: 30, internal: 'x' }]
+// Output: [{ id: 1, name: 'Alice' }]  (only id and name, renamed)
+
+function transformArray(arr, mapping) {
+  // mapping: { newKey: 'oldKey' }
+  return arr.map(item =>
+    Object.fromEntries(
+      Object.entries(mapping).map(([newKey, oldKey]) => [newKey, item[oldKey]])
+    )
+  );
+}
+
+const users = [{ userId: 1, firstName: 'Alice', age: 30, internal: 'x' }];
+console.log(transformArray(users, { id: 'userId', name: 'firstName' }));
+// [{ id: 1, name: 'Alice' }]
+
+// ─────────────────────────────────────────────────────────
+// Q11. Find duplicates in an array of objects by a key
+// ─────────────────────────────────────────────────────────
+// Return only the objects where the key value appears more than once
+
+function findDuplicatesByKey(arr, key) {
+  const counts = arr.reduce((acc, item) => {
+    acc[item[key]] = (acc[item[key]] || 0) + 1;
+    return acc;
+  }, {});
+  return arr.filter(item => counts[item[key]] > 1);
+}
+
+// ─────────────────────────────────────────────────────────
+// Q12. Zip two arrays into an array of key-value pair objects
+// ─────────────────────────────────────────────────────────
+// keys:   ['a', 'b', 'c']
+// values: [1, 2, 3]
+// Output: [{ key: 'a', value: 1 }, { key: 'b', value: 2 }, { key: 'c', value: 3 }]
+
+const zipToObject = (keys, values) =>
+  keys.reduce((acc, k, i) => ({ ...acc, [k]: values[i] }), {});
+
+// ─────────────────────────────────────────────────────────
+// Q13. Convert array of objects to a Map keyed by a property
+// ─────────────────────────────────────────────────────────
+// Useful for O(1) lookup: array → Map<id, object>
+
+function arrayToMap(arr, key) {
+  return new Map(arr.map(item => [item[key], item]));
+}
+
+const userMap = arrayToMap([{ id: 1, name: 'Alice' }, { id: 2, name: 'Bob' }], 'id');
+console.log(userMap.get(1)); // { id: 1, name: 'Alice' }
+
+// ─────────────────────────────────────────────────────────
+// Q14. Object diff — find keys that changed between two objects
+// ─────────────────────────────────────────────────────────
+function objectDiff(a, b) {
+  const keys = new Set([...Object.keys(a), ...Object.keys(b)]);
+  return [...keys].reduce((diff, key) => {
+    if (a[key] !== b[key]) {
+      diff[key] = { from: a[key], to: b[key] };
+    }
+    return diff;
+  }, {});
+}
+
+console.log(objectDiff(
+  { name: 'Alice', age: 30, city: 'NY' },
+  { name: 'Alice', age: 31, country: 'US' }
+));
+// { age: { from: 30, to: 31 }, city: { from: 'NY', to: undefined }, country: { from: undefined, to: 'US' } }
+```
+
+---
+
+<a id="javascript-array-advanced"></a>
+## 28_array_advanced.js — QUESTION SET: Advanced Array Patterns
+
+```javascript
+// ─────────────────────────────────────────────────────────
+// Q1. Partition an array into two arrays based on a predicate
+// ─────────────────────────────────────────────────────────
+// Input:  [1, 2, 3, 4, 5, 6], isEven
+// Output: [[2, 4, 6], [1, 3, 5]]
+
+function partition(arr, predicate) {
+  return arr.reduce(
+    ([pass, fail], item) =>
+      predicate(item) ? [[...pass, item], fail] : [pass, [...fail, item]],
+    [[], []]
+  );
+}
+
+const [evens, odds] = partition([1, 2, 3, 4, 5, 6], n => n % 2 === 0);
+
+// ─────────────────────────────────────────────────────────
+// Q2. Rotate an array left or right by k positions
+// ─────────────────────────────────────────────────────────
+function rotateRight(arr, k) {
+  const n = arr.length;
+  const offset = ((k % n) + n) % n; // handles negative k and k > n
+  return [...arr.slice(n - offset), ...arr.slice(0, n - offset)];
+}
+
+console.log(rotateRight([1, 2, 3, 4, 5], 2)); // [4, 5, 1, 2, 3]
+console.log(rotateRight([1, 2, 3, 4, 5], -1)); // [2, 3, 4, 5, 1]
+
+// ─────────────────────────────────────────────────────────
+// Q3. Zip multiple arrays together
+// ─────────────────────────────────────────────────────────
+// zip([1,2,3], ['a','b','c']) => [[1,'a'], [2,'b'], [3,'c']]
+
+const zip = (...arrays) =>
+  arrays[0].map((_, i) => arrays.map(arr => arr[i]));
+
+// ─────────────────────────────────────────────────────────
+// Q4. Generate all permutations of an array
+// ─────────────────────────────────────────────────────────
+function permutations(arr) {
+  if (arr.length <= 1) return [arr];
+  return arr.flatMap((item, i) =>
+    permutations([...arr.slice(0, i), ...arr.slice(i + 1)]).map(p => [item, ...p])
+  );
+}
+
+console.log(permutations([1, 2, 3]).length); // 6
+
+// ─────────────────────────────────────────────────────────
+// Q5. Generate all combinations (subsets) of size k
+// ─────────────────────────────────────────────────────────
+function combinations(arr, k) {
+  if (k === 0) return [[]];
+  if (arr.length < k) return [];
+  const [first, ...rest] = arr;
+  const withFirst = combinations(rest, k - 1).map(c => [first, ...c]);
+  const withoutFirst = combinations(rest, k);
+  return [...withFirst, ...withoutFirst];
+}
+
+// ─────────────────────────────────────────────────────────
+// Q6. Transpose a 2D matrix
+// ─────────────────────────────────────────────────────────
+const transpose = matrix =>
+  matrix[0].map((_, colIdx) => matrix.map(row => row[colIdx]));
+
+console.log(transpose([[1,2,3],[4,5,6]])); // [[1,4],[2,5],[3,6]]
+
+// ─────────────────────────────────────────────────────────
+// Q7. Find the most frequent element
+// ─────────────────────────────────────────────────────────
+function mostFrequent(arr) {
+  const freq = arr.reduce((acc, v) => { acc[v] = (acc[v] || 0) + 1; return acc; }, {});
+  return Object.entries(freq).reduce((a, b) => (b[1] > a[1] ? b : a))[0];
+}
+
+// ─────────────────────────────────────────────────────────
+// Q8. Running total (prefix sum array)
+// ─────────────────────────────────────────────────────────
+const prefixSum = arr =>
+  arr.reduce((acc, n) => [...acc, (acc.at(-1) ?? 0) + n], []);
+
+console.log(prefixSum([1, 2, 3, 4])); // [1, 3, 6, 10]
+
+// ─────────────────────────────────────────────────────────
+// Q9. Find all pairs that sum to a target (Two Sum — return all pairs)
+// ─────────────────────────────────────────────────────────
+function allPairsWithSum(arr, target) {
+  const seen = new Map();
+  const pairs = [];
+  for (const num of arr) {
+    const complement = target - num;
+    if (seen.has(complement)) {
+      pairs.push([complement, num]);
+    }
+    seen.set(num, true);
+  }
+  return pairs;
+}
+
+console.log(allPairsWithSum([1, 2, 3, 4, 5, 6], 7)); // [[1,6],[2,5],[3,4]]
+
+// ─────────────────────────────────────────────────────────
+// Q10. Product of array excluding current index (no division)
+// ─────────────────────────────────────────────────────────
+// Input:  [1, 2, 3, 4]
+// Output: [24, 12, 8, 6]   (each element is product of all others)
+
+function productExceptSelf(arr) {
+  const n = arr.length;
+  const left  = Array(n).fill(1);
+  const right = Array(n).fill(1);
+  for (let i = 1; i < n; i++)     left[i]  = left[i - 1]  * arr[i - 1];
+  for (let i = n - 2; i >= 0; i--) right[i] = right[i + 1] * arr[i + 1];
+  return arr.map((_, i) => left[i] * right[i]);
+}
+
+// ─────────────────────────────────────────────────────────
+// Q11. Chunk an array into pages and retrieve a specific page
+// ─────────────────────────────────────────────────────────
+function paginate(arr, pageSize, page) {
+  const start = (page - 1) * pageSize;
+  return arr.slice(start, start + pageSize);
+}
+
+// ─────────────────────────────────────────────────────────
+// Q12. Deep flatten + dedupe + sort pipeline (compose pattern)
+// ─────────────────────────────────────────────────────────
+const pipe = (...fns) => x => fns.reduce((v, f) => f(v), x);
+
+const processArray = pipe(
+  arr => arr.flat(Infinity),
+  arr => [...new Set(arr)],
+  arr => arr.sort((a, b) => a - b)
+);
+
+console.log(processArray([[3, 1], [2, [1, 3]], 4])); // [1, 2, 3, 4]
+```
+
+---
+
+<a id="javascript-promise-patterns"></a>
+## 29_promise_patterns.js — QUESTION SET: Advanced Promise and Async Patterns
+
+```javascript
+// ─────────────────────────────────────────────────────────
+// Q1. Sequential async processing (one at a time, ordered)
+// ─────────────────────────────────────────────────────────
+async function processSequentially(items, asyncFn) {
+  const results = [];
+  for (const item of items) {
+    results.push(await asyncFn(item)); // awaits each before next
+  }
+  return results;
+}
+
+// ─────────────────────────────────────────────────────────
+// Q2. Concurrent with a concurrency limit
+// ─────────────────────────────────────────────────────────
+// Process items in parallel but max N at a time (pool pattern)
+
+async function pLimit(items, asyncFn, limit) {
+  const results = new Array(items.length);
+  let index = 0;
+
+  async function worker() {
+    while (index < items.length) {
+      const i = index++;
+      results[i] = await asyncFn(items[i]);
+    }
+  }
+
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+  return results;
+}
+
+// Usage: fetch 100 URLs, max 5 at a time
+// await pLimit(urls, fetchUrl, 5);
+
+// ─────────────────────────────────────────────────────────
+// Q3. Promise timeout — reject if not resolved within N ms
+// ─────────────────────────────────────────────────────────
+function withTimeout(promise, ms) {
+  const timeout = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error(`Timed out after ${ms}ms`)), ms)
+  );
+  return Promise.race([promise, timeout]);
+}
+
+// ─────────────────────────────────────────────────────────
+// Q4. Retry with exponential back-off and jitter
+// ─────────────────────────────────────────────────────────
+async function retry(fn, { attempts = 3, delay = 300, factor = 2 } = {}) {
+  let lastError;
+  for (let i = 0; i < attempts; i++) {
+    try { return await fn(); } catch (e) {
+      lastError = e;
+      const wait = delay * Math.pow(factor, i) + Math.random() * 100;
+      await new Promise(r => setTimeout(r, wait));
+    }
+  }
+  throw lastError;
+}
+
+// ─────────────────────────────────────────────────────────
+// Q5. Memoize an async function (cache by arguments)
+// ─────────────────────────────────────────────────────────
+function memoizeAsync(fn) {
+  const cache = new Map();
+  return async (...args) => {
+    const key = JSON.stringify(args);
+    if (cache.has(key)) return cache.get(key);
+    const promise = fn(...args);
+    cache.set(key, promise); // cache the promise itself (handles concurrent calls)
+    try {
+      return await promise;
+    } catch (e) {
+      cache.delete(key); // don't cache failures
+      throw e;
+    }
+  };
+}
+
+// ─────────────────────────────────────────────────────────
+// Q6. Lazy Promise — only starts executing when first awaited
+// ─────────────────────────────────────────────────────────
+function lazy(fn) {
+  let promise = null;
+  return {
+    then(...args) {
+      if (!promise) promise = fn();
+      return promise.then(...args);
+    },
+    catch(...args) {
+      if (!promise) promise = fn();
+      return promise.catch(...args);
+    },
+  };
+}
+
+// ─────────────────────────────────────────────────────────
+// Q7. Async queue — process items one at a time with backpressure
+// ─────────────────────────────────────────────────────────
+class AsyncQueue {
+  constructor() {
+    this._queue = [];
+    this._running = false;
+  }
+  enqueue(fn) {
+    return new Promise((resolve, reject) => {
+      this._queue.push({ fn, resolve, reject });
+      if (!this._running) this._run();
+    });
+  }
+  async _run() {
+    this._running = true;
+    while (this._queue.length) {
+      const { fn, resolve, reject } = this._queue.shift();
+      try { resolve(await fn()); } catch (e) { reject(e); }
+    }
+    this._running = false;
+  }
+}
+
+// ─────────────────────────────────────────────────────────
+// Q8. Observable-style event stream using async generators
+// ─────────────────────────────────────────────────────────
+async function* pollEndpoint(url, intervalMs) {
+  while (true) {
+    const res = await fetch(url);
+    yield await res.json();
+    await new Promise(r => setTimeout(r, intervalMs));
+  }
+}
+
+// Consume:
+// for await (const data of pollEndpoint('/api/status', 5000)) {
+//   console.log(data);
+//   if (data.done) break;
+// }
+
+// ─────────────────────────────────────────────────────────
+// Q9. Circuit Breaker pattern
+// ─────────────────────────────────────────────────────────
+class CircuitBreaker {
+  constructor(fn, { threshold = 3, resetTimeout = 30_000 } = {}) {
+    this.fn = fn;
+    this.threshold = threshold;
+    this.resetTimeout = resetTimeout;
+    this.failures = 0;
+    this.state = 'CLOSED'; // CLOSED | OPEN | HALF_OPEN
+  }
+  async call(...args) {
+    if (this.state === 'OPEN') throw new Error('Circuit is OPEN');
+    try {
+      const result = await this.fn(...args);
+      this._onSuccess();
+      return result;
+    } catch (e) {
+      this._onFailure();
+      throw e;
+    }
+  }
+  _onSuccess() { this.failures = 0; this.state = 'CLOSED'; }
+  _onFailure() {
+    this.failures++;
+    if (this.failures >= this.threshold) {
+      this.state = 'OPEN';
+      setTimeout(() => { this.state = 'HALF_OPEN'; this.failures = 0; }, this.resetTimeout);
+    }
+  }
+}
+```
+
+---
+
+<a id="javascript-design-patterns"></a>
+## 30_design_patterns.js — QUESTION SET: Design Patterns in JavaScript
+
+```javascript
+// ─────────────────────────────────────────────────────────
+// Q1. Singleton — ensure only one instance exists
+// ─────────────────────────────────────────────────────────
+class ConfigStore {
+  static #instance = null;
+  #config = {};
+
+  static getInstance() {
+    if (!ConfigStore.#instance) ConfigStore.#instance = new ConfigStore();
+    return ConfigStore.#instance;
+  }
+  set(key, value) { this.#config[key] = value; }
+  get(key) { return this.#config[key]; }
+}
+
+// Usage
+const cfg1 = ConfigStore.getInstance();
+const cfg2 = ConfigStore.getInstance();
+console.log(cfg1 === cfg2); // true
+
+// ─────────────────────────────────────────────────────────
+// Q2. Observer / EventEmitter — pub-sub pattern
+// ─────────────────────────────────────────────────────────
+class EventEmitter {
+  constructor() { this._events = {}; }
+
+  on(event, listener) {
+    (this._events[event] ??= []).push(listener);
+    return () => this.off(event, listener); // returns unsubscribe
+  }
+  off(event, listener) {
+    this._events[event] = (this._events[event] || []).filter(l => l !== listener);
+  }
+  emit(event, ...args) {
+    (this._events[event] || []).forEach(l => l(...args));
+  }
+  once(event, listener) {
+    const wrapper = (...args) => { listener(...args); this.off(event, wrapper); };
+    this.on(event, wrapper);
+  }
+}
+
+// ─────────────────────────────────────────────────────────
+// Q3. Strategy — swap algorithms at runtime
+// ─────────────────────────────────────────────────────────
+class Sorter {
+  constructor(strategy) { this.strategy = strategy; }
+  sort(data) { return this.strategy(data); }
+}
+
+const bubbleSort  = arr => { /* ... */ return arr; };
+const nativeSort  = arr => [...arr].sort((a, b) => a - b);
+
+const sorter = new Sorter(nativeSort);
+sorter.strategy = bubbleSort; // swap strategy at runtime
+
+// ─────────────────────────────────────────────────────────
+// Q4. Decorator pattern (without TS decorators) — wrap a function
+// ─────────────────────────────────────────────────────────
+function withLogging(fn) {
+  return function(...args) {
+    console.log(`Calling ${fn.name} with`, args);
+    const result = fn.apply(this, args);
+    console.log(`${fn.name} returned`, result);
+    return result;
+  };
+}
+
+function withTiming(fn) {
+  return function(...args) {
+    const t = performance.now();
+    const result = fn.apply(this, args);
+    console.log(`${fn.name} took ${(performance.now() - t).toFixed(2)}ms`);
+    return result;
+  };
+}
+
+// Compose: withLogging(withTiming(myFn))
+
+// ─────────────────────────────────────────────────────────
+// Q5. Proxy — intercept property access for validation
+// ─────────────────────────────────────────────────────────
+function createValidated(schema) {
+  return new Proxy({}, {
+    set(target, key, value) {
+      const validate = schema[key];
+      if (validate && !validate(value)) {
+        throw new TypeError(`Invalid value for key "${key}": ${value}`);
+      }
+      target[key] = value;
+      return true;
+    }
+  });
+}
+
+const user = createValidated({
+  age:   v => Number.isInteger(v) && v >= 0,
+  email: v => typeof v === 'string' && v.includes('@'),
+});
+
+user.age = 25;      // OK
+user.age = -1;      // TypeError
+
+// ─────────────────────────────────────────────────────────
+// Q6. Command pattern — encapsulate actions for undo/redo
+// ─────────────────────────────────────────────────────────
+class CommandHistory {
+  constructor() { this.done = []; this.undone = []; }
+
+  execute(command) {
+    command.execute();
+    this.done.push(command);
+    this.undone = []; // clear redo stack on new action
+  }
+  undo() {
+    const cmd = this.done.pop();
+    if (cmd) { cmd.undo(); this.undone.push(cmd); }
+  }
+  redo() {
+    const cmd = this.undone.pop();
+    if (cmd) { cmd.execute(); this.done.push(cmd); }
+  }
+}
+
+// Each command is { execute(), undo() }
+class AddItemCommand {
+  constructor(list, item) { this.list = list; this.item = item; }
+  execute() { this.list.push(this.item); }
+  undo()    { this.list.pop(); }
+}
+
+// ─────────────────────────────────────────────────────────
+// Q7. Middleware pipeline (like Express) — compose handlers
+// ─────────────────────────────────────────────────────────
+function createPipeline(...middlewares) {
+  return async function(context) {
+    let index = -1;
+    async function dispatch(i) {
+      if (i <= index) throw new Error('next() called multiple times');
+      index = i;
+      const fn = middlewares[i];
+      if (!fn) return;
+      await fn(context, () => dispatch(i + 1));
+    }
+    await dispatch(0);
+  };
+}
+
+// ─────────────────────────────────────────────────────────
+// Q8. Builder pattern — construct complex objects step by step
+// ─────────────────────────────────────────────────────────
+class QueryBuilder {
+  #table = '';
+  #conditions = [];
+  #limitVal = null;
+  #fields = ['*'];
+
+  from(table)           { this.#table = table; return this; }
+  select(...fields)     { this.#fields = fields; return this; }
+  where(condition)      { this.#conditions.push(condition); return this; }
+  limit(n)              { this.#limitVal = n; return this; }
+
+  build() {
+    let q = `SELECT ${this.#fields.join(', ')} FROM ${this.#table}`;
+    if (this.#conditions.length) q += ` WHERE ${this.#conditions.join(' AND ')}`;
+    if (this.#limitVal !== null) q += ` LIMIT ${this.#limitVal}`;
+    return q;
+  }
+}
+
+const query = new QueryBuilder()
+  .from('users')
+  .select('id', 'name', 'email')
+  .where('age > 18')
+  .where('active = true')
+  .limit(20)
+  .build();
+// SELECT id, name, email FROM users WHERE age > 18 AND active = true LIMIT 20
+```
+
+<a id="javascript-scenarios"></a>
 ## Scenario-Based Interview Questions
 
 ---

@@ -3120,6 +3120,7 @@ export type { Repository, UserId, ProductId, ValidEmail, RouteParams, DeepReadon
 
 ---
 
+<a id="typescript-scenarios"></a>
 ## Scenario-Based Interview Questions
 
 ---

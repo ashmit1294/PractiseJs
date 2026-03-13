@@ -678,6 +678,7 @@ module.exports = { loginSafe, deepMergeSafe, isPrivateIP, loadEnv };
 
 ---
 
+<a id="web-security-scenarios"></a>
 ## Scenario-Based Interview Questions
 
 ---
