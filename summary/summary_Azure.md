@@ -2166,3 +2166,138 @@ az monitor metrics alert create \
 
 ---
 
+
+---
+
+## Scenario-Based Interview Questions
+
+---
+
+### Scenario 1: Azure Function Cold Starts Causing SLA Violations
+
+**Situation:** Your consumption-plan Azure Function processes payment webhooks. It occasionally takes 8 seconds to respond (cold start), violating a 3-second SLA.
+
+**Question:** How do you fix this?
+
+**Answer:**
+- Switch to **Premium Plan** (EP1) — it supports **Pre-warmed instances** that are always running. No cold starts.
+- Enable **WEBSITE_RUN_FROM_PACKAGE=1** to reduce startup time by running from a zip package.
+- For .NET/Java heavy runtimes, use **Always On** if on App Service Plan.
+- Implement a **warming ping** (Timer Trigger firing every 5 minutes) as a cheap workaround on consumption plan.
+- Keep your function bundle small — minimise dependencies so initial load is fast.
+- For Node.js Functions: use **tree-shaking** to reduce the cold-start footprint.
+
+---
+
+### Scenario 2: App Service Deployment Causes 60 Seconds of Downtime
+
+**Situation:** Every deployment of your Azure App Service causes ~60 seconds where users get errors. The CI deploys directly to the production slot.
+
+**Question:** How do you achieve zero-downtime deployments?
+
+**Answer:**
+- Use **Deployment Slots** (staging and production):
+  1. Deploy to the `staging` slot.
+  2. Run smoke tests against the staging URL.
+  3. **Swap** staging ↔ production — Azure routes traffic instantly with no downtime.
+  4. If the swap causes issues, swap back immediately.
+- Enable **Auto Swap** for fully automated zero-downtime CD.
+- Swap warms up the new version before routing production traffic to it.
+
+---
+
+### Scenario 3: Blob Storage — Sensitive Data Accessible Publicly
+
+**Situation:** A security audit finds that a blob container used for user-uploaded documents has public access enabled. Some PDFs contain PII.
+
+**Question:** What is your immediate response and long-term fix?
+
+**Answer:**
+- **Immediate**: Disable public access on the container (`az storage container set-permission --public-access off`).
+- Rotate the Storage Account access key if it was exposed.
+- Audit access logs in Azure Monitor to identify any unauthorised access.
+- **Long-term architecture**:
+  - Keep the container private.
+  - Generate **SAS (Shared Access Signature) tokens** with short TTL (15–60 min) when users need to download.
+  - Or proxy downloads through your API which verifies authorisation before issuing a redirect.
+  - Enable **Azure Defender for Storage** to detect anomalous access patterns.
+
+---
+
+### Scenario 4: AKS Pods Cannot Pull from ACR After Cluster Upgrade
+
+**Situation:** After upgrading your AKS cluster, all pods show `ImagePullBackOff`. The images are in Azure Container Registry.
+
+**Question:** How do you diagnose and fix?
+
+**Answer:**
+1. `kubectl describe pod <pod>` — confirm the error is `unauthorized: authentication required`.
+2. Check the AKS-ACR integration: `az aks check-acr --resource-group $RG --name $CLUSTER --acr $ACR`.
+3. Common cause after upgrade: the managed identity's role assignment on ACR was not preserved.
+4. Fix: re-attach the ACR to the AKS cluster: `az aks update --attach-acr <acr-name> -g $RG -n $CLUSTER`.
+5. Or manually assign `AcrPull` role: `az role assignment create --assignee <kubelet-managed-identity-client-id> --role AcrPull --scope <acr-id>`.
+
+---
+
+### Scenario 5: Cosmos DB — Request Units Exhausted Under Peak Load
+
+**Situation:** Your Cosmos DB account hits 100% RU/s during a product launch. Writes start returning 429 errors.
+
+**Question:** How do you handle this immediately and architect to prevent it?
+
+**Answer:**
+- **Immediate**: Enable **Autoscale** provisioned throughput (scales 0–Nmax RU/s automatically).
+- Implement **retry with exponential back-off** in your SDK — the Cosmos SDK has this built in.
+- Check your queries — cross-partition queries consume significantly more RUs; ensure `partitionKey` is in the WHERE clause.
+- Enable **server-side caching** (Cosmos integrated cache or Redis) for read-heavy patterns.
+- **Architectural fix**: use **Autoscale** as the default; set the max RU/s based on peak load testing + 20% buffer.
+- Monitor RU consumption per query in Azure Portal → Insights.
+
+---
+
+### Scenario 6: Azure AD Token Validation Failing After Clock Drift
+
+**Situation:** Your API validates Azure AD JWT tokens. Occasionally tokens are rejected as expired even though users just logged in. This happens on one specific server.
+
+**Question:** What is causing this and how do you fix it?
+
+**Answer:**
+- JWT `exp` and `nbf` claims are unix timestamps. If the server's clock is behind, a freshly-issued token may appear expired.
+- **Diagnosis**: compare `date` on the server vs NTP time.
+- **Fix**: sync the server clock with NTP (`timedatectl` on Linux; Windows Time Service on Windows).
+- **Mitigation**: add a clock skew tolerance in your token validation library (MSAL allows configuring `clockSkewInSeconds`, typically 5 minutes).
+- In AKS: ensure node VMs have NTP configured correctly — Azure VMs sync with the Azure host by default but this can be disrupted.
+
+---
+
+### Scenario 7: Azure DevOps Pipeline — Secrets Leaking in Logs
+
+**Situation:** A developer accidentally prints an environment variable in a pipeline script. The value appears in the build logs visible to all project members.
+
+**Question:** How do you prevent this?
+
+**Answer:**
+- Store secrets in **Azure Key Vault** not in pipeline variables.
+- In Azure DevOps, mark pipeline variables as **Secret** — they are masked in logs automatically.
+- Use the **Key Vault task** to fetch secrets at runtime and expose them as masked pipeline variables.
+- Add a `[no-log]` decorator or use PowerShell's `Write-Host` with `##vso[task.setvariable variable=X;isSecret=true]` to prevent a variable from ever appearing.
+- For the exposed secret: rotate it immediately, audit who had pipeline log access, check downstream systems.
+
+---
+
+### Scenario 8: Cost Explosion — Azure Bill 3x Normal
+
+**Situation:** Your Azure bill triples month-over-month. The finance team escalates. You have no existing budget alerts.
+
+**Question:** How do you investigate and prevent this?
+
+**Answer:**
+- **Azure Cost Management + Billing** → Cost Analysis → break down by Resource, Service, and Resource Group.
+- Common culprits: forgotten dev VMs running 24/7, oversized App Service Plans, Egress data transfer charges, Blob storage redundancy tier.
+- **Immediate**: stop/delete the over-provisioned resources.
+- **Prevention**:
+  - Set **Budgets** with email/callback alerts at 80% and 100% of expected spend.
+  - Enable **Azure Advisor** cost recommendations.
+  - Tag all resources with `Environment`, `Owner`, `Project` for cost attribution.
+  - Use **Dev/Test subscription pricing** for non-production workloads.
+  - Schedule auto-shutdown of dev VMs outside business hours.

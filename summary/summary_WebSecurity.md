@@ -675,3 +675,206 @@ module.exports = { loginSafe, deepMergeSafe, isPrivateIP, loadEnv };
 
 ---
 
+
+---
+
+## Scenario-Based Interview Questions
+
+---
+
+### Scenario 1: IDOR — Accessing Another User's Data
+
+**Situation:** A penetration tester reports that `GET /api/invoices/1234` returns the invoice regardless of which user is logged in, as long as they know the invoice ID.
+
+**Question:** How do you fix this Insecure Direct Object Reference (IDOR) vulnerability?
+
+**Answer:**
+- The root cause: the handler fetches the resource by ID but does NOT verify the logged-in user owns it.
+- **Fix**: always scope queries by the authenticated user's ID:
+
+```javascript
+// BAD
+const invoice = await Invoice.findById(req.params.id);
+
+// GOOD
+const invoice = await Invoice.findOne({
+  _id: req.params.id,
+  userId: req.user.id,   // scope to the authenticated user
+});
+if (!invoice) return res.status(404).json({ error: 'Not found' });
+```
+
+- Return 404 (not 403) when the resource doesn't belong to the user — 403 confirms the object exists, aiding enumeration.
+- Use **UUIDs** instead of sequential integers for IDs — harder to enumerate, but NOT a substitute for authorisation checks.
+
+---
+
+### Scenario 2: XSS via User-Generated Content
+
+**Situation:** Your platform allows users to post comments. A user posts `<script>document.cookie.split`=`alert(1)</script>` and it executes in other users' browsers, stealing session cookies.
+
+**Question:** How do you prevent Stored XSS?
+
+**Answer:**
+- **Never trust user input**: sanitise on the way in AND escape on the way out.
+- Use a whitelist-based HTML sanitiser: `DOMPurify` (client-side) or `sanitize-html` (server-side).
+
+```javascript
+import createDOMPurify from 'dompurify';
+import { JSDOM } from 'jsdom';
+const purify = createDOMPurify(new JSDOM('').window);
+const safeHtml = purify.sanitize(userInput); // strips all scripts, event handlers
+```
+
+- When rendering in React: avoid `dangerouslySetInnerHTML` — React escapes by default.
+- Set **Content-Security-Policy** header to block inline scripts:
+  `Content-Security-Policy: default-src 'self'; script-src 'self'`
+- Set `HttpOnly` on session cookies so stolen cookies via `document.cookie` are impossible.
+
+---
+
+### Scenario 3: CSRF Attack — Funds Transfer Forged from a Malicious Website
+
+**Situation:** Your banking app uses session cookies. A security researcher demonstrates that visiting their malicious page transfers money from the victim's account by sending a forged POST request.
+
+**Question:** How do you prevent CSRF?
+
+**Answer:**
+- **CSRF tokens** (Synchroniser Token Pattern): generate a random token per session, embed in forms, validate server-side.
+- **SameSite cookie attribute**:
+
+```http
+Set-Cookie: sessionId=abc123; HttpOnly; Secure; SameSite=Strict
+```
+
+`SameSite=Strict` prevents the cookie from being sent on cross-site requests entirely.
+`SameSite=Lax` (default modern browsers) allows GET but blocks POST from cross-site.
+
+- For REST APIs using JWT in `Authorization: Bearer` header instead of cookies — CSRF is not an issue because the browser won't auto-attach the header.
+- Verify `Origin` and `Referer` headers for state-changing requests as a defence-in-depth layer.
+
+---
+
+### Scenario 4: SQL Injection via Search Endpoint
+
+**Situation:** A user searches for `'; DROP TABLE products; --`. Your product search function string-interpolates the query directly into SQL.
+
+**Question:** Fix this and explain the broader principle.
+
+**Answer:**
+
+```javascript
+// VULNERABLE
+const results = await db.query(`SELECT * FROM products WHERE name LIKE '%${req.query.q}%'`);
+
+// FIXED — parameterised query
+const results = await db.query(
+  'SELECT * FROM products WHERE name ILIKE $1',
+  [`%${req.query.q.replace(/%/g, '\\%')}%`]
+);
+```
+
+- **Parameterised queries / prepared statements** ensure user input is treated as data, never as SQL syntax — the DB driver handles escaping.
+- Use an ORM (Sequelize, Prisma, TypeORM) — they parameterise by default.
+- Layer: validate and sanitise input (max length, allowed characters) before it reaches the query.
+- Use a **WAF** (Web Application Firewall) to block obvious injection patterns as a defence-in-depth layer.
+
+---
+
+### Scenario 5: JWT Secret Compromised — All Tokens Must Be Invalidated
+
+**Situation:** You discover your JWT signing secret was accidentally committed to a public GitHub repo. All currently-issued JWTs are potentially compromised.
+
+**Question:** What do you do immediately and how do you prevent it?
+
+**Answer:**
+- **Immediate response**:
+  1. Rotate the secret: generate a new one and deploy immediately. This invalidates ALL existing tokens.
+  2. Force re-login for all users (they will get 401 and be redirected to login).
+  3. Audit GitHub history and revoke from GitHub Secrets if it was exposed there.
+  4. Check audit logs for unexplained API activity with compromised tokens.
+
+- **Prevention**:
+  - Store secrets in environment variables managed by a secrets manager (AWS Secrets Manager, Vault, Azure Key Vault).
+  - Add pre-commit hooks (git-secrets, detect-secrets) to block committing secrets.
+  - Use `GITGUARDIAN` or GitHub Advanced Security secret scanning.
+  - Rotate secrets regularly; build the rotation process so it's practiced.
+
+---
+
+### Scenario 6: Broken Access Control — Admin Endpoint Accessible by Regular User
+
+**Situation:** Your REST API has `/api/admin/users` that returns all users with PII. It is only guarded by checking `req.query.isAdmin === 'true'`.
+
+**Question:** What is wrong and how do you fix it?
+
+**Answer:**
+- **Critical flaw**: client-supplied data (`req.query`) must never be trusted for authorisation. Any user can append `?isAdmin=true`.
+- **Fix**: authorisation must be based on server-side data (JWT claim, session, DB role):
+
+```javascript
+// Middleware
+const requireAdmin = (req, res, next) => {
+  if (!req.user?.roles?.includes('admin')) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+  next();
+};
+
+router.get('/admin/users', authenticate, requireAdmin, listUsersHandler);
+```
+
+- Roles/permissions must come from the JWT payload or DB, never from the request.
+- Add **integration tests** that assert non-admin tokens get 403 on admin endpoints.
+
+---
+
+### Scenario 7: Rate Limiting to Prevent Brute Force on Login
+
+**Situation:** Your login endpoint has no rate limiting. A security researcher demonstrates a credential-stuffing attack with 10 000 password attempts per minute.
+
+**Question:** How do you defend against this?
+
+**Answer:**
+- **Rate limit by IP and by username**:
+
+```javascript
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,  // 15 minutes
+  max: 10,                    // 10 attempts per window
+  keyGenerator: (req) => req.body.email || req.ip, // per-account AND per-IP
+  message: { error: 'Too many login attempts. Try again in 15 minutes.' },
+  store: new RedisStore({ ... }),  // shared across instances
+});
+app.post('/auth/login', loginLimiter, loginHandler);
+```
+
+- Add **account lockout** after N consecutive failures (with CAPTCHA bypass to prevent DoS of legitimate users).
+- Implement **CAPTCHA** (reCAPTCHA v3) on the login page after 3 failures.
+- Enable **bcrypt** with cost factor 12+ for password hashing — slows brute force significantly.
+- Alert on high-volume failed login attempts.
+
+---
+
+### Scenario 8: Dependency Vulnerability — npm audit Shows Critical CVE
+
+**Situation:** `npm audit` reports a Critical severity RCE vulnerability in `lodash@4.17.15` which is used by 12 of your direct and transitive dependencies.
+
+**Question:** How do you handle this systematically?
+
+**Answer:**
+1. `npm audit --json` to see all affected paths.
+2. `npm audit fix` for automatic fixes on resolvable vulnerabilities.
+3. For transitive dependencies you can't directly update: use `npm overrides` (npm v8+) to force a specific version:
+
+```json
+"overrides": {
+  "lodash": ">=4.17.21"
+}
+```
+
+4. If an override is not possible immediately, add a WAF rule to block the specific exploit payload as a temporary mitigation.
+5. **Prevent recurrence**:
+   - Add `npm audit --audit-level=high` to CI — fails the pipeline on high/critical CVEs.
+   - Use **Dependabot** or Renovate for automatic dependency update PRs.
+   - Subscribe to security advisories for your key packages.

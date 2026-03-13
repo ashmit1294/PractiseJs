@@ -3782,3 +3782,210 @@ module.exports = { gzipFile, processArray, callAPI };
 
 ---
 ```
+
+---
+
+## Scenario-Based Interview Questions
+
+---
+
+### Scenario 1: Express API Times Out Under Load
+
+**Situation:** Your Express API handles 50 req/s fine in dev, but at 500 req/s in prod it starts returning 502s after ~10 seconds. CPU stays at 20%.
+
+**Question:** How do you diagnose and fix this?
+
+**Answer:**
+1. Check the event loop lag with `perf_hooks` — if the loop is blocking, identify the synchronous code.
+2. Check **open connections / keep-alive** — is the downstream DB pool exhausted?
+3. Profile with `clinic.js` (Doctor / Flame) to find the bottleneck.
+4. Common fix: DB connection pool is too small. Increase `pool.max` in your ORM config to match concurrent requests.
+5. Add `compression()` middleware to reduce response payload size.
+6. Use `cluster` module or PM2 with `instances: 'max'` to utilise all CPU cores.
+7. Ensure all I/O (DB, Redis, external APIs) is properly `await`-ed — accidentally blocking the event loop will cause this.
+
+---
+
+### Scenario 2: Webhook Endpoint Is Slow — Synchronous Third-Party Calls
+
+**Situation:** A payment provider sends webhooks. Your handler validates the signature, then calls three downstream services synchronously. On high volume days, the webhook response times out (provider retries, causing duplicate processing).
+
+**Question:** How do you restructure this?
+
+**Answer:**
+- **Respond fast**: acknowledge the webhook immediately (`res.status(200).send('OK')`) within < 2 seconds.
+- **Defer processing**: push the event payload onto a message queue (Redis + BullMQ, SQS, or a database queue table).
+- A **background worker** picks up the job and calls downstream services.
+- This decouples ingestion from processing and makes each step independently retryable.
+- Add **idempotency keys** (webhook event ID stored in DB) to safely ignore duplicate deliveries.
+
+```javascript
+app.post('/webhook', validateSignature, async (req, res) => {
+  await queue.add('payment.webhook', req.body, { jobId: req.body.id }); // deduped by jobId
+  res.sendStatus(200); // respond immediately
+});
+```
+
+---
+
+### Scenario 3: Debugging a Memory Leak in a Long-Running Worker
+
+**Situation:** A Node worker process that processes queue jobs leaks ~10 MB/hour. After 48 hours it OOMs.
+
+**Question:** How do you find and fix the leak?
+
+**Answer:**
+1. Take heap snapshots at intervals with `v8.writeHeapSnapshot()` or attach Chrome DevTools via `node --inspect`.
+2. Compare snapshots — look for objects with growing "retained size" between snapshots.
+3. Common causes: **in-memory cache that never evicts**, **event emitter listeners that accumulate**, **closures in request handlers holding request objects**.
+4. Fix caches with a TTL map or use `lru-cache`.
+5. Always call `emitter.off()` when a listener's purpose is fulfilled.
+6. Use `--max-old-space-size` as a circuit breaker and PM2's `max_memory_restart` while investigating.
+
+---
+
+### Scenario 4: JWT Refresh Token Strategy
+
+**Situation:** You issue 15-minute access tokens and 7-day refresh tokens. A user's refresh token is stolen. How do you invalidate it?
+
+**Answer:**
+- **Refresh token rotation**: each use of a refresh token issues a NEW refresh token and invalidates the old one (stored in DB).
+- If an attacker reuses a refresh token that has already been rotated, detect the reuse → invalidate the entire family → force re-login.
+- Store refresh tokens hashed (bcrypt or SHA-256) in the DB — never store raw.
+- Set the refresh token as an **`HttpOnly`, `SameSite=Strict` cookie** so JavaScript can't read it.
+- On logout, immediately delete the refresh token from the DB.
+
+---
+
+### Scenario 5: Node.js Event Loop Blocking — Crypto or JSON in Request Handler
+
+**Situation:** Your API has one endpoint that runs `JSON.parse()` on a 10 MB payload directly in the request handler. All other endpoints start timing out when this endpoint is hit.
+
+**Question:** What is happening and how do you fix it?
+
+**Answer:**
+- `JSON.parse` on a large string is **synchronous** and blocks the event loop — while it runs, no other requests can be processed.
+- **Fix options**:
+  1. Use `worker_threads` to parse the JSON in a separate thread, keeping the main event loop free.
+  2. Use streaming JSON parsing (`stream-json` library) to parse incrementally without blocking.
+  3. Enforce a `Content-Length` limit on the endpoint (e.g., `express.json({ limit: '1mb' })`).
+  4. Move heavy processing to a dedicated worker microservice.
+
+---
+
+### Scenario 6: Rate Limiting a Multi-Instance API
+
+**Situation:** You add `express-rate-limit` but realise it only tracks request counts in-memory. With 4 Node processes behind a load balancer, a user can make 4× the allowed requests.
+
+**Question:** How do you fix this?
+
+**Answer:**
+- Use a **shared Redis store** for rate limit counters: `express-rate-limit` + `rate-limit-redis`.
+- The Redis `INCR` + `EXPIRE` pattern is atomic, consistent across all instances.
+- Key by IP or by user ID (authenticated routes) depending on your strategy.
+
+```javascript
+import RedisStore from 'rate-limit-redis';
+app.use(rateLimit({
+  windowMs: 60_000,
+  max: 100,
+  store: new RedisStore({ sendCommand: (...args) => redisClient.sendCommand(args) }),
+  keyGenerator: (req) => req.user?.id ?? req.ip,
+}));
+```
+
+---
+
+### Scenario 7: Graceful Shutdown for Zero-Downtime Deploys
+
+**Situation:** Rolling deployment restarts one Node pod at a time. In-flight requests during the restart get ECONNRESET errors on the client.
+
+**Question:** How do you implement graceful shutdown?
+
+**Answer:**
+
+```javascript
+const server = app.listen(PORT);
+
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received, shutting down gracefully');
+  server.close(async () => {         // stops accepting new connections
+    await db.pool.end();             // close DB pool
+    await redisClient.quit();        // close Redis
+    process.exit(0);
+  });
+  // Force exit if shutdown takes too long
+  setTimeout(() => process.exit(1), 10_000);
+});
+```
+
+- Kubernetes sends `SIGTERM` 30 seconds before `SIGKILL` — use that window to drain connections.
+- Configure `terminationGracePeriodSeconds: 30` in the Pod spec.
+
+---
+
+### Scenario 8: Preventing SQL Injection in a Dynamic Query Builder
+
+**Situation:** A search feature builds a dynamic `WHERE` clause based on user-provided filter keys and values. A developer constructs the clause with string interpolation.
+
+**Question:** Explain the risk and the correct approach.
+
+**Answer:**
+- String interpolation with user input allows injection: `WHERE status = 'active'; DROP TABLE users; --`
+- **Always use parameterised queries / prepared statements**:
+
+```javascript
+// WRONG
+const query = `SELECT * FROM orders WHERE status = '${req.query.status}'`;
+
+// CORRECT — pg driver
+const { rows } = await db.query(
+  'SELECT * FROM orders WHERE status = $1 AND user_id = $2',
+  [req.query.status, req.user.id]
+);
+// Knex / TypeORM query builders also escape values automatically
+```
+
+- Validate and whitelist filter keys (column names) — never allow raw column names from user input.
+
+---
+
+### Scenario 9: Streams for Processing a 5 GB Log File
+
+**Situation:** A script reads a 5 GB log file with `fs.readFileSync`. It crashes with `FATAL ERROR: CALL_AND_RETRY_LAST Allocation failed - JavaScript heap out of memory`.
+
+**Question:** Rewrite it to handle files of any size.
+
+**Answer:**
+
+```javascript
+const { createReadStream } = require('fs');
+const { createInterface } = require('readline');
+
+const rl = createInterface({
+  input: createReadStream('/var/log/app.log'),
+  crlfDelay: Infinity,
+});
+
+let errorCount = 0;
+for await (const line of rl) {
+  if (line.includes('ERROR')) errorCount++;
+}
+console.log('Total errors:', errorCount);
+// Processes one line at a time — constant memory usage regardless of file size
+```
+
+---
+
+### Scenario 10: Cluster Mode Does Not Improve Latency as Expected
+
+**Situation:** You enable PM2 cluster mode with 8 workers but your CPU-bound endpoint latency barely improves.
+
+**Question:** Why and what else can you do?
+
+**Answer:**
+- Cluster spawns 8 processes, but if the endpoint is still doing CPU work per process it distributes load, not reduces individual response time.
+- Check if the endpoint is truly CPU-bound (video encoding, image resize, heavy crypto) — if so, `cluster` helps throughput but not p50 latency.
+- For latency: use `worker_threads` within a single process to offload the CPU work while responding to other requests immediately.
+- Consider moving the CPU work to a dedicated microservice or a background job queue.
+- Profile first — the bottleneck may be DB queries, not CPU, in which case connection pool tuning and query optimisation will help more.

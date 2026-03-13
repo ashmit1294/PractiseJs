@@ -2847,3 +2847,232 @@ module.exports = { encodeCursor, decodeCursor };
 
 ---
 ```
+
+---
+
+## Scenario-Based Interview Questions
+
+---
+
+### Scenario 1: N+1 Query Problem in a GraphQL API
+
+**Situation:** A query `{ users { id posts { title } } }` is loading 100 users. Your server logs show 101 DB queries (1 for users + 100 for each user's posts). The response takes 4 seconds.
+
+**Question:** How do you fix the N+1 problem?
+
+**Answer:**
+- Use **DataLoader** to batch and deduplicate DB calls:
+
+```javascript
+const postsByUserLoader = new DataLoader(async (userIds) => {
+  const posts = await db.query('SELECT * FROM posts WHERE user_id = ANY($1)', [userIds]);
+  return userIds.map(id => posts.filter(p => p.userId === id));
+});
+
+// Resolver
+const resolvers = {
+  User: {
+    posts: (user, _, { loaders }) => loaders.postsByUserLoader.load(user.id),
+  },
+};
+```
+
+- DataLoader collects all `user.id` values within one tick, fires ONE query with `IN (...)`, then distributes results.
+- 100 users → 1 DB query total instead of 100.
+
+---
+
+### Scenario 2: GraphQL API Returning Sensitive Fields to Unauthenticated Users
+
+**Situation:** A security review finds that your GraphQL API returns `password`, `ssn`, and `internalNotes` fields when queried directly, even without authentication.
+
+**Question:** How do you enforce field-level authorisation?
+
+**Answer:**
+- Add **resolver-level guards** — check context for authentication before returning sensitive fields:
+
+```javascript
+User: {
+  password: (user, _, { currentUser }) => {
+    if (!currentUser?.isAdmin) throw new GraphQLError('Forbidden', { extensions: { code: 'FORBIDDEN' } });
+    return user.password;
+  },
+}
+```
+
+- Use a schema directive like `@auth(requires: ADMIN)` with a directive transformer.
+- Use dedicated libraries: **GraphQL Shield** for permission rules as middleware.
+- Never expose fields from DB models directly — define a **DTO/view type** that only exposes safe fields.
+- Add **depth limiting** and **query complexity limits** to prevent schema introspection abuse.
+
+---
+
+### Scenario 3: Deeply Nested Query Takes Down the Server
+
+**Situation:** A malicious user sends a query nested 20 levels deep. Each level triggers multiple DB calls. The server runs out of memory and crashes.
+
+**Question:** How do you protect against this?
+
+**Answer:**
+
+```javascript
+import depthLimit from 'graphql-depth-limit';
+import { createComplexityLimitRule } from 'graphql-validation-complexity';
+
+const server = new ApolloServer({
+  schema,
+  validationRules: [
+    depthLimit(7),                                  // max 7 levels deep
+    createComplexityLimitRule(1000, {               // max complexity score
+      onCost: (cost) => console.log('Query cost:', cost),
+    }),
+  ],
+});
+```
+
+- Also disable **introspection** in production: `introspection: process.env.NODE_ENV !== 'production'`.
+- Rate-limit the GraphQL endpoint.
+
+---
+
+### Scenario 4: Subscriptions Causing Memory Growth on the Server
+
+**Situation:** Your GraphQL subscriptions use WebSockets. After 48 hours in production, the Node process's memory doubles. You have ~5 000 active subscribers at peak.
+
+**Question:** What is likely causing this and how do you fix it?
+
+**Answer:**
+- Each subscription creates a **PubSub listener** that holds a closure. If subscriptions are not properly cleaned up when clients disconnect, listeners accumulate.
+- Check that your subscription resolver has a proper **withFilter cleanup** or the subscription return object's `unsubscribe` is called on disconnect.
+- Use a **production-grade PubSub** (Redis PubSub via `graphql-redis-subscriptions`) rather than the in-memory EventEmitter — it handles reconnects cleanly.
+- Set a **maximum subscriptions per connection** limit.
+- Monitor with `process.memoryUsage()` and heap snapshots to confirm.
+
+```javascript
+// Apollo: ensure cleanup via AsyncIterator return
+Subscription: {
+  messageAdded: {
+    subscribe: withFilter(
+      () => pubsub.asyncIterator('MESSAGE_ADDED'),
+      (payload, variables) => payload.channelId === variables.channelId,
+    ),
+  },
+},
+```
+
+---
+
+### Scenario 5: Federation — One Subgraph Breaking the Entire Supergraph
+
+**Situation:** Your GraphQL Federation supergraph spans 5 subgraphs. One subgraph deploys a breaking schema change (renames a field). All queries that touch that subgraph fail.
+
+**Question:** How do you prevent this?
+
+**Answer:**
+- Use **Apollo Schema Registry** with **schema checks** in CI: `rover subgraph check` before any deploy.
+- Schema checks compare proposed schema against all other subgraphs and current operations — breaking changes are rejected in CI.
+- **Never deploy a rename** — instead:
+  1. Add the new field alongside the old one (`@deprecated(reason: "Use newField")` on the old field).
+  2. Update all consumers.
+  3. Remove the deprecated field in a future release.
+- Use **contract schemas** for public consumers so internal changes don't affect the external API.
+
+---
+
+### Scenario 6: Caching GraphQL Responses — POST Requests Bypass CDN
+
+**Situation:** Your GraphQL API is served over POST, so the CDN doesn't cache any responses. High-cardinality queries (same product page viewed thousands of times) hit the DB every time.
+
+**Question:** How do you add caching without switching to REST?
+
+**Answer:**
+- **Persisted Queries** with **Automatic Persisted Queries (APQ)**: hash the query, send a short hash on repeat calls, enable GET requests for persisted queries → CDN can now cache GET responses.
+- **Response caching at the resolver level**: use `@cacheControl` Apollo directive or a Redis cache layer.
+- **DataLoader** caches within a single request (per-batch deduplication).
+- For public data: **CDN caching via GET + APQ**; for authenticated data: use per-user Redis caching with short TTL.
+
+```javascript
+// Apollo Server cache hints
+const resolvers = {
+  Query: {
+    product: (_, { id }, _, { cacheControl }) => {
+      cacheControl.setCacheHint({ maxAge: 60, scope: 'PUBLIC' });
+      return getProduct(id);
+    },
+  },
+};
+```
+
+---
+
+### Scenario 7: Apollo Client — Optimistic UI Rolls Back on Error
+
+**Situation:** A user clicks "Like" on a post. The UI updates instantly (optimistic). The API call fails. The like count rolls back — but the animation has already played and the user is confused.
+
+**Question:** How do you handle optimistic updates gracefully?
+
+**Answer:**
+
+```javascript
+const [likePost] = useMutation(LIKE_POST, {
+  optimisticResponse: {
+    likePost: { id: postId, likeCount: currentCount + 1, __typename: 'Post' },
+  },
+  onError: (error) => {
+    toast.error('Could not like post. Please try again.');
+    // Apollo automatically rolls back the cache — just show user-friendly feedback
+  },
+  update: (cache, { data }) => {
+    cache.modify({
+      id: cache.identify({ id: postId, __typename: 'Post' }),
+      fields: { likeCount: () => data.likePost.likeCount },
+    });
+  },
+});
+```
+
+- Always show an **error toast** on rollback so the user understands what happened.
+- For critical mutations (payments, destructive actions) avoid optimistic updates — confirm server response first.
+
+---
+
+### Scenario 8: Schema Stitching vs Federation — Which to Choose?
+
+**Situation:** You are designing a new GraphQL API gateway that will merge 4 team-owned services. The tech lead asks you to recommend Schema Stitching or Federation.
+
+**Question:** What factors drive your recommendation?
+
+**Answer:**
+
+| Factor | Schema Stitching | Apollo Federation |
+|--------|-----------------|-------------------|
+| Single gateway config | One file, centralised | Distributed — each subgraph owns its types |
+| Team autonomy | Low — gateway team is bottleneck | High — teams deploy independently |
+| Cross-service entity resolution | Manual — custom `resolvers` | Built-in — `@key`, `@external`, `@requires` |
+| Tooling | Flexible, any server | Apollo Studio, Rover CLI, metrics |
+| Operational complexity | Lower for small setups | Higher initially, better at scale |
+
+**Recommendation**: For 4+ teams deploying independently, choose **Federation**. The `@key` directive and `@external` make cross-service type references clean. For a single team with full control, Stitching is simpler.
+
+---
+
+### Scenario 9: Handling Breaking Changes in a Public GraphQL API
+
+**Situation:** You need to rename `user.fullName` to `user.displayName`. External mobile apps use the old field name and you can't force-update them.
+
+**Question:** How do you manage this transition?
+
+**Answer:**
+1. **Deprecate, don't remove**:
+
+```graphql
+type User {
+  fullName: String @deprecated(reason: "Use `displayName` instead. Removed after 2026-06-01.")
+  displayName: String!
+}
+```
+
+2. Resolve BOTH fields — `displayName` is the source of truth; `fullName` returns the same value.
+3. Communicate the deprecation with a changelog and deadline to consumers.
+4. Monitor field usage: Apollo Studio + usage reporting will show which clients still query `fullName`.
+5. Only remove once all tracked clients have migrated AND after the announced deadline.

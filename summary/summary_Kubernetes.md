@@ -3241,3 +3241,170 @@ spec:
 
 ---
 
+
+---
+
+## Scenario-Based Interview Questions
+
+---
+
+### Scenario 1: Pods Crashing with OOMKilled — Production Incident
+
+**Situation:** On Monday morning, three pods of your API deployment are OOMKilled. p99 latency spikes. On-call gets paged.
+
+**Question:** Walk through your incident response.
+
+**Answer:**
+1. `kubectl get pods -n prod` — confirm OOMKilled status.
+2. `kubectl describe pod <pod> -n prod` — check `Last State` for memory limit.
+3. `kubectl top pods -n prod` — current memory usage.
+4. `kubectl logs <pod> --previous -n prod` — check for memory-related errors.
+5. **Immediate mitigation**: bump `resources.limits.memory` in the Deployment spec and roll out.
+6. **Root cause**: check if a memory leak was introduced in the latest deploy (`kubectl rollout history`).
+7. If a bad deploy: `kubectl rollout undo deployment/api -n prod`.
+8. Post-mortem: set up Prometheus + Grafana memory alerts BEFORE the limit is hit.
+
+---
+
+### Scenario 2: Service Mesh vs NodePort — Traffic Not Reaching a New Pod
+
+**Situation:** You add a new replica to a Deployment. Traffic still doesn't route to it. Old pods handle everything.
+
+**Question:** How do you diagnose?
+
+**Answer:**
+1. Confirm the pod is `Running` and `Ready`: `kubectl get pods -l app=api`.
+2. Check the pod's labels match the Service selector: `kubectl describe svc api-svc`.
+3. Check readinessProbe — if it's failing, the pod is excluded from the Endpoints list.
+4. `kubectl get endpoints api-svc` — the new pod's IP must appear here.
+5. Common fix: the readiness probe path is wrong or the init container hasn't finished.
+6. If using Istio: check `DestinationRule` subsets and `VirtualService` weights.
+
+---
+
+### Scenario 3: ConfigMap Change Not Applied to Running Pods
+
+**Situation:** You update a ConfigMap with new feature flags. The application still shows old values 10 minutes later.
+
+**Question:** Why and how do you make the change take effect?
+
+**Answer:**
+- When a ConfigMap is mounted as a **volume**, Kubernetes updates the file within ~1–2 minutes (kubelet sync period). The application must **watch and reload** the file.
+- When a ConfigMap is used as **environment variables**, the pod must be **restarted** to pick up new values (env vars are set at container start).
+- Fix for env-var pattern: use `kubectl rollout restart deployment/api` or trigger a rolling restart.
+- Better pattern: use a **volume mount** + inotify/polling in your app (or a sidecar like Reloader) to pick up changes without downtime.
+
+---
+
+### Scenario 4: Zero-Downtime Deployment — Rolling Update Causing Errors
+
+**Situation:** During a rolling update, a portion of users get 503 errors for ~30 seconds as old pods terminate while new ones are still starting.
+
+**Question:** How do you configure the deployment for true zero-downtime?
+
+**Answer:**
+
+```yaml
+spec:
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0      # never remove a pod before a new one is ready
+      maxSurge: 1            # spin up 1 extra pod during update
+  template:
+    spec:
+      containers:
+      - name: api
+        readinessProbe:
+          httpGet: { path: /health, port: 3000 }
+          initialDelaySeconds: 5
+          periodSeconds: 3
+      terminationGracePeriodSeconds: 30   # finish in-flight requests
+```
+
+Also add `preStop` hook to allow load balancer to drain:
+
+```yaml
+lifecycle:
+  preStop:
+    exec:
+      command: ["sleep", "5"]            # wait for LB to stop routing
+```
+
+---
+
+### Scenario 5: HPA Not Scaling — Pods Stay at Minimum
+
+**Situation:** CPU spikes to 90% but the HPA doesn't add pods. It's been configured for 10 minutes.
+
+**Question:** How do you debug this?
+
+**Answer:**
+1. `kubectl describe hpa api-hpa` — check `Conditions` and `Events`.
+2. Common causes:
+   - **Metrics Server not installed** or not running: `kubectl get pods -n kube-system | grep metrics-server`.
+   - **No resource requests set** on the container — HPA uses utilisation % of `requests.cpu`; without requests defined, it can't calculate utilisation.
+   - **`scaleUp` cooldown** — HPA has a default 3-minute scale-up stabilisation window.
+3. Fix: ensure `resources.requests.cpu` is set; install metrics-server; check RBAC permissions.
+
+---
+
+### Scenario 6: Secrets in etcd Are Not Encrypted — Compliance Requirement
+
+**Situation:** A compliance audit requires that Kubernetes Secrets be encrypted at rest. By default, they are stored in plaintext in etcd.
+
+**Question:** How do you enable encryption?
+
+**Answer:**
+- Configure **Encryption at Rest** via `EncryptionConfiguration` on the kube-apiserver:
+
+```yaml
+apiVersion: apiserver.config.k8s.io/v1
+kind: EncryptionConfiguration
+resources:
+  - resources: [secrets]
+    providers:
+      - aescbc:
+          keys:
+            - name: key1
+              secret: <base64-encoded-32-byte-key>
+      - identity: {}    # fallback for unencrypted reads during migration
+```
+
+- Restart the apiserver with `--encryption-provider-config` pointing to this file.
+- Re-encrypt existing secrets: `kubectl get secrets --all-namespaces -o json | kubectl replace -f -`.
+- Better: use **Sealed Secrets**, **Vault Agent Injector**, or **AWS Secrets Store CSI Driver** so secrets never live in etcd as plaintext at all.
+
+---
+
+### Scenario 7: Resource Quotas Blocking a Deployment
+
+**Situation:** Your CI pipeline pushes a new Deployment but it fails with `exceeded quota: requests.memory`. No one on the team set this quota.
+
+**Question:** How do you handle this?
+
+**Answer:**
+1. `kubectl describe quota -n staging` — see current usage vs limits.
+2. Check your Deployment's `resources.requests.memory` — it may be too high.
+3. Options:
+   - Reduce `requests.memory` if over-provisioned.
+   - Ask the platform team to increase the namespace quota.
+   - Add **LimitRange** to the namespace to set defaults so careless Deployments don't over-request.
+4. Best practice: always define `requests` AND `limits` on every container — it makes scheduling predictable and quotas work correctly.
+
+---
+
+### Scenario 8: Multi-Tenancy — Isolating Workloads Across Teams
+
+**Situation:** Your company runs 10 teams' services in one cluster. Team A's misbehaving service is starving Team B's resources.
+
+**Question:** How do you enforce isolation?
+
+**Answer:**
+- **Namespaces** per team.
+- **ResourceQuota** per namespace to cap total CPU/memory/pod count.
+- **LimitRange** to enforce per-pod defaults and maximums.
+- **NetworkPolicy** to restrict cross-namespace traffic to only allowed paths.
+- **PodDisruptionBudget** to protect critical services from eviction.
+- **Node affinity / taints + tolerations** to physically separate workloads onto different node pools.
+- **RBAC** to limit what each team's service account can do.

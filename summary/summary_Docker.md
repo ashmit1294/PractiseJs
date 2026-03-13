@@ -2583,3 +2583,202 @@ docker pull myrepo/myapp:latest   # verifies Notary signature
 
 ---
 
+
+---
+
+## Scenario-Based Interview Questions
+
+---
+
+### Scenario 1: Docker Image Is 2.1 GB — CI/CD Takes 15 Minutes
+
+**Situation:** Your Node.js app's Docker image grew to 2.1 GB. Building and pushing it takes 15 minutes in CI.
+
+**Question:** How do you reduce the image size and speed up CI?
+
+**Answer:**
+1. Use a **minimal base image**: switch from `node:18` (1 GB) to `node:18-alpine` (~170 MB).
+2. **Multi-stage build**: compile/install in a `builder` stage, then COPY only production artefacts to a clean `node:18-alpine` stage.
+3. Add a `.dockerignore` to exclude `node_modules`, `*.log`, `.git`, test files.
+4. Copy `package.json` before source code so `npm install` is **layer-cached** and skipped when only source changes.
+5. Run `npm ci --only=production` to skip devDependencies.
+
+```dockerfile
+FROM node:18-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+FROM node:18-alpine
+WORKDIR /app
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+USER node
+EXPOSE 3000
+CMD ["node", "dist/index.js"]
+```
+
+---
+
+### Scenario 2: Container Keeps Restarting with Exit Code 137
+
+**Situation:** Your container exits with code 137 repeatedly. Kubernetes event logs show `OOMKilled`.
+
+**Question:** How do you diagnose and resolve?
+
+**Answer:**
+- Exit 137 = `SIGKILL` from the kernel, typically OOM (out of memory).
+- Check memory usage: `docker stats` or Grafana/Prometheus metrics.
+- The app has a memory leak or the resource limit is set too low.
+- **Fix**:
+  1. Analyse the Node.js heap (heap snapshots in Chrome DevTools attached via `--inspect`).
+  2. Fix the leak (uncleaned caches, event listeners, circular closures).
+  3. If a genuine spike, increase the memory limit (`resources.limits.memory` in K8s).
+  4. Add `--max-old-space-size=512` to Node start command to match the container limit.
+  5. Add liveness probe so K8s restarts the pod cleanly instead of OOM-killing it mid-request.
+
+---
+
+### Scenario 3: Secrets in a Docker Image — Security Audit Finding
+
+**Situation:** A security scanner (Trivy) flags that your Docker image contains hardcoded database credentials in an `ENV` statement in the Dockerfile.
+
+**Question:** How do you fix this properly?
+
+**Answer:**
+- `ENV` and `ARG` values are stored in image layers and visible in `docker inspect` — never use them for secrets.
+- Remove the `ENV DB_PASSWORD=...` line entirely.
+- **At runtime**, inject secrets via:
+  - Kubernetes `Secret` mounted as environment variables or files.
+  - Docker runtime `--env-file` pointing to a file NOT in version control.
+  - AWS Secrets Manager / Vault sidecar that writes secrets to a tmpfs mount.
+- Add `.env` to `.gitignore` AND `.dockerignore`.
+- Rotate the exposed credentials immediately.
+
+---
+
+### Scenario 4: Services in docker-compose Cannot Communicate
+
+**Situation:** Your `api` service tries to connect to `db` using `localhost:5432` but keeps getting "connection refused".
+
+**Question:** What is wrong and how do you fix it?
+
+**Answer:**
+- Docker Compose creates a private network per project. Services communicate using their **service names as hostnames**, not `localhost`.
+- `localhost` inside the `api` container refers to the container itself, not the host or other containers.
+- Fix: use `DB_HOST=db` (the compose service name) in the api's environment.
+
+```yaml
+services:
+  api:
+    environment:
+      DB_HOST: db        # service name
+      DB_PORT: 5432
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    image: postgres:15
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+```
+
+---
+
+### Scenario 5: Layer Cache Busted on Every Build
+
+**Situation:** A developer rearranges the Dockerfile and now every CI build reinstalls all npm packages even when `package.json` hasn't changed.
+
+**Question:** Why and how do you restore caching?
+
+**Answer:**
+- Docker layer cache is **invalidated by any change to a layer or any layer above it**.
+- If `COPY . .` comes BEFORE `RUN npm install`, any source file change busts the install cache.
+- Fix: always copy dependency manifests first, install, THEN copy source:
+
+```dockerfile
+COPY package*.json ./     # Layer A — rarely changes
+RUN npm ci                # Layer B — cached unless A changes
+COPY . .                  # Layer C — changes on every commit, but only invalidates layers BELOW
+```
+
+---
+
+### Scenario 6: Container Runs as Root — Security Concern
+
+**Situation:** A pen-tester reports that if somebody achieves RCE in your container, they get root on the container, which can be leveraged to escape the container.
+
+**Question:** How do you harden this?
+
+**Answer:**
+
+```dockerfile
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+USER appuser          # switch away from root before CMD
+```
+
+- Add `--cap-drop=ALL` to drop Linux capabilities.
+- Use `--read-only` filesystem with tmpfs mounts only where the app needs to write.
+- Set `securityContext.runAsNonRoot: true` in Kubernetes pod spec.
+- Use `no-new-privileges` security option.
+
+---
+
+### Scenario 7: Health Check — Kubernetes Restarting Healthy Pods
+
+**Situation:** Your app needs 30 seconds to warm up (compiling templates, loading ML model). Kubernetes marks it unhealthy and restarts it before it is ready. Loop repeats indefinitely.
+
+**Question:** How do you fix the probe configuration?
+
+**Answer:**
+
+```yaml
+readinessProbe:          # controls traffic routing — do NOT use for startup
+  httpGet:
+    path: /health/ready
+    port: 3000
+  initialDelaySeconds: 10
+  periodSeconds: 5
+livenessProbe:           # restarts the pod if it hangs
+  httpGet:
+    path: /health/live
+    port: 3000
+  initialDelaySeconds: 60   # give the app time to start
+  failureThreshold: 3
+startupProbe:            # K8s ≥ 1.18 — protects slow-starting containers
+  httpGet:
+    path: /health/live
+    port: 3000
+  failureThreshold: 30
+  periodSeconds: 5         # allows up to 150s startup before liveness kicks in
+```
+
+---
+
+### Scenario 8: Optimising docker-compose for Local Development with Hot Reload
+
+**Situation:** Every code change requires a full `docker-compose up --build`. The team's development feedback loop is 3 minutes per save.
+
+**Question:** How do you set up hot-reload without rebuilding?
+
+**Answer:**
+
+```yaml
+services:
+  api:
+    build:
+      context: .
+      target: development    # multi-stage target
+    volumes:
+      - .:/app               # mount source into container
+      - /app/node_modules    # anonymous volume to preserve container's node_modules
+    command: npm run dev     # nodemon or ts-node-dev watches for changes
+    environment:
+      NODE_ENV: development
+```
+
+- Source code changes are reflected instantly via the bind mount.
+- `node_modules` anonymous volume prevents host overwriting container modules.
+- `nodemon` or `ts-node-dev` handles in-process restarts in < 1 second.

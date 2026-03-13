@@ -2511,3 +2511,152 @@ jobs:
 
 ---
 
+
+---
+
+## Scenario-Based Interview Questions
+
+---
+
+### Scenario 1: Lambda Cold Starts Causing p99 Latency of 3+ Seconds
+
+**Situation:** Your API backend uses Lambda functions. Most requests are fast (p50 = 80 ms) but p99 is 3.5 seconds. Users sporadically experience long delays.
+
+**Question:** What are the causes and how do you fix them?
+
+**Answer:**
+- **Cold start** occurs when Lambda needs to initialise a new execution environment (download code, start runtime, run init code).
+- Causes of slow cold starts: large bundle size, heavy initialisation (DB connections, loading config), VPC networking, heavy runtimes (Java, .NET).
+- **Fixes**:
+  1. **Provisioned Concurrency** — pre-warm N instances, eliminating cold starts for those slots.
+  2. **Lambda SnapStart** (Java) — snapshot the initialised execution environment.
+  3. Reduce bundle size with tree-shaking / esbuild.
+  4. Move expensive init (DB connections, secret loading) **outside the handler** — it runs once per container, not per invocation.
+  5. Avoid VPC attachment unless you need private resources — VPC ENI provisioning adds 1–2 seconds.
+  6. Use **Node.js or Python** runtimes for lowest cold start overhead.
+
+---
+
+### Scenario 2: S3 Bucket Exposed Publicly — Security Incident
+
+**Situation:** Monitoring alerts that a new S3 bucket has public read enabled. It contains customer invoices in PDF format.
+
+**Question:** Walk through your incident response.
+
+**Answer:**
+1. Immediately block public access: `aws s3api put-public-access-block --bucket $BUCKET --public-access-block-configuration "BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true"`.
+2. Enable **S3 Block Public Access at the account level** so no future bucket can be made public.
+3. Check **CloudTrail** for any downloads of the exposed objects (filter `GetObject` events during exposure window).
+4. Notify affected customers per your breach notification obligations.
+5. Audit all buckets: `aws s3api list-buckets | xargs -I{} aws s3api get-bucket-acl --bucket {}`.
+6. Long-term: use **AWS Config rule** `s3-bucket-public-read-prohibited` to auto-detect and alert.
+
+---
+
+### Scenario 3: RDS Multi-AZ Failover — Application Reconnects Fail
+
+**Situation:** A Multi-AZ RDS instance fails over to the standby. Your application keeps getting "connection refused" for 90 seconds even though RDS says the failover took 60 seconds.
+
+**Question:** Why and how do you fix it?
+
+**Answer:**
+- DNS TTL: The RDS endpoint DNS is updated on failover but your application or connection pool **caches the old IP**.
+- Fix:
+  1. Set Java/Node DNS TTL to 5–30 seconds (`networkaddress.cache.ttl` for JVM; `dns.lookup` for Node).
+  2. Configure your connection pool to **retry on connection failure** with exponential back-off.
+  3. Use **RDS Proxy** in front of RDS — it maintains a warm connection pool and handles failovers transparently, giving your app a stable endpoint.
+- Also ensure `jdbc:mysql://...?useSSL=true&failOverReadOnly=false&autoReconnect=true` or equivalent.
+
+---
+
+### Scenario 4: DynamoDB — Hot Partition Causing Throttling
+
+**Situation:** A DynamoDB table for a chat app uses `conversationId` as the partition key. During a viral live chat event, millions of reads/writes hit one conversation, causing throttling.
+
+**Question:** How do you address hot partitions?
+
+**Answer:**
+- **Write sharding**: append a random suffix (0–N) to the partition key for writes (`conversationId#3`), then scatter-gather reads across all shards.
+- Use **DAX (DynamoDB Accelerator)** to cache hot reads in microseconds.
+- Switch to **On-demand capacity** mode — it automatically scales for unexpected spikes (no throttling, pay-per-request).
+- For viral events, pre-scale **provisioned capacity** ahead of time using Application Auto Scaling.
+- Design for distribution: use `userId + timestamp` as the key for chat messages so load spreads naturally.
+
+---
+
+### Scenario 5: SQS Message Processed Multiple Times — Duplicate Charges
+
+**Situation:** Your order fulfilment Lambda processes an SQS message but fails after the charge but before deleting the message. SQS re-delivers it, the customer is charged twice.
+
+**Question:** How do you prevent this?
+
+**Answer:**
+- **Idempotency key pattern**: before processing, check if `orderId` has already been processed (store in DynamoDB/Redis with a TTL).
+- If already processed: skip the charge, acknowledge/delete the message.
+- This is the **at-least-once delivery + idempotent consumer** pattern.
+
+```javascript
+async function handler(event) {
+  for (const record of event.Records) {
+    const { orderId } = JSON.parse(record.body);
+    const alreadyProcessed = await db.get(`processed:${orderId}`);
+    if (alreadyProcessed) continue;
+    await chargeCustomer(orderId);
+    await db.set(`processed:${orderId}`, '1', { EX: 86400 }); // 24h TTL
+    // SQS auto-deletes on Lambda success, or call deleteMessage explicitly
+  }
+}
+```
+
+- Use **FIFO queues** with a `MessageDeduplicationId` to get exactly-once processing at the queue level.
+
+---
+
+### Scenario 6: API Gateway Timeout — Lambda Exceeds 29 Seconds
+
+**Situation:** A data-export Lambda takes up to 120 seconds for large exports. API Gateway has a hard-coded 29-second timeout. Users get 504 errors.
+
+**Question:** How do you redesign this?
+
+**Answer:**
+- API Gateway **cannot exceed 29 seconds** — this is a hard limit.
+- Redesign to **async**: 
+  1. POST to the API to **start the export** — Lambda kicks off an async job and returns immediately with a `jobId` (202 Accepted).
+  2. Client polls `GET /export/{jobId}/status` or uses a WebSocket/SSE connection.
+  3. The export Lambda writes the file to S3 and updates job status in DynamoDB.
+  4. Return a **pre-signed S3 URL** when the job is complete.
+- Alternative: use **Step Functions** for long-running workflows with built-in state management.
+
+---
+
+### Scenario 7: ECS Task Cannot Access S3 — Permissions Error
+
+**Situation:** Your ECS task running a data-processing service gets `AccessDenied` when calling `s3:GetObject`. The developers swear they attached the right policy.
+
+**Question:** How do you debug IAM issues on ECS?
+
+**Answer:**
+1. Check the **Task IAM Role** (not the EC2 instance role): `aws ecs describe-task-definition --task-definition my-task`.
+2. The task execution role and the task role are different — the task role is what the application code uses.
+3. Test the exact API call: `aws sts assume-role --role-arn <task-role-arn>` and then run the S3 call as that role.
+4. Use **IAM Policy Simulator** to test the role's permissions.
+5. Check **S3 Bucket Policy** — even if the role has `s3:GetObject`, the bucket policy might explicitly `Deny` the role's account.
+6. Check for **Permission Boundaries** on the task role that might restrict effective permissions.
+
+---
+
+### Scenario 8: Cost Optimisation — EC2 Budget 40% Over Forecast
+
+**Situation:** Your AWS bill shows EC2 costs 40% higher than last month. No new services were launched.
+
+**Question:** How do you investigate and reduce costs?
+
+**Answer:**
+1. **AWS Cost Explorer** → Group by usage type → identify instance type / region driving the spike.
+2. Check for unattached EBS volumes (`aws ec2 describe-volumes --filters Name=status,Values=available`).
+3. Check for old snapshots: `aws ec2 describe-snapshots --owner-ids self`.
+4. Look for **NAT Gateway data processing charges** (often a surprise).
+5. **Rightsizing**: AWS Compute Optimizer recommends instance type adjustments.
+6. **Savings Plans / Reserved Instances**: for stable workloads, commit for 1–3 years for up to 72% savings.
+7. **Spot Instances** for batch/stateless workloads — up to 90% cheaper.
+8. Set up **AWS Budgets** alerts at 80%/100% of expected spend.

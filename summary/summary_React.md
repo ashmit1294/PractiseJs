@@ -3212,3 +3212,237 @@ const ProductList = lazy(() => import('productsApp/ProductList'));
 
 ---
 ```
+
+---
+
+## Scenario-Based Interview Questions
+
+---
+
+### Scenario 1: Context Re-rendering the Entire App
+
+**Situation:** You put your user auth state and your notification count into one `AppContext`. Every time a notification comes in, the entire tree re-renders including expensive components that only need the auth state.
+
+**Question:** How do you fix this?
+
+**Answer:**
+- **Split contexts by domain**: `AuthContext` (changes rarely) and `NotificationContext` (changes often) should be separate.
+- Use `React.memo` on components that don't need notification data.
+- For high-frequency updates, consider **Zustand** or **Jotai** which allow components to subscribe to slices without a wrapping Provider.
+- Use `useMemo` on the context value object to prevent reference churn when values haven't changed:
+
+```jsx
+const value = useMemo(() => ({ user, login, logout }), [user]);
+return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+```
+
+---
+
+### Scenario 2: List of 10 000 Items is Laggy
+
+**Situation:** A data-grid renders 10 k rows. Scrolling is at 10 fps. Users are complaining on low-end devices.
+
+**Question:** What is your fix plan?
+
+**Answer:**
+1. **Virtualise the list** with `react-window` or `react-virtual` — only ~20 visible rows are mounted at any time.
+2. **Memoize row components** with `React.memo` + stable row data (avoid creating new objects per render).
+3. Move **filtering/sorting** out of render into `useMemo` or a Web Worker.
+4. Use `useTransition` to mark the filter input as non-urgent so typing stays responsive.
+5. If data is from an API, add **server-side pagination** — sending 10 k rows to the browser is the real problem.
+
+---
+
+### Scenario 3: Stale Closure in a setInterval
+
+**Situation:** You have a clock component that uses `setInterval` inside `useEffect`. The displayed seconds never update — they stay at 0.
+
+**Question:** What is wrong and how do you fix it?
+
+**Answer:**
+- The closure inside `setInterval` captures the initial `count` value (0) and never sees updates.
+- **Fix 1**: Use the functional updater form: `setCount(c => c + 1)`.
+- **Fix 2**: Add `count` to the dependency array and clear/re-create the interval on each render (less efficient).
+- **Fix 3**: Use a `useRef` to hold the latest callback, and re-assign it on every render without re-creating the interval.
+
+```jsx
+const callbackRef = useRef(tick);
+useEffect(() => { callbackRef.current = tick; }); // always up to date
+useEffect(() => {
+  const id = setInterval(() => callbackRef.current(), 1000);
+  return () => clearInterval(id);
+}, []); // interval created once
+```
+
+---
+
+### Scenario 4: Preventing Unnecessary Child Re-renders in a Form
+
+**Situation:** A form component has 20 fields. Changing one field re-renders all 20 — noticeable lag on a mobile device.
+
+**Question:** What is your approach?
+
+**Answer:**
+- Wrap each field component in `React.memo`.
+- Pass `onChange` handlers via `useCallback` so their reference is stable.
+- Keep form state **co-located**: each field manages its own local state and reports upward on submit (uncontrolled form pattern).
+- Or use **React Hook Form** — it uses uncontrolled inputs under the hood, so only the changed field re-renders.
+
+---
+
+### Scenario 5: Error Boundary Not Catching an Async Error
+
+**Situation:** Your Error Boundary is in place but an async `fetch` failure inside a `useEffect` bypasses it and the app shows a blank screen.
+
+**Question:** Why does this happen and how do you handle async errors in React?
+
+**Answer:**
+- Error Boundaries only catch **render-time** and **lifecycle** errors — NOT errors thrown asynchronously inside event handlers or `useEffect`.
+- To bridge the gap, use a trick: call `setState` with the error inside the async catch, using a state updater that re-throws:
+
+```jsx
+const [, throwError] = useState();
+useEffect(() => {
+  fetchData().catch(err => throwError(() => { throw err; }));
+}, []);
+```
+
+- Or use a custom hook like `useAsyncError` that does this pattern.
+- Libraries like React Query / SWR handle this automatically via their `<ErrorBoundary>` integration.
+
+---
+
+### Scenario 6: useEffect Fires Twice in Development
+
+**Situation:** A junior developer reports that their `useEffect` is making two API calls on mount. They don't see it in production.
+
+**Question:** Why does this happen and what is the correct response?
+
+**Answer:**
+- React 18 Strict Mode **intentionally double-invokes effects** in development to expose side effects that lack cleanup.
+- The effect fires → cleanup → fires again to simulate fast tab switching.
+- The **correct response** is NOT to remove Strict Mode — it is to write a proper cleanup:
+
+```jsx
+useEffect(() => {
+  let cancelled = false;
+  fetchUser(id).then(data => { if (!cancelled) setUser(data); });
+  return () => { cancelled = true; };
+}, [id]);
+```
+
+- In production (no Strict Mode), this runs exactly once.
+
+---
+
+### Scenario 7: Using useRef to Avoid Re-render for a Mutable Value
+
+**Situation:** You need to track whether a component is mounted to avoid `setState` on an unmounted component. Using `useState` for this flag would cause an extra render.
+
+**Question:** What is the right tool?
+
+**Answer:**
+
+```jsx
+const isMounted = useRef(true);
+useEffect(() => {
+  return () => { isMounted.current = false; };
+}, []);
+
+async function load() {
+  const data = await fetchData();
+  if (isMounted.current) setData(data);
+}
+```
+
+- `useRef` stores **mutable values that don't trigger re-renders** — perfect for flags, previous values, and DOM node references.
+
+---
+
+### Scenario 8: Compound Component Pattern for a Flexible Dropdown
+
+**Situation:** Product design keeps changing the internals of a `<Dropdown>` component. Each change requires updating the component's public API. The team is frustrated.
+
+**Question:** How do you redesign it for flexibility?
+
+**Answer:**
+- Use the **Compound Component pattern** with implicit state sharing via Context:
+
+```jsx
+const DropdownContext = React.createContext();
+
+function Dropdown({ children }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <DropdownContext.Provider value={{ open, setOpen }}>
+      <div className="dropdown">{children}</div>
+    </DropdownContext.Provider>
+  );
+}
+Dropdown.Toggle  = function Toggle({ children }) {
+  const { setOpen } = useContext(DropdownContext);
+  return <button onClick={() => setOpen(o => !o)}>{children}</button>;
+};
+Dropdown.Menu = function Menu({ children }) {
+  const { open } = useContext(DropdownContext);
+  return open ? <ul>{children}</ul> : null;
+};
+Dropdown.Item = function Item({ children, onClick }) {
+  return <li onClick={onClick}>{children}</li>;
+};
+```
+
+Now design changes are made at the usage site without touching the base component.
+
+---
+
+### Scenario 9: Performance — Expensive Derived State
+
+**Situation:** A reporting page calculates totals, averages, and groupings from a 5 000-row dataset on every render — including renders caused by unrelated state changes.
+
+**Question:** How do you optimise?
+
+**Answer:**
+
+```jsx
+// useMemo ensures recalculation ONLY when rawData changes
+const report = useMemo(() => computeReport(rawData), [rawData]);
+```
+
+- Ensure `computeReport` is a pure function — no side effects.
+- If computation takes > 16 ms even with `useMemo`, move it to a Web Worker and cache results in a `useRef`.
+- Split the component so the expensive calculation only re-runs when its direct dependencies change, not when sibling state updates.
+
+---
+
+### Scenario 10: Code Splitting a Large Dashboard
+
+**Situation:** Your app's initial bundle is 2.4 MB. Lighthouse shows Time to Interactive of 8 s on mobile 3G. Most of the bundle is the heavy analytics dashboard that 80% of users never open.
+
+**Question:** How do you reduce the initial load?
+
+**Answer:**
+
+```jsx
+const Dashboard = React.lazy(() => import('./Dashboard'));
+
+function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route
+        path="/dashboard"
+        element={
+          <Suspense fallback={<PageSpinner />}>
+            <Dashboard />
+          </Suspense>
+        }
+      />
+    </Routes>
+  );
+}
+```
+
+- Result: Dashboard code is only downloaded when the route is visited.
+- Go further: use **dynamic `import()`** inside the component for heavy sub-sections (charts, data tables).
+- Monitor bundle composition with `webpack-bundle-analyzer` or Vite's rollup-plugin-visualizer.

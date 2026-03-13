@@ -3117,3 +3117,226 @@ export type { Repository, UserId, ProductId, ValidEmail, RouteParams, DeepReadon
 
 ---
 ```
+
+---
+
+## Scenario-Based Interview Questions
+
+---
+
+### Scenario 1: Migrating a 60 k-LOC JavaScript Codebase to TypeScript
+
+**Situation:** Your team decides to migrate a large Express + React monorepo to TypeScript. You lead the effort.
+
+**Question:** What is your strategy to minimise disruption?
+
+**Answer:**
+1. **Rename incrementally** `.js` → `.ts` one module at a time; start with utility functions (least side effects).
+2. Enable `"allowJs": true` and `"checkJs": true` first — get errors without renaming.
+3. Set `"strict": false` initially, enable strict flags one at a time (`strictNullChecks`, `noImplicitAny`, etc.) per module.
+4. Use `// @ts-nocheck` at the top of complex files to unblock PRs while you revisit.
+5. Add `"incremental": true` from day one to keep build times manageable.
+6. Migrate shared types/interfaces first (API contracts, DB models) so the rest of the codebase can import them.
+
+---
+
+### Scenario 2: Third-Party Library Has Wrong or Missing Typings
+
+**Situation:** An analytics library you use has incorrect `@types/analytics` that says a function returns `void` but it actually returns a `Promise`. This causes a type error in your code.
+
+**Question:** How do you fix it without waiting for an upstream patch?
+
+**Answer:**
+- Create a **declaration merging file** in your project:
+
+```typescript
+// src/types/analytics.d.ts
+declare module 'some-analytics-lib' {
+  export function track(event: string, props?: Record<string, unknown>): Promise<void>;
+}
+```
+
+- Or use a local `*.d.ts` patch via `paths` in `tsconfig.json` to shadow the installed types.
+- Long-term: open a PR to DefinitelyTyped or the library's own typings.
+
+---
+
+### Scenario 3: Discriminated Union Exhaustiveness — Adding a New Case Breaks Nothing
+
+**Situation:** Your codebase uses a discriminated union for notification types. A new type `"push"` is added and nobody updates the render switch. Users silently see nothing.
+
+**Question:** How do you make TypeScript catch missing cases at compile time?
+
+**Answer:**
+
+```typescript
+type Notification =
+  | { kind: 'email'; address: string }
+  | { kind: 'sms'; phone: string }
+  | { kind: 'push'; deviceToken: string };   // newly added
+
+function assertNever(x: never): never {
+  throw new Error(`Unhandled case: ${JSON.stringify(x)}`);
+}
+
+function render(n: Notification) {
+  switch (n.kind) {
+    case 'email': return renderEmail(n);
+    case 'sms':   return renderSms(n);
+    // Forgetting 'push' → TypeScript error: Argument of type '{ kind: "push" }' is not assignable to parameter 'never'
+    default: return assertNever(n);
+  }
+}
+```
+
+---
+
+### Scenario 4: Generic Utility — Deep Readonly
+
+**Situation:** You want to prevent deep mutation of configuration objects at compile time. `Readonly<T>` only works one level deep.
+
+**Question:** Implement `DeepReadonly<T>`.
+
+**Answer:**
+
+```typescript
+type DeepReadonly<T> = T extends (infer U)[]
+  ? ReadonlyArray<DeepReadonly<U>>
+  : T extends object
+  ? { readonly [K in keyof T]: DeepReadonly<T[K]> }
+  : T;
+
+// Usage
+type Config = DeepReadonly<{ db: { host: string; port: number } }>;
+const cfg: Config = { db: { host: 'localhost', port: 5432 } };
+cfg.db.port = 9999; // TS Error: Cannot assign to 'port' because it is a read-only property
+```
+
+---
+
+### Scenario 5: Type-Safe API Client — Inferring Response Types from Route Definitions
+
+**Situation:** Your team builds an internal fetch wrapper. Every time someone calls `api.get('/users')` they manually cast `as User[]`, leading to silent mismatches when the API changes.
+
+**Question:** How do you make the response type inferred automatically?
+
+**Answer:**
+
+```typescript
+// Define route → response type mapping
+interface RouteMap {
+  '/users':        User[];
+  '/users/:id':    User;
+  '/products':     Product[];
+}
+
+async function api<R extends keyof RouteMap>(route: R): Promise<RouteMap[R]> {
+  const res = await fetch(route as string);
+  return res.json();
+}
+
+// Now this is typed automatically
+const users = await api('/users');   // type: User[]
+const user  = await api('/users/:id'); // type: User
+```
+
+---
+
+### Scenario 6: `any` Creeping In — Maintaining Type Safety Over Time
+
+**Situation:** Code reviews show that `any` is being used to unblock PRs. Over time 40% of functions have `any` in their signatures. How do you enforce discipline?
+
+**Answer:**
+- Enable `"noImplicitAny": true` — requires explicit annotation when TypeScript can't infer.
+- Add ESLint rule `@typescript-eslint/no-explicit-any` with `warn` or `error`.
+- Use `unknown` instead of `any` for truly unknown input — forces narrowing before use.
+- Create an `eslint-disable` audit in CI: count `// eslint-disable` comments; fail the build if count grows.
+- For external data (API responses, JSON.parse), define Zod/io-ts schemas that validate AND infer types simultaneously.
+
+---
+
+### Scenario 7: Conditional Types for a Flexible API
+
+**Situation:** You're building a function `fetchResource(type, id?)` where passing `id` returns a single object and omitting `id` returns an array.
+
+**Question:** Type this so the return type changes based on whether `id` is passed.
+
+**Answer:**
+
+```typescript
+type FetchResult<T, HasId extends boolean> = HasId extends true ? T : T[];
+
+function fetchResource<HasId extends boolean = false>(
+  type: 'user' | 'product',
+  id?: HasId extends true ? string : never
+): Promise<FetchResult<User | Product, HasId>> {
+  return id
+    ? fetch(`/api/${type}/${id}`).then(r => r.json())
+    : fetch(`/api/${type}`).then(r => r.json());
+}
+```
+
+---
+
+### Scenario 8: Runtime Validation + TypeScript Types from One Source
+
+**Situation:** You define TypeScript interfaces for API payloads. Developers manually maintain a validation function separately. They drift apart causing runtime errors.
+
+**Question:** What tool eliminates this duplication?
+
+**Answer:**
+- Use **Zod** (or io-ts / Yup with TypeScript mode):
+
+```typescript
+import { z } from 'zod';
+
+const UserSchema = z.object({
+  id:    z.string().uuid(),
+  email: z.string().email(),
+  age:   z.number().min(0).max(120),
+});
+
+// Type inferred automatically — no separate interface needed
+type User = z.infer<typeof UserSchema>;
+
+// Runtime validation
+const result = UserSchema.safeParse(req.body);
+if (!result.success) return res.status(400).json(result.error.format());
+const user: User = result.data; // fully typed and validated
+```
+
+---
+
+### Scenario 9: Decorator-Based Validation in a NestJS Context
+
+**Situation:** You have a NestJS controller where DTOs use class-validator decorators. A new repo member asks why the decorators are needed when TypeScript already defines the shape.
+
+**Question:** Explain the difference between TypeScript types and runtime validation, and how decorators bridge the gap.
+
+**Answer:**
+- TypeScript types are **erased at compile time** — they provide zero runtime protection.
+- When a request hits your API, the body is raw JSON (`unknown`). TypeScript will NOT throw if the payload has wrong or missing fields.
+- `class-validator` + `class-transformer` decorators run at runtime, validating the actual data.
+- NestJS `ValidationPipe` applies both: transforms the raw body into a class instance, then runs decorator validators.
+- This means `@IsEmail()`, `@IsNotEmpty()` are your runtime safety net; TypeScript types just give you IDE completion.
+
+---
+
+### Scenario 10: Mapped Type for an ORM Repository Pattern
+
+**Situation:** You want every repository to expose typed CRUD methods based on the entity type, without writing the same `findById`, `save`, `delete` signatures 20 times.
+
+**Answer:**
+
+```typescript
+interface Repository<T extends { id: string }> {
+  findById(id: string): Promise<T | null>;
+  findAll(filter?: Partial<T>): Promise<T[]>;
+  save(entity: Omit<T, 'id'> & Partial<Pick<T, 'id'>>): Promise<T>;
+  delete(id: string): Promise<void>;
+}
+
+class UserRepository implements Repository<User> { /* ... */ }
+class ProductRepository implements Repository<Product> { /* ... */ }
+// Each gets full type safety and IDE autocomplete for free
+```

@@ -3500,3 +3500,232 @@ const Chart = dynamic(() => import('recharts').then(m => m.LineChart), { ssr: fa
 
 ---
 ```
+
+---
+
+## Scenario-Based Interview Questions
+
+---
+
+### Scenario 1: Lighthouse Score Drops to 45 After Adding a Third-Party Widget
+
+**Situation:** You integrate a live chat widget. Lighthouse LCP jumps from 1.2s to 4.8s and the score drops from 92 to 45.
+
+**Question:** How do you recover performance while keeping the widget?
+
+**Answer:**
+- The widget is likely adding a large synchronous script to the `<head>` that blocks rendering.
+- **Delay loading**: use `next/script` with `strategy="lazyOnload"` or `strategy="afterInteractive"`:
+
+```jsx
+import Script from 'next/script';
+<Script src="https://chat-widget.js" strategy="lazyOnload" />
+```
+
+- Use `strategy="afterInteractive"` for scripts needed once the user interacts.
+- **Façade pattern**: show a static placeholder/image of the widget; only load the real script when the user clicks it.
+- Audit with WebPageTest to confirm which resource is the LCP bottleneck.
+
+---
+
+### Scenario 2: Hydration Mismatch Error in Production
+
+**Situation:** Users with certain browser extensions report a React hydration error. The console shows "Text content did not match. Server: 'X' Client: 'Y'".
+
+**Question:** What causes hydration mismatches and how do you fix them?
+
+**Answer:**
+- The HTML rendered on the server differs from what React renders on the client.
+- **Common causes**:
+  - Using `window`, `navigator`, `Date.now()` during render (not available on server).
+  - Browser extensions injecting elements into the DOM.
+  - Rendering based on a cookie or localStorage value that the server doesn't have.
+- **Fixes**:
+  - Guard browser-only code: `const isClient = typeof window !== 'undefined'`.
+  - Use `useEffect` for client-only data — it only runs after hydration.
+  - Wrap browser-dependent components in a `<ClientOnly>` wrapper that renders `null` on the server.
+  - Use `suppressHydrationWarning` sparingly only for known browser-injected elements like timestamps.
+
+---
+
+### Scenario 3: Server Component Fetching Same Data Multiple Times
+
+**Situation:** Three different Server Components on the same page route each independently `fetch` the same `/api/user` endpoint. You see three identical network calls in the server trace.
+
+**Question:** How does Next.js handle this and how do you optimise it?
+
+**Answer:**
+- Next.js 14+ **automatically deduplicates** `fetch()` calls with the same URL in the same request lifecycle (memoised per render pass).
+- If you are using a custom ORM/DB call that is NOT `fetch()` (e.g., a Prisma query), wrap it in React's `cache()`:
+
+```typescript
+import { cache } from 'react';
+export const getUser = cache(async (id: string) => {
+  return db.user.findUnique({ where: { id } });
+});
+// Now calling getUser(id) three times in one render = one DB query
+```
+
+---
+
+### Scenario 4: Large Page Bundle — Users on Mobile 3G Time Out
+
+**Situation:** Your product page bundle is 1.8 MB. Next.js bundle analyser shows a date-formatting library (moment.js) accounting for 500 kB.
+
+**Question:** How do you reduce it?
+
+**Answer:**
+- Replace `moment` with **`date-fns`** (tree-shaken, import only the functions you use) or the native `Intl.DateTimeFormat` API.
+- Move heavy computation to **Server Components** — server components don't ship JS to the client at all.
+- Use dynamic imports for components only needed after interaction:
+
+```jsx
+const DatePicker = dynamic(() => import('./DatePicker'), { ssr: false });
+```
+
+- Check `@next/bundle-analyzer` output weekly; set a CI budget check with `next-bundle-analyzer` or Bundlewatch.
+
+---
+
+### Scenario 5: Stale Data After a Form Submission (Server Action)
+
+**Situation:** A user submits a Server Action to update their profile. The page still shows the old data after the action completes.
+
+**Question:** How do you ensure the UI reflects the updated state?
+
+**Answer:**
+- After a Server Action mutates data, call `revalidatePath()` or `revalidateTag()` to purge the cached page/data:
+
+```typescript
+'use server';
+import { revalidatePath } from 'next/cache';
+
+async function updateProfile(formData: FormData) {
+  await db.user.update({ where: { id: session.userId }, data: { ... } });
+  revalidatePath('/profile');   // clears the cached render of /profile
+}
+```
+
+- `revalidateTag('user-data')` is more granular — tag all fetches that depend on user data and invalidate together.
+- For immediate client-side optimistic updates combine with `useOptimistic()`.
+
+---
+
+### Scenario 6: Middleware Running on Every Request — Performance Impact
+
+**Situation:** Your authentication middleware runs on every request including static assets, increasing Edge latency globally.
+
+**Question:** How do you restrict middleware to specific paths?
+
+**Answer:**
+- Use the `matcher` config in `middleware.ts` to limit which paths the middleware runs on:
+
+```typescript
+export const config = {
+  matcher: [
+    '/dashboard/:path*',
+    '/api/:path*',
+    // Exclude static assets and _next internals
+    '/((?!_next/static|_next/image|favicon.ico).*)',
+  ],
+};
+```
+
+- This ensures the middleware is bypassed for static files, dramatically reducing unnecessary Edge invocations.
+
+---
+
+### Scenario 7: ISR (Incremental Static Regeneration) Showing Stale Content
+
+**Situation:** You use ISR with `revalidate: 60` for a product page. A price update is reflected in the DB but users still see the old price for up to an hour.
+
+**Question:** How do you ensure near-instant propagation of critical updates?
+
+**Answer:**
+- Use **On-demand ISR**: call `res.revalidate('/product/123')` from a webhook handler that the CMS triggers on publish.
+- Or use `revalidateTag('product-123')` in a Server Action or API route.
+
+```typescript
+// /api/revalidate route
+import { revalidateTag } from 'next/cache';
+export async function POST(req: Request) {
+  const { secret, tag } = await req.json();
+  if (secret !== process.env.REVALIDATE_SECRET) return new Response('Unauthorized', { status: 401 });
+  revalidateTag(tag);
+  return Response.json({ revalidated: true });
+}
+```
+
+- The CMS webhook calls this endpoint on publish → the specific page is regenerated immediately.
+
+---
+
+### Scenario 8: Authentication — Protecting Routes in App Router
+
+**Situation:** Some pages are protected (require login). Without protection, navigating directly to `/dashboard` returns the server-rendered HTML even for unauthenticated users.
+
+**Question:** How do you protect routes in Next.js App Router?
+
+**Answer:**
+- Option 1 — **Middleware** (recommended for large-scale): check session/JWT in `middleware.ts`, redirect to `/login` early at the Edge before any rendering:
+
+```typescript
+import { NextResponse } from 'next/server';
+import { getToken } from 'next-auth/jwt';
+
+export async function middleware(req) {
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+  if (!token) return NextResponse.redirect(new URL('/login', req.url));
+}
+export const config = { matcher: ['/dashboard/:path*'] };
+```
+
+- Option 2 — **Server Component check**: call `auth()` at the top of the layout/page server component and redirect:
+
+```typescript
+import { auth } from '@/auth';
+import { redirect } from 'next/navigation';
+
+export default async function DashboardLayout({ children }) {
+  const session = await auth();
+  if (!session) redirect('/login');
+  return <>{children}</>;
+}
+```
+
+---
+
+### Scenario 9: Parallel Routes for a Complex Dashboard Layout
+
+**Situation:** Your dashboard needs to show a main content area AND a side panel that loads independently, each with its own loading/error states.
+
+**Question:** How do you implement this in App Router?
+
+**Answer:**
+- Use **Parallel Routes** with named slots (`@main`, `@panel`):
+
+```
+app/dashboard/
+  layout.tsx          // receives @main and @panel props
+  @main/
+    page.tsx
+    loading.tsx
+  @panel/
+    page.tsx
+    loading.tsx
+    error.tsx
+```
+
+```tsx
+// layout.tsx
+export default function DashboardLayout({ main, panel }) {
+  return (
+    <div className="dashboard">
+      <main>{main}</main>
+      <aside>{panel}</aside>
+    </div>
+  );
+}
+```
+
+Each slot has its own streaming, loading UI, and error boundary — they render and update independently.

@@ -6238,3 +6238,267 @@ module.exports = {
 
 ---
 ```
+
+---
+
+## Scenario-Based Interview Questions
+
+---
+
+### Scenario 1: Main Thread Jank — Heavy Computation in the Browser
+
+**Situation:** Your e-commerce SPA freezes for 300–500 ms every time a user opens the "Filters" panel. A profiler trace shows a `filterAndSort()` function running on the main thread over a 40 k-item product list.
+
+**Question:** How do you fix this without breaking the UX?
+
+**Answer:**
+- Move the heavy work to a **Web Worker** so the main thread stays free.
+- Pass the data array and filter params via `postMessage`; receive sorted results back.
+- Show a skeleton/spinner while the Worker is running.
+- Consider **pagination or virtualisation** (react-window) so only ~50 rows are ever in the DOM.
+- Cache the last result with a memoization key (filters + sort key) so repeat clicks are instant.
+
+```javascript
+// worker.js
+self.onmessage = ({ data: { items, filters } }) => {
+  const result = items.filter(applyFilters(filters)).sort(byPrice);
+  self.postMessage(result);
+};
+
+// main thread
+const worker = new Worker('./worker.js');
+worker.postMessage({ items: bigList, filters });
+worker.onmessage = ({ data }) => setProducts(data);
+```
+
+---
+
+### Scenario 2: Memory Leak — SPA Crashes After 2 Hours
+
+**Situation:** Your dashboard app crashes with an "out of memory" tab after users leave it open. Heap snapshots show detached DOM nodes and closures piling up.
+
+**Question:** How do you identify and fix the leak?
+
+**Answer:**
+- Take three Heap Snapshots (idle → after navigating several routes → idle again) and compare retained objects.
+- Common culprits:
+  - **Event listeners** added in `useEffect` without cleanup (`window.addEventListener` not removed).
+  - **setInterval / setTimeout** never cleared.
+  - **Closure capturing large data** in a callback stored in a global map.
+  - **3rd-party chart libraries** not destroyed on unmount.
+- Fix: always return cleanup functions from `useEffect`; call `clearInterval`/`removeEventListener` on teardown.
+- Use **WeakMap/WeakRef** for caches keyed by DOM nodes or component instances.
+
+```javascript
+useEffect(() => {
+  const id = setInterval(fetchMetrics, 5000);
+  window.addEventListener('resize', handleResize);
+  return () => {
+    clearInterval(id);
+    window.removeEventListener('resize', handleResize);
+  };
+}, []);
+```
+
+---
+
+### Scenario 3: Debounce Breaking After React Re-render
+
+**Situation:** You add a debounced search input. It works in isolation but in the real app the debounce resets on every keystroke because the component keeps re-rendering.
+
+**Question:** What is the root cause and how do you fix it?
+
+**Answer:**
+- Every render creates a **new debounce instance**, discarding the pending timer.
+- Fix: stabilise the debounced function with `useRef` or `useMemo`/`useCallback` with an empty dep array so the same closure persists.
+
+```javascript
+const debouncedSearch = useRef(
+  debounce((query) => fetchResults(query), 400)
+).current;
+
+// On unmount flush/cancel
+useEffect(() => () => debouncedSearch.cancel?.(), []);
+```
+
+---
+
+### Scenario 4: Promise Chain vs Async/Await — Unhandled Rejection in Production
+
+**Situation:** Your Node service logs "UnhandledPromiseRejectionWarning" sporadically. The process crashes overnight in older Node versions.
+
+**Question:** How do you track down and prevent this?
+
+**Answer:**
+- Add a global safety net: `process.on('unhandledRejection', (reason) => logger.error(reason))`.
+- Audit every `.then()` chain — each needs a `.catch()` or the chain must be `await`-ed inside a `try/catch`.
+- Use ESLint rule `no-floating-promises` (with TypeScript) or `promise/catch-or-return`.
+- In Express, wrap async route handlers: `const asyncHandler = fn => (req, res, next) => fn(req, res, next).catch(next);`
+
+---
+
+### Scenario 5: Recursive Stack Overflow on Deep JSON
+
+**Situation:** A customer uploads a JSON config file nested 20+ levels deep. Your `deepClone` implementation throws "Maximum call stack size exceeded".
+
+**Question:** How do you handle deeply nested structures safely?
+
+**Answer:**
+- Replace recursion with an **iterative approach using an explicit stack**.
+- Track visited objects in a `Map` to handle circular references.
+- Alternatively use `structuredClone()` (Node ≥ 17, modern browsers) which handles both depth and cycles natively.
+- Set a max-depth guard if custom traversal is required.
+
+```javascript
+function safDeepClone(obj) {
+  return structuredClone(obj); // handles cycles + depth
+}
+// Or iterative with stack for older envs — see deep_clone implementation
+```
+
+---
+
+### Scenario 6: Race Condition in Auto-Save Feature
+
+**Situation:** Users edit a document and it auto-saves every 2 seconds. Occasionally the older save response arrives AFTER a newer one, overwriting the latest content.
+
+**Question:** How do you prevent stale responses from winning?
+
+**Answer:**
+- Use an **AbortController** to cancel the previous in-flight request before issuing a new one.
+- Alternatively, attach a monotonically-increasing sequence number to each request and discard responses whose sequence is lower than the last received.
+
+```javascript
+let controller;
+async function autoSave(content) {
+  controller?.abort();
+  controller = new AbortController();
+  await fetch('/api/save', {
+    method: 'POST',
+    body: JSON.stringify({ content }),
+    signal: controller.signal,
+  });
+}
+```
+
+---
+
+### Scenario 7: Slow Sort on Large Dataset — Algorithm Choice
+
+**Situation:** A report page sorts 200 k rows on the client. It takes 4 seconds. The product team says "just make it faster".
+
+**Question:** What steps do you take?
+
+**Answer:**
+1. **Profile first** — confirm it is the sort, not render, that is slow.
+2. Move sort to the **server** with an ORDER BY clause — databases sort in milliseconds.
+3. If client-side is unavoidable (offline-first), move to a **Web Worker** and use the built-in `Array.sort` (TimSort — O(n log n)).
+4. Add **memoization**: same data + same sort key → cached result (reference equality check).
+5. Switch to **virtualised rendering** so only visible rows are in the DOM regardless.
+
+---
+
+### Scenario 8: Incorrect Closure Value Inside Loop
+
+**Situation:** A junior dev reports that a loop logs the same value (the final `i`) ten times instead of 0–9.
+
+**Question:** Explain the root cause and three ways to fix it.
+
+**Answer:**
+Root cause: `var` is function-scoped, so all closures share the same `i` binding.
+
+```javascript
+// Fix 1: use let (block-scoped — each iteration gets its own binding)
+for (let i = 0; i < 10; i++) setTimeout(() => console.log(i), 0);
+
+// Fix 2: IIFE captures current value
+for (var i = 0; i < 10; i++) ((n) => setTimeout(() => console.log(n), 0))(i);
+
+// Fix 3: bind
+for (var i = 0; i < 10; i++) setTimeout(console.log.bind(null, i), 0);
+```
+
+---
+
+### Scenario 9: Event Delegation vs Direct Listeners on Dynamic List
+
+**Situation:** A todo list dynamically adds hundreds of items. Each item has a delete button. A junior dev attaches a click listener to each button inside a loop and the page slows down.
+
+**Question:** What is the better pattern and why?
+
+**Answer:**
+- Use **event delegation**: attach ONE listener to the parent list; check `event.target` to identify the clicked button.
+- Reduces listener count from N to 1, works automatically for dynamically added items, and frees memory when items are removed.
+
+```javascript
+list.addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-delete-id]');
+  if (btn) deleteItem(btn.dataset.deleteId);
+});
+```
+
+---
+
+### Scenario 10: Implementing Retry with Exponential Back-Off
+
+**Situation:** Your app calls a third-party payment API that occasionally returns 503. You need automatic retries without hammering the service.
+
+**Question:** Implement a `withRetry` utility.
+
+**Answer:**
+
+```javascript
+async function withRetry(fn, { retries = 3, baseDelay = 300, factor = 2 } = {}) {
+  let attempt = 0;
+  while (true) {
+    try {
+      return await fn();
+    } catch (err) {
+      if (attempt >= retries) throw err;
+      const delay = baseDelay * Math.pow(factor, attempt) + Math.random() * 100; // jitter
+      await new Promise(res => setTimeout(res, delay));
+      attempt++;
+    }
+  }
+}
+
+// Usage
+const result = await withRetry(() => callPaymentAPI(payload), { retries: 4 });
+```
+
+---
+
+### Scenario 11: Detecting and Breaking a Circular Reference
+
+**Situation:** `JSON.stringify()` throws "Converting circular structure to JSON" in a logging utility. You don't control the objects being logged.
+
+**Question:** How do you handle this gracefully?
+
+**Answer:**
+
+```javascript
+function safeStringify(obj) {
+  const seen = new WeakSet();
+  return JSON.stringify(obj, (key, value) => {
+    if (typeof value === 'object' && value !== null) {
+      if (seen.has(value)) return '[Circular]';
+      seen.add(value);
+    }
+    return value;
+  }, 2);
+}
+```
+
+---
+
+### Scenario 12: Prototype Pollution Attack via `_.merge`
+
+**Situation:** A security audit flags that your API endpoint passes user-supplied JSON directly into `_.merge({}, userInput)`. Explain the risk and fix.
+
+**Answer:**
+- `_.merge` with input `{"__proto__": {"isAdmin": true}}` pollutes `Object.prototype`, making `({}).isAdmin` return `true` for ALL objects in the process.
+- **Fix options:**
+  1. Use `Object.assign` with a `null`-prototype object: `Object.assign(Object.create(null), userInput)`.
+  2. Sanitise input: reject keys `__proto__`, `constructor`, `prototype`.
+  3. Use `JSON.parse(JSON.stringify(input))` to strip prototype chain before merging.
+  4. Upgrade lodash — versions ≥ 4.17.17 include a fix.
