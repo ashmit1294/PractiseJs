@@ -27,6 +27,18 @@ analysis, and direct interview question-and-answer material.
 
 ---
 
+## System Design Resources
+
+| Resource | Format | Best For |
+|----------|--------|----------|
+| [System Design Primer](https://github.com/donnemartin/system-design-primer) | GitHub (free) | Comprehensive reference, all topics |
+| [ByteByteGo system-design-101](https://github.com/ByteByteGoHq/system-design-101) | GitHub (free, visual) | Visual diagrams for every concept |
+| [ByteByteGo YouTube Crash Course](https://www.youtube.com/@ByteByteGo) | Video (free) | DNS, storage, memory deep dives |
+| [System Design Handbook](https://www.freecodecamp.org/news/system-design-for-interviews-and-beyond/) | Web (free) | Interview-format walkthroughs |
+| [ByteByteGo Course](https://bytebytego.com) | Text + diagrams (paid) | Structured end-to-end prep |
+
+---
+
 ## Table of Contents
 
 ### 1. JavaScript
