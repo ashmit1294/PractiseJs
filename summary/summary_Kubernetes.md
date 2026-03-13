@@ -4,15 +4,16 @@
 
 ## Table of Contents
 
-1. [01_core_concepts.md — Architecture Overview](#01_core_conceptsmd-architecture-overview)
-2. [02_workloads.md — Overview](#02_workloadsmd-overview)
-3. [03_services_networking.md — How Pod Networking Works](#03_services_networkingmd-how-pod-networking-works)
-4. [04_storage.md — Storage Concepts](#04_storagemd-storage-concepts)
-5. [05_config_secrets.md — Why configuration management matters](#05_config_secretsmd-why-configuration-management-matters)
-6. [06_security.md — Security Layers in Kubernetes](#06_securitymd-security-layers-in-kubernetes)
-7. [07_advanced.md — Horizontal Pod Autoscaler (HPA)](#07_advancedmd-horizontal-pod-autoscaler-hpa)
-8. [08_helm_interview_qa.md — What is Helm?](#08_helm_interview_qamd-what-is-helm)
-9. [09_theory_advanced_qa.md — SECTION 1: BASIC](#09_theory_advanced_qamd-section-1-basic)
+1. [01_core_concepts.md — Architecture Overview](#kubernetes-core-concepts)
+2. [02_workloads.md — Overview](#kubernetes-workloads)
+3. [03_services_networking.md — How Pod Networking Works](#kubernetes-services-networking)
+4. [04_storage.md — Storage Concepts](#kubernetes-storage)
+5. [05_config_secrets.md — Why configuration management matters](#kubernetes-config-secrets)
+6. [06_security.md — Security Layers in Kubernetes](#kubernetes-security)
+7. [07_advanced.md — Horizontal Pod Autoscaler (HPA)](#kubernetes-advanced)
+8. [08_helm_interview_qa.md — What is Helm?](#kubernetes-helm-interview-qa)
+9. [09_theory_advanced_qa.md — SECTION 1: BASIC](#kubernetes-theory-advanced-qa)
+   - [Scenario-Based Questions](#kubernetes-scenarios)
 
 ---
 

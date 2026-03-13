@@ -4,7 +4,8 @@
 
 ## Table of Contents
 
-9. [FILE: 01_theory_interview_qa.js](#file-01_theory_interview_qajs)
+9. [FILE: 01_theory_interview_qa.js](#web-security-theory-interview-qa)
+   - [Scenario-Based Questions](#web-security-scenarios)
 
 ---
 

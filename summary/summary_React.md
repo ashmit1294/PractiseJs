@@ -4,16 +4,17 @@
 
 ## Table of Contents
 
-1. [01_useState_useEffect.jsx — QUESTION SET: useState & useEffect — most asked React hooks](#01_usestate_useeffectjsx-question-set-usestate-useeffect-most-asked-react-hooks)
-2. [02_custom_hooks.jsx — QUESTION SET: Custom Hooks](#02_custom_hooksjsx-question-set-custom-hooks)
-3. [03_useReducer_useContext.jsx — QUESTION SET: useReducer & useContext](#03_usereducer_usecontextjsx-question-set-usereducer-usecontext)
-4. [04_useMemo_useCallback.jsx — QUESTION SET: useMemo & useCallback — React Performance Hooks](#04_usememo_usecallbackjsx-question-set-usememo-usecallback-react-performance-hooks)
-5. [05_useRef_forwardRef.jsx — QUESTION SET: useRef, forwardRef & useImperativeHandle](#05_useref_forwardrefjsx-question-set-useref-forwardref-useimperativehandle)
-6. [06_component_patterns.jsx — QUESTION SET: Component Patterns](#06_component_patternsjsx-question-set-component-patterns)
-7. [07_lazy_suspense_errorboundary.jsx — QUESTION SET: React.lazy, Suspense, Error Boundaries & Code Splitting](#07_lazy_suspense_errorboundaryjsx-question-set-reactlazy-suspense-error-boundaries-code-splitting)
-8. [08_advanced_patterns.jsx — QUESTION SET: Advanced React Patterns](#08_advanced_patternsjsx-question-set-advanced-react-patterns)
-9. [09_solid_principles.jsx — SOLID PRINCIPLES IN REACT](#09_solid_principlesjsx-solid-principles-in-react)
-10. [FILE: 10_theory_interview_qa.jsx](#file-10_theory_interview_qajsx)
+1. [01_useState_useEffect.jsx — QUESTION SET: useState & useEffect — most asked React hooks](#react-usestate-useeffect)
+2. [02_custom_hooks.jsx — QUESTION SET: Custom Hooks](#react-custom-hooks)
+3. [03_useReducer_useContext.jsx — QUESTION SET: useReducer & useContext](#react-usereducer-usecontext)
+4. [04_useMemo_useCallback.jsx — QUESTION SET: useMemo & useCallback — React Performance Hooks](#react-usememo-usecallback)
+5. [05_useRef_forwardRef.jsx — QUESTION SET: useRef, forwardRef & useImperativeHandle](#react-useref-forwardref)
+6. [06_component_patterns.jsx — QUESTION SET: Component Patterns](#react-component-patterns)
+7. [07_lazy_suspense_errorboundary.jsx — QUESTION SET: React.lazy, Suspense, Error Boundaries & Code Splitting](#react-lazy-suspense-errorboundary)
+8. [08_advanced_patterns.jsx — QUESTION SET: Advanced React Patterns](#react-advanced-patterns)
+9. [09_solid_principles.jsx — SOLID PRINCIPLES IN REACT](#react-solid-principles)
+10. [FILE: 10_theory_interview_qa.jsx](#react-theory-interview-qa)
+   - [Scenario-Based Questions](#react-scenarios)
 
 ---
 

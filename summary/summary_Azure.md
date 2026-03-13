@@ -4,14 +4,15 @@
 
 ## Table of Contents
 
-1. [01_core_services_aad.md — What is Azure?](#01_core_services_aadmd-what-is-azure)
-2. [02_app_service_functions.md — Azure App Service — Managed Web Hosting](#02_app_service_functionsmd-azure-app-service-managed-web-hosting)
-3. [03_storage_cdn.md — Azure Blob Storage — Object Storage](#03_storage_cdnmd-azure-blob-storage-object-storage)
-4. [04_databases.md — Azure Database for PostgreSQL — Flexible Server](#04_databasesmd-azure-database-for-postgresql-flexible-server)
-5. [05_networking.md — Virtual Network (VNet)](#05_networkingmd-virtual-network-vnet)
-6. [06_aks_acr.md — Azure Container Registry (ACR)](#06_aks_acrmd-azure-container-registry-acr)
-7. [07_pipelines_devops.md — Why Azure Pipelines?](#07_pipelines_devopsmd-why-azure-pipelines)
-8. [08_interview_qa.md — Azure Fundamentals](#08_interview_qamd-azure-fundamentals)
+1. [01_core_services_aad.md — What is Azure?](#azure-core-services-aad)
+2. [02_app_service_functions.md — Azure App Service — Managed Web Hosting](#azure-app-service-functions)
+3. [03_storage_cdn.md — Azure Blob Storage — Object Storage](#azure-storage-cdn)
+4. [04_databases.md — Azure Database for PostgreSQL — Flexible Server](#azure-databases)
+5. [05_networking.md — Virtual Network (VNet)](#azure-networking)
+6. [06_aks_acr.md — Azure Container Registry (ACR)](#azure-aks-acr)
+7. [07_pipelines_devops.md — Why Azure Pipelines?](#azure-pipelines-devops)
+8. [08_interview_qa.md — Azure Fundamentals](#azure-interview-qa)
+   - [Scenario-Based Questions](#azure-scenarios)
 
 ---
 

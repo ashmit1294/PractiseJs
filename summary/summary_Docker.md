@@ -4,15 +4,16 @@
 
 ## Table of Contents
 
-1. [01_dockerfile_basics.md — Q1. Simple Node.js Dockerfile](#01_dockerfile_basicsmd-q1-simple-nodejs-dockerfile)
-2. [02_docker_compose.md — Q1. Basic docker-compose.yml structure](#02_docker_composemd-q1-basic-docker-composeyml-structure)
-3. [03_networking.md — Q1. Bridge networks (default and custom)](#03_networkingmd-q1-bridge-networks-default-and-custom)
-4. [04_volumes_storage.md — Q1. Named volumes](#04_volumes_storagemd-q1-named-volumes)
-5. [05_security.md — Q1. Run containers as non-root](#05_securitymd-q1-run-containers-as-non-root)
-6. [06_cicd_registry.md — Q1. Basic registry push/pull](#06_cicd_registrymd-q1-basic-registry-pushpull)
-7. [07_production.md — Q1. Resource limits](#07_productionmd-q1-resource-limits)
-8. [08_interview_qa.md — Q1. What is Docker and how does it differ from a virtual machine?**](#08_interview_qamd-q1-what-is-docker-and-how-does-it-differ-from-a-virtual-machine)
-9. [09_theory_advanced_qa.md — SECTION 1: BASIC](#09_theory_advanced_qamd-section-1-basic)
+1. [01_dockerfile_basics.md — Q1. Simple Node.js Dockerfile](#docker-dockerfile-basics)
+2. [02_docker_compose.md — Q1. Basic docker-compose.yml structure](#docker-docker-compose)
+3. [03_networking.md — Q1. Bridge networks (default and custom)](#docker-networking)
+4. [04_volumes_storage.md — Q1. Named volumes](#docker-volumes-storage)
+5. [05_security.md — Q1. Run containers as non-root](#docker-security)
+6. [06_cicd_registry.md — Q1. Basic registry push/pull](#docker-cicd-registry)
+7. [07_production.md — Q1. Resource limits](#docker-production)
+8. [08_interview_qa.md — Q1. What is Docker and how does it differ from a virtual machine?**](#docker-interview-qa)
+9. [09_theory_advanced_qa.md — SECTION 1: BASIC](#docker-theory-advanced-qa)
+   - [Scenario-Based Questions](#docker-scenarios)
 
 ---
 

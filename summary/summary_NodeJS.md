@@ -4,17 +4,18 @@
 
 ## Table of Contents
 
-1. [01_event_loop.js — QUESTION SET: Node.js Event Loop](#01_event_loopjs-question-set-nodejs-event-loop)
-2. [02_streams_buffers.js — QUESTION SET: Node.js Streams & Buffers](#02_streams_buffersjs-question-set-nodejs-streams-buffers)
-3. [03_express_middleware.js — QUESTION SET: Express.js Middleware & Patterns](#03_express_middlewarejs-question-set-expressjs-middleware-patterns)
-4. [04_authentication.js — QUESTION SET: Node.js Authentication & JWT](#04_authenticationjs-question-set-nodejs-authentication-jwt)
-5. [05_event_emitter.js — QUESTION SET: Node.js EventEmitter & Custom Events](#05_event_emitterjs-question-set-nodejs-eventemitter-custom-events)
-6. [06_cluster_workers.js — QUESTION SET: Node.js Cluster, Worker Threads & child_process](#06_cluster_workersjs-question-set-nodejs-cluster-worker-threads-child_process)
-7. [07_file_system.js — QUESTION SET: Node.js File System (fs)](#07_file_systemjs-question-set-nodejs-file-system-fs)
-8. [08_error_handling.js — QUESTION SET: Node.js Error Handling](#08_error_handlingjs-question-set-nodejs-error-handling)
-9. [09_rest_api_patterns.js — QUESTION SET: Node.js REST API Patterns](#09_rest_api_patternsjs-question-set-nodejs-rest-api-patterns)
-10. [10_race_conditions.js — RACE CONDITIONS IN NODE.JS — WHAT THEY ARE AND HOW TO AVOID THEM](#10_race_conditionsjs-race-conditions-in-nodejs-what-they-are-and-how-to-avoid-them)
-11. [FILE: 11_theory_interview_qa.js](#file-11_theory_interview_qajs)
+1. [01_event_loop.js — QUESTION SET: Node.js Event Loop](#nodejs-event-loop)
+2. [02_streams_buffers.js — QUESTION SET: Node.js Streams & Buffers](#nodejs-streams-buffers)
+3. [03_express_middleware.js — QUESTION SET: Express.js Middleware & Patterns](#nodejs-express-middleware)
+4. [04_authentication.js — QUESTION SET: Node.js Authentication & JWT](#nodejs-authentication)
+5. [05_event_emitter.js — QUESTION SET: Node.js EventEmitter & Custom Events](#nodejs-event-emitter)
+6. [06_cluster_workers.js — QUESTION SET: Node.js Cluster, Worker Threads & child_process](#nodejs-cluster-workers)
+7. [07_file_system.js — QUESTION SET: Node.js File System (fs)](#nodejs-file-system)
+8. [08_error_handling.js — QUESTION SET: Node.js Error Handling](#nodejs-error-handling)
+9. [09_rest_api_patterns.js — QUESTION SET: Node.js REST API Patterns](#nodejs-rest-api-patterns)
+10. [10_race_conditions.js — RACE CONDITIONS IN NODE.JS — WHAT THEY ARE AND HOW TO AVOID THEM](#nodejs-race-conditions)
+11. [FILE: 11_theory_interview_qa.js](#nodejs-theory-interview-qa)
+   - [Scenario-Based Questions](#nodejs-scenarios)
 
 ---
 

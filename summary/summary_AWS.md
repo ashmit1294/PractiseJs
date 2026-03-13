@@ -4,14 +4,15 @@
 
 ## Table of Contents
 
-1. [01_core_services_iam.md — What is AWS?](#01_core_services_iammd-what-is-aws)
-2. [02_ec2_vpc.md — EC2 — Elastic Compute Cloud](#02_ec2_vpcmd-ec2-elastic-compute-cloud)
-3. [03_s3_cloudfront.md — S3 — Simple Storage Service](#03_s3_cloudfrontmd-s3-simple-storage-service)
-4. [04_lambda_api_gateway.md — Lambda — Serverless Functions](#04_lambda_api_gatewaymd-lambda-serverless-functions)
-5. [05_rds_dynamodb_cache.md — RDS — Relational Database Service](#05_rds_dynamodb_cachemd-rds-relational-database-service)
-6. [06_sqs_sns_eventbridge.md — Why Event-Driven?](#06_sqs_sns_eventbridgemd-why-event-driven)
-7. [07_ecs_eks_ecr.md — Container Services — Choosing the Right One](#07_ecs_eks_ecrmd-container-services-choosing-the-right-one)
-8. [08_cicd_interview_qa.md — CI/CD Concepts](#08_cicd_interview_qamd-cicd-concepts)
+1. [01_core_services_iam.md — What is AWS?](#aws-core-services-iam)
+2. [02_ec2_vpc.md — EC2 — Elastic Compute Cloud](#aws-ec2-vpc)
+3. [03_s3_cloudfront.md — S3 — Simple Storage Service](#aws-s3-cloudfront)
+4. [04_lambda_api_gateway.md — Lambda — Serverless Functions](#aws-lambda-api-gateway)
+5. [05_rds_dynamodb_cache.md — RDS — Relational Database Service](#aws-rds-dynamodb-cache)
+6. [06_sqs_sns_eventbridge.md — Why Event-Driven?](#aws-sqs-sns-eventbridge)
+7. [07_ecs_eks_ecr.md — Container Services — Choosing the Right One](#aws-ecs-eks-ecr)
+8. [08_cicd_interview_qa.md — CI/CD Concepts](#aws-cicd-interview-qa)
+   - [Scenario-Based Questions](#aws-scenarios)
 
 ---
 

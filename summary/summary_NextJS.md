@@ -4,15 +4,16 @@
 
 ## Table of Contents
 
-1. [01_app_router_fundamentals.tsx — QUESTION SET: Next.js App Router — Fundamentals](#01_app_router_fundamentalstsx-question-set-nextjs-app-router-fundamentals)
-2. [02_data_fetching_server_actions.tsx — QUESTION SET: Next.js Data Fetching](#02_data_fetching_server_actionstsx-question-set-nextjs-data-fetching)
-3. [03_routing_middleware.tsx — QUESTION SET: Next.js Routing — Dynamic, Parallel, Intercepting, Middleware](#03_routing_middlewaretsx-question-set-nextjs-routing-dynamic-parallel-intercepting-middleware)
-4. [04_authentication.tsx — QUESTION SET: Next.js Authentication Patterns](#04_authenticationtsx-question-set-nextjs-authentication-patterns)
-5. [05_performance_optimization.tsx — QUESTION SET: Next.js Performance Optimization](#05_performance_optimizationtsx-question-set-nextjs-performance-optimization)
-6. [06_pages_router_data_fetching.tsx — QUESTION SET: Next.js Pages Router — Data Fetching](#06_pages_router_data_fetchingtsx-question-set-nextjs-pages-router-data-fetching)
-7. [07_seo_metadata_i18n.tsx — QUESTION SET: Next.js SEO, Metadata & Internationalization](#07_seo_metadata_i18ntsx-question-set-nextjs-seo-metadata-internationalization)
-8. [08_interview_qa.tsx — QUESTION SET: Next.js Interview Q&A — Comprehensive](#08_interview_qatsx-question-set-nextjs-interview-qa-comprehensive)
-9. [FILE: 09_theory_interview_qa.tsx](#file-09_theory_interview_qatsx)
+1. [01_app_router_fundamentals.tsx — QUESTION SET: Next.js App Router — Fundamentals](#nextjs-app-router-fundamentals)
+2. [02_data_fetching_server_actions.tsx — QUESTION SET: Next.js Data Fetching](#nextjs-data-fetching-server-actions)
+3. [03_routing_middleware.tsx — QUESTION SET: Next.js Routing — Dynamic, Parallel, Intercepting, Middleware](#nextjs-routing-middleware)
+4. [04_authentication.tsx — QUESTION SET: Next.js Authentication Patterns](#nextjs-authentication)
+5. [05_performance_optimization.tsx — QUESTION SET: Next.js Performance Optimization](#nextjs-performance-optimization)
+6. [06_pages_router_data_fetching.tsx — QUESTION SET: Next.js Pages Router — Data Fetching](#nextjs-pages-router-data-fetching)
+7. [07_seo_metadata_i18n.tsx — QUESTION SET: Next.js SEO, Metadata & Internationalization](#nextjs-seo-metadata-i18n)
+8. [08_interview_qa.tsx — QUESTION SET: Next.js Interview Q&A — Comprehensive](#nextjs-interview-qa)
+9. [FILE: 09_theory_interview_qa.tsx](#nextjs-theory-interview-qa)
+   - [Scenario-Based Questions](#nextjs-scenarios)
 
 ---
 

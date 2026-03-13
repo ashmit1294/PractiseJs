@@ -4,15 +4,16 @@
 
 ## Table of Contents
 
-1. [01_schema_types_SDL.js — QUESTION SET: GraphQL — Schema Definition Language (SDL)](#01_schema_types_sdljs-question-set-graphql-schema-definition-language-sdl)
-2. [02_resolvers_context.js — QUESTION SET: GraphQL Resolvers, Context & Middleware](#02_resolvers_contextjs-question-set-graphql-resolvers-context-middleware)
-3. [03_dataloader_n_plus_1.js — QUESTION SET: GraphQL — DataLoader & N+1 Problem](#03_dataloader_n_plus_1js-question-set-graphql-dataloader-n1-problem)
-4. [04_mutations_subscriptions.js — QUESTION SET: GraphQL Mutations & Subscriptions](#04_mutations_subscriptionsjs-question-set-graphql-mutations-subscriptions)
-5. [05_apollo_client.jsx — QUESTION SET: Apollo Client — Queries, Mutations & Cache](#05_apollo_clientjsx-question-set-apollo-client-queries-mutations-cache)
-6. [06_security_error_handling.js — QUESTION SET: GraphQL Security, Error Handling & Performance](#06_security_error_handlingjs-question-set-graphql-security-error-handling-performance)
-7. [07_federation_stitching.js — QUESTION SET: GraphQL Federation & Schema Stitching](#07_federation_stitchingjs-question-set-graphql-federation-schema-stitching)
-8. [08_interview_qa_patterns.js — QUESTION SET: GraphQL — Interview Questions & Advanced Patterns](#08_interview_qa_patternsjs-question-set-graphql-interview-questions-advanced-patterns)
-9. [FILE: 09_theory_interview_qa.js](#file-09_theory_interview_qajs)
+1. [01_schema_types_SDL.js — QUESTION SET: GraphQL — Schema Definition Language (SDL)](#graphql-schema-types-sdl)
+2. [02_resolvers_context.js — QUESTION SET: GraphQL Resolvers, Context & Middleware](#graphql-resolvers-context)
+3. [03_dataloader_n_plus_1.js — QUESTION SET: GraphQL — DataLoader & N+1 Problem](#graphql-dataloader-n-plus-1)
+4. [04_mutations_subscriptions.js — QUESTION SET: GraphQL Mutations & Subscriptions](#graphql-mutations-subscriptions)
+5. [05_apollo_client.jsx — QUESTION SET: Apollo Client — Queries, Mutations & Cache](#graphql-apollo-client)
+6. [06_security_error_handling.js — QUESTION SET: GraphQL Security, Error Handling & Performance](#graphql-security-error-handling)
+7. [07_federation_stitching.js — QUESTION SET: GraphQL Federation & Schema Stitching](#graphql-federation-stitching)
+8. [08_interview_qa_patterns.js — QUESTION SET: GraphQL — Interview Questions & Advanced Patterns](#graphql-interview-qa-patterns)
+9. [FILE: 09_theory_interview_qa.js](#graphql-theory-interview-qa)
+   - [Scenario-Based Questions](#graphql-scenarios)
 
 ---
 

@@ -4,15 +4,16 @@
 
 ## Table of Contents
 
-1. [01_basic_types_interfaces.ts — QUESTION SET: TypeScript Basic Types & Interfaces](#01_basic_types_interfacests-question-set-typescript-basic-types-interfaces)
-2. [02_generics.ts — QUESTION SET: TypeScript Generics](#02_genericsts-question-set-typescript-generics)
-3. [03_utility_types.ts — QUESTION SET: TypeScript Utility Types](#03_utility_typests-question-set-typescript-utility-types)
-4. [04_type_guards.ts — QUESTION SET: TypeScript Type Guards & Narrowing](#04_type_guardsts-question-set-typescript-type-guards-narrowing)
-5. [05_advanced_types.ts — QUESTION SET: TypeScript Advanced Types](#05_advanced_typests-question-set-typescript-advanced-types)
-6. [06_decorators.ts — QUESTION SET: TypeScript Decorators & Metadata](#06_decoratorsts-question-set-typescript-decorators-metadata)
-7. [07_design_patterns.ts — QUESTION SET: TypeScript Design Patterns](#07_design_patternsts-question-set-typescript-design-patterns)
-8. [08_react_typescript.tsx — QUESTION SET: TypeScript with React](#08_react_typescripttsx-question-set-typescript-with-react)
-9. [FILE: 09_theory_interview_qa.ts](#file-09_theory_interview_qats)
+1. [01_basic_types_interfaces.ts — QUESTION SET: TypeScript Basic Types & Interfaces](#typescript-basic-types-interfaces)
+2. [02_generics.ts — QUESTION SET: TypeScript Generics](#typescript-generics)
+3. [03_utility_types.ts — QUESTION SET: TypeScript Utility Types](#typescript-utility-types)
+4. [04_type_guards.ts — QUESTION SET: TypeScript Type Guards & Narrowing](#typescript-type-guards)
+5. [05_advanced_types.ts — QUESTION SET: TypeScript Advanced Types](#typescript-advanced-types)
+6. [06_decorators.ts — QUESTION SET: TypeScript Decorators & Metadata](#typescript-decorators)
+7. [07_design_patterns.ts — QUESTION SET: TypeScript Design Patterns](#typescript-design-patterns)
+8. [08_react_typescript.tsx — QUESTION SET: TypeScript with React](#typescript-react-typescript)
+9. [FILE: 09_theory_interview_qa.ts](#typescript-theory-interview-qa)
+   - [Scenario-Based Questions](#typescript-scenarios)
 
 ---
 
