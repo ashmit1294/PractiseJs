@@ -1,162 +1,183 @@
-﻿# Full Stack MERN Developer — Interview Revision Master Reference
+﻿# Full Stack MERN Developer — Interview Revision Reference
 
-> **Level:** 7+ Years Full Stack (MERN) | **Topics:** 11 | **Last updated:** March 13, 2026
->
-> This file consolidates all interview revision notes across JavaScript, TypeScript,
-> React, Node.js, Docker, Kubernetes, Azure, AWS, Next.js, GraphQL and Web Security.
-> Every topic contains working code examples, gotchas, time/space complexity, and Q&A.
+**Level:** 7+ Years Full Stack (MERN)  |  **Topics:** 11  |  **Last Updated:** March 13, 2026
 
----
-
-## Master Table of Contents
-
-### 1. 🟨 [JavaScript (DSA + Patterns)](#javascript-dsa-patterns)
-
-   1. [01_flatten_array.js — QUESTION: Flatten a nested array without using .flat() or .flatMap()](#01_flatten_arrayjs-question-flatten-a-nested-array-without-using-flat-or-flatmap)
-   2. [02_debounce.js — QUESTION: Implement debounce function from scratch](#02_debouncejs-question-implement-debounce-function-from-scratch)
-   3. [03_throttle.js — QUESTION: Implement throttle function from scratch](#03_throttlejs-question-implement-throttle-function-from-scratch)
-   4. [04_memoize.js — QUESTION: Implement memoization from scratch](#04_memoizejs-question-implement-memoization-from-scratch)
-   5. [05_curry.js — QUESTION: Implement currying from scratch](#05_curryjs-question-implement-currying-from-scratch)
-   6. [06_deep_clone.js — QUESTION: Deep clone an object without JSON.parse/JSON.stringify](#06_deep_clonejs-question-deep-clone-an-object-without-jsonparsejsonstringify)
-   7. [07_promise_all_race.js — QUESTION: Implement Promise.all, Promise.race, Promise.allSettled,](#07_promise_all_racejs-question-implement-promiseall-promiserace-promiseallsettled)
-   8. [08_custom_array_methods.js — QUESTION: Implement Array.prototype.map, filter, reduce, forEach,](#08_custom_array_methodsjs-question-implement-arrayprototypemap-filter-reduce-foreach)
-   9. [09_map_questions.js — QUESTION SET: Map — all common interview questions](#09_map_questionsjs-question-set-map-all-common-interview-questions)
-   10. [10_set_questions.js — QUESTION SET: Set — all common interview questions](#10_set_questionsjs-question-set-set-all-common-interview-questions)
-   11. [11_stack_queue.js — QUESTION SET: Stack and Queue](#11_stack_queuejs-question-set-stack-and-queue)
-   12. [12_linked_list.js — QUESTION SET: Linked List — all common interview questions](#12_linked_listjs-question-set-linked-list-all-common-interview-questions)
-   13. [13_binary_tree_bst.js — QUESTION SET: Binary Tree & Binary Search Tree (BST)](#13_binary_tree_bstjs-question-set-binary-tree-binary-search-tree-bst)
-   14. [14_call_apply_bind.js — QUESTION SET: call, apply, bind — Custom Implementations](#14_call_apply_bindjs-question-set-call-apply-bind-custom-implementations)
-   15. [15_searching_algorithms.js — QUESTION SET: Searching Algorithms](#15_searching_algorithmsjs-question-set-searching-algorithms)
-   16. [16_sorting_algorithms.js — QUESTION SET: Sorting Algorithms](#16_sorting_algorithmsjs-question-set-sorting-algorithms)
-   17. [17_recursion_backtracking.js — QUESTION SET: Recursion Patterns](#17_recursion_backtrackingjs-question-set-recursion-patterns)
-   18. [18_dynamic_programming.js — QUESTION SET: Dynamic Programming (DP)](#18_dynamic_programmingjs-question-set-dynamic-programming-dp)
-   19. [19_graph_algorithms.js — QUESTION SET: Graph Algorithms](#19_graph_algorithmsjs-question-set-graph-algorithms)
-   20. [20_sliding_window_two_pointer.js — QUESTION SET: Sliding Window & Two Pointer Patterns](#20_sliding_window_two_pointerjs-question-set-sliding-window-two-pointer-patterns)
-   21. [21_functional_programming.js — QUESTION SET: Functional Programming Patterns](#21_functional_programmingjs-question-set-functional-programming-patterns)
-   22. [22_array_manipulation.js — QUESTION SET: Array Manipulation — Chunk, Unique, Intersection,](#22_array_manipulationjs-question-set-array-manipulation-chunk-unique-intersection)
-   23. [23_string_questions.js — QUESTION SET: String Manipulation](#23_string_questionsjs-question-set-string-manipulation)
-   24. [24_weakmap_weakset_symbol_proxy.js — QUESTION SET: WeakMap, WeakSet, Symbol, Proxy, Reflect](#24_weakmap_weakset_symbol_proxyjs-question-set-weakmap-weakset-symbol-proxy-reflect)
-   25. [25_heap_priority_queue.js — QUESTION SET: Heap / Priority Queue](#25_heap_priority_queuejs-question-set-heap-priority-queue)
-   26. [FILE: 26_theory_interview_qa.js](#file-26_theory_interview_qajs)
-
-### 2. 🔷 [TypeScript](#typescript)
-
-   1. [01_basic_types_interfaces.ts — QUESTION SET: TypeScript Basic Types & Interfaces](#01_basic_types_interfacests-question-set-typescript-basic-types-interfaces)
-   2. [02_generics.ts — QUESTION SET: TypeScript Generics](#02_genericsts-question-set-typescript-generics)
-   3. [03_utility_types.ts — QUESTION SET: TypeScript Utility Types](#03_utility_typests-question-set-typescript-utility-types)
-   4. [04_type_guards.ts — QUESTION SET: TypeScript Type Guards & Narrowing](#04_type_guardsts-question-set-typescript-type-guards-narrowing)
-   5. [05_advanced_types.ts — QUESTION SET: TypeScript Advanced Types](#05_advanced_typests-question-set-typescript-advanced-types)
-   6. [06_decorators.ts — QUESTION SET: TypeScript Decorators & Metadata](#06_decoratorsts-question-set-typescript-decorators-metadata)
-   7. [07_design_patterns.ts — QUESTION SET: TypeScript Design Patterns](#07_design_patternsts-question-set-typescript-design-patterns)
-   8. [08_react_typescript.tsx — QUESTION SET: TypeScript with React](#08_react_typescripttsx-question-set-typescript-with-react)
-   9. [FILE: 09_theory_interview_qa.ts](#file-09_theory_interview_qats)
-
-### 3. ⚛️ [React](#react)
-
-   1. [01_useState_useEffect.jsx — QUESTION SET: useState & useEffect — most asked React hooks](#01_usestate_useeffectjsx-question-set-usestate-useeffect-most-asked-react-hooks)
-   2. [02_custom_hooks.jsx — QUESTION SET: Custom Hooks](#02_custom_hooksjsx-question-set-custom-hooks)
-   3. [03_useReducer_useContext.jsx — QUESTION SET: useReducer & useContext](#03_usereducer_usecontextjsx-question-set-usereducer-usecontext)
-   4. [04_useMemo_useCallback.jsx — QUESTION SET: useMemo & useCallback — React Performance Hooks](#04_usememo_usecallbackjsx-question-set-usememo-usecallback-react-performance-hooks)
-   5. [05_useRef_forwardRef.jsx — QUESTION SET: useRef, forwardRef & useImperativeHandle](#05_useref_forwardrefjsx-question-set-useref-forwardref-useimperativehandle)
-   6. [06_component_patterns.jsx — QUESTION SET: Component Patterns](#06_component_patternsjsx-question-set-component-patterns)
-   7. [07_lazy_suspense_errorboundary.jsx — QUESTION SET: React.lazy, Suspense, Error Boundaries & Code Splitting](#07_lazy_suspense_errorboundaryjsx-question-set-reactlazy-suspense-error-boundaries-code-splitting)
-   8. [08_advanced_patterns.jsx — QUESTION SET: Advanced React Patterns](#08_advanced_patternsjsx-question-set-advanced-react-patterns)
-   9. [09_solid_principles.jsx — SOLID PRINCIPLES IN REACT](#09_solid_principlesjsx-solid-principles-in-react)
-   10. [FILE: 10_theory_interview_qa.jsx](#file-10_theory_interview_qajsx)
-
-### 4. 🟢 [Node.js](#nodejs)
-
-   1. [01_event_loop.js — QUESTION SET: Node.js Event Loop](#01_event_loopjs-question-set-nodejs-event-loop)
-   2. [02_streams_buffers.js — QUESTION SET: Node.js Streams & Buffers](#02_streams_buffersjs-question-set-nodejs-streams-buffers)
-   3. [03_express_middleware.js — QUESTION SET: Express.js Middleware & Patterns](#03_express_middlewarejs-question-set-expressjs-middleware-patterns)
-   4. [04_authentication.js — QUESTION SET: Node.js Authentication & JWT](#04_authenticationjs-question-set-nodejs-authentication-jwt)
-   5. [05_event_emitter.js — QUESTION SET: Node.js EventEmitter & Custom Events](#05_event_emitterjs-question-set-nodejs-eventemitter-custom-events)
-   6. [06_cluster_workers.js — QUESTION SET: Node.js Cluster, Worker Threads & child_process](#06_cluster_workersjs-question-set-nodejs-cluster-worker-threads-child_process)
-   7. [07_file_system.js — QUESTION SET: Node.js File System (fs)](#07_file_systemjs-question-set-nodejs-file-system-fs)
-   8. [08_error_handling.js — QUESTION SET: Node.js Error Handling](#08_error_handlingjs-question-set-nodejs-error-handling)
-   9. [09_rest_api_patterns.js — QUESTION SET: Node.js REST API Patterns](#09_rest_api_patternsjs-question-set-nodejs-rest-api-patterns)
-   10. [10_race_conditions.js — RACE CONDITIONS IN NODE.JS — WHAT THEY ARE AND HOW TO AVOID THEM](#10_race_conditionsjs-race-conditions-in-nodejs-what-they-are-and-how-to-avoid-them)
-   11. [FILE: 11_theory_interview_qa.js](#file-11_theory_interview_qajs)
-
-### 5. 🐳 [Docker & Containers](#docker-containers)
-
-   1. [01_dockerfile_basics.md — Q1. Simple Node.js Dockerfile](#01_dockerfile_basicsmd-q1-simple-nodejs-dockerfile)
-   2. [02_docker_compose.md — Q1. Basic docker-compose.yml structure](#02_docker_composemd-q1-basic-docker-composeyml-structure)
-   3. [03_networking.md — Q1. Bridge networks (default and custom)](#03_networkingmd-q1-bridge-networks-default-and-custom)
-   4. [04_volumes_storage.md — Q1. Named volumes](#04_volumes_storagemd-q1-named-volumes)
-   5. [05_security.md — Q1. Run containers as non-root](#05_securitymd-q1-run-containers-as-non-root)
-   6. [06_cicd_registry.md — Q1. Basic registry push/pull](#06_cicd_registrymd-q1-basic-registry-pushpull)
-   7. [07_production.md — Q1. Resource limits](#07_productionmd-q1-resource-limits)
-   8. [08_interview_qa.md — Q1. What is Docker and how does it differ from a virtual machine?**](#08_interview_qamd-q1-what-is-docker-and-how-does-it-differ-from-a-virtual-machine)
-   9. [09_theory_advanced_qa.md — SECTION 1: BASIC](#09_theory_advanced_qamd-section-1-basic)
-
-### 6. ☸️ [Kubernetes](#kubernetes)
-
-   1. [01_core_concepts.md — Architecture Overview](#01_core_conceptsmd-architecture-overview)
-   2. [02_workloads.md — Overview](#02_workloadsmd-overview)
-   3. [03_services_networking.md — How Pod Networking Works](#03_services_networkingmd-how-pod-networking-works)
-   4. [04_storage.md — Storage Concepts](#04_storagemd-storage-concepts)
-   5. [05_config_secrets.md — Why configuration management matters](#05_config_secretsmd-why-configuration-management-matters)
-   6. [06_security.md — Security Layers in Kubernetes](#06_securitymd-security-layers-in-kubernetes)
-   7. [07_advanced.md — Horizontal Pod Autoscaler (HPA)](#07_advancedmd-horizontal-pod-autoscaler-hpa)
-   8. [08_helm_interview_qa.md — What is Helm?](#08_helm_interview_qamd-what-is-helm)
-   9. [09_theory_advanced_qa.md — SECTION 1: BASIC](#09_theory_advanced_qamd-section-1-basic)
-
-### 7. 🔵 [Azure Cloud Services](#azure-cloud-services)
-
-   1. [01_core_services_aad.md — What is Azure?](#01_core_services_aadmd-what-is-azure)
-   2. [02_app_service_functions.md — Azure App Service — Managed Web Hosting](#02_app_service_functionsmd-azure-app-service-managed-web-hosting)
-   3. [03_storage_cdn.md — Azure Blob Storage — Object Storage](#03_storage_cdnmd-azure-blob-storage-object-storage)
-   4. [04_databases.md — Azure Database for PostgreSQL — Flexible Server](#04_databasesmd-azure-database-for-postgresql-flexible-server)
-   5. [05_networking.md — Virtual Network (VNet)](#05_networkingmd-virtual-network-vnet)
-   6. [06_aks_acr.md — Azure Container Registry (ACR)](#06_aks_acrmd-azure-container-registry-acr)
-   7. [07_pipelines_devops.md — Why Azure Pipelines?](#07_pipelines_devopsmd-why-azure-pipelines)
-   8. [08_interview_qa.md — Azure Fundamentals](#08_interview_qamd-azure-fundamentals)
-
-### 8. 🟠 [AWS Cloud Services](#aws-cloud-services)
-
-   1. [01_core_services_iam.md — What is AWS?](#01_core_services_iammd-what-is-aws)
-   2. [02_ec2_vpc.md — EC2 — Elastic Compute Cloud](#02_ec2_vpcmd-ec2-elastic-compute-cloud)
-   3. [03_s3_cloudfront.md — S3 — Simple Storage Service](#03_s3_cloudfrontmd-s3-simple-storage-service)
-   4. [04_lambda_api_gateway.md — Lambda — Serverless Functions](#04_lambda_api_gatewaymd-lambda-serverless-functions)
-   5. [05_rds_dynamodb_cache.md — RDS — Relational Database Service](#05_rds_dynamodb_cachemd-rds-relational-database-service)
-   6. [06_sqs_sns_eventbridge.md — Why Event-Driven?](#06_sqs_sns_eventbridgemd-why-event-driven)
-   7. [07_ecs_eks_ecr.md — Container Services — Choosing the Right One](#07_ecs_eks_ecrmd-container-services-choosing-the-right-one)
-   8. [08_cicd_interview_qa.md — CI/CD Concepts](#08_cicd_interview_qamd-cicd-concepts)
-
-### 9. ▲ [Next.js](#nextjs)
-
-   1. [01_app_router_fundamentals.tsx — QUESTION SET: Next.js App Router — Fundamentals](#01_app_router_fundamentalstsx-question-set-nextjs-app-router-fundamentals)
-   2. [02_data_fetching_server_actions.tsx — QUESTION SET: Next.js Data Fetching](#02_data_fetching_server_actionstsx-question-set-nextjs-data-fetching)
-   3. [03_routing_middleware.tsx — QUESTION SET: Next.js Routing — Dynamic, Parallel, Intercepting, Middleware](#03_routing_middlewaretsx-question-set-nextjs-routing-dynamic-parallel-intercepting-middleware)
-   4. [04_authentication.tsx — QUESTION SET: Next.js Authentication Patterns](#04_authenticationtsx-question-set-nextjs-authentication-patterns)
-   5. [05_performance_optimization.tsx — QUESTION SET: Next.js Performance Optimization](#05_performance_optimizationtsx-question-set-nextjs-performance-optimization)
-   6. [06_pages_router_data_fetching.tsx — QUESTION SET: Next.js Pages Router — Data Fetching](#06_pages_router_data_fetchingtsx-question-set-nextjs-pages-router-data-fetching)
-   7. [07_seo_metadata_i18n.tsx — QUESTION SET: Next.js SEO, Metadata & Internationalization](#07_seo_metadata_i18ntsx-question-set-nextjs-seo-metadata-internationalization)
-   8. [08_interview_qa.tsx — QUESTION SET: Next.js Interview Q&A — Comprehensive](#08_interview_qatsx-question-set-nextjs-interview-qa-comprehensive)
-   9. [FILE: 09_theory_interview_qa.tsx](#file-09_theory_interview_qatsx)
-
-### 10. 🔺 [GraphQL](#graphql)
-
-   1. [01_schema_types_SDL.js — QUESTION SET: GraphQL — Schema Definition Language (SDL)](#01_schema_types_sdljs-question-set-graphql-schema-definition-language-sdl)
-   2. [02_resolvers_context.js — QUESTION SET: GraphQL Resolvers, Context & Middleware](#02_resolvers_contextjs-question-set-graphql-resolvers-context-middleware)
-   3. [03_dataloader_n_plus_1.js — QUESTION SET: GraphQL — DataLoader & N+1 Problem](#03_dataloader_n_plus_1js-question-set-graphql-dataloader-n1-problem)
-   4. [04_mutations_subscriptions.js — QUESTION SET: GraphQL Mutations & Subscriptions](#04_mutations_subscriptionsjs-question-set-graphql-mutations-subscriptions)
-   5. [05_apollo_client.jsx — QUESTION SET: Apollo Client — Queries, Mutations & Cache](#05_apollo_clientjsx-question-set-apollo-client-queries-mutations-cache)
-   6. [06_security_error_handling.js — QUESTION SET: GraphQL Security, Error Handling & Performance](#06_security_error_handlingjs-question-set-graphql-security-error-handling-performance)
-   7. [07_federation_stitching.js — QUESTION SET: GraphQL Federation & Schema Stitching](#07_federation_stitchingjs-question-set-graphql-federation-schema-stitching)
-   8. [08_interview_qa_patterns.js — QUESTION SET: GraphQL — Interview Questions & Advanced Patterns](#08_interview_qa_patternsjs-question-set-graphql-interview-questions-advanced-patterns)
-   9. [FILE: 09_theory_interview_qa.js](#file-09_theory_interview_qajs)
-
-### 11. 🔒 [Web Security](#web-security)
-
-   1. [FILE: 01_theory_interview_qa.js](#file-01_theory_interview_qajs)
+A single consolidated reference covering everything from JavaScript fundamentals and
+TypeScript to React, Node.js, Docker, Kubernetes, Azure, AWS, Next.js, GraphQL, and
+Web Security. Every section contains working code examples, edge cases, complexity
+analysis, and direct interview question-and-answer material.
 
 ---
 
+## Overview
+
+| # | Topic | Covers | Files |
+|---|-------|--------|-------|
+| 1 | [JavaScript](#javascript) | DSA, Algorithms, Patterns, Functional Programming | 26 |
+| 2 | [TypeScript](#typescript) | Types, Generics, Decorators, Design Patterns | 9 |
+| 3 | [React](#react) | Hooks, Context, Performance, Advanced Patterns | 10 |
+| 4 | [Node.js](#nodejs) | Event Loop, Streams, Auth, REST API, Clustering | 11 |
+| 5 | [Docker](#docker) | Dockerfile, Compose, Networking, Security, CI/CD | 9 |
+| 6 | [Kubernetes](#kubernetes) | Pods, Workloads, Networking, Storage, Security, Helm | 9 |
+| 7 | [Azure](#azure) | AAD, App Service, Storage, Databases, AKS, Pipelines | 8 |
+| 8 | [AWS](#aws) | IAM, EC2, S3, Lambda, RDS, SQS, ECS/EKS | 8 |
+| 9 | [Next.js](#nextjs) | App Router, Data Fetching, Auth, SEO, Performance | 9 |
+| 10 | [GraphQL](#graphql) | Schema, Resolvers, DataLoader, Federation, Apollo | 9 |
+| 11 | [Web Security](#web-security) | OWASP, Auth, XSS, CSRF, Injection, Best Practices | 1 |
+
 ---
 
-# 🟨 JavaScript (DSA + Patterns)
+## Table of Contents
+
+### 1. JavaScript
+
+   1. [QUESTION: Flatten a nested array without using .flat() or .flatMap()](#01_flatten_arrayjs-question-flatten-a-nested-array-without-using-flat-or-flatmap)
+   2. [QUESTION: Implement debounce function from scratch](#02_debouncejs-question-implement-debounce-function-from-scratch)
+   3. [QUESTION: Implement throttle function from scratch](#03_throttlejs-question-implement-throttle-function-from-scratch)
+   4. [QUESTION: Implement memoization from scratch](#04_memoizejs-question-implement-memoization-from-scratch)
+   5. [QUESTION: Implement currying from scratch](#05_curryjs-question-implement-currying-from-scratch)
+   6. [QUESTION: Deep clone an object without JSON.parse/JSON.stringify](#06_deep_clonejs-question-deep-clone-an-object-without-jsonparsejsonstringify)
+   7. [QUESTION: Implement Promise.all, Promise.race, Promise.allSettled,](#07_promise_all_racejs-question-implement-promiseall-promiserace-promiseallsettled)
+   8. [QUESTION: Implement Array.prototype.map, filter, reduce, forEach,](#08_custom_array_methodsjs-question-implement-arrayprototypemap-filter-reduce-foreach)
+   9. [Map — all common interview questions](#09_map_questionsjs-question-set-map-all-common-interview-questions)
+   10. [Set — all common interview questions](#10_set_questionsjs-question-set-set-all-common-interview-questions)
+   11. [Stack and Queue](#11_stack_queuejs-question-set-stack-and-queue)
+   12. [Linked List — all common interview questions](#12_linked_listjs-question-set-linked-list-all-common-interview-questions)
+   13. [Binary Tree & Binary Search Tree (BST)](#13_binary_tree_bstjs-question-set-binary-tree-binary-search-tree-bst)
+   14. [call, apply, bind — Custom Implementations](#14_call_apply_bindjs-question-set-call-apply-bind-custom-implementations)
+   15. [Searching Algorithms](#15_searching_algorithmsjs-question-set-searching-algorithms)
+   16. [Sorting Algorithms](#16_sorting_algorithmsjs-question-set-sorting-algorithms)
+   17. [Recursion Patterns](#17_recursion_backtrackingjs-question-set-recursion-patterns)
+   18. [Dynamic Programming (DP)](#18_dynamic_programmingjs-question-set-dynamic-programming-dp)
+   19. [Graph Algorithms](#19_graph_algorithmsjs-question-set-graph-algorithms)
+   20. [Sliding Window & Two Pointer Patterns](#20_sliding_window_two_pointerjs-question-set-sliding-window-two-pointer-patterns)
+   21. [Functional Programming Patterns](#21_functional_programmingjs-question-set-functional-programming-patterns)
+   22. [Array Manipulation — Chunk, Unique, Intersection,](#22_array_manipulationjs-question-set-array-manipulation-chunk-unique-intersection)
+   23. [String Manipulation](#23_string_questionsjs-question-set-string-manipulation)
+   24. [WeakMap, WeakSet, Symbol, Proxy, Reflect](#24_weakmap_weakset_symbol_proxyjs-question-set-weakmap-weakset-symbol-proxy-reflect)
+   25. [Heap / Priority Queue](#25_heap_priority_queuejs-question-set-heap-priority-queue)
+   26. [Theory and Interview Q&A — theory interview qa js](#file-26_theory_interview_qajs)
+
+### 2. TypeScript
+
+   1. [TypeScript Basic Types & Interfaces](#01_basic_types_interfacests-question-set-typescript-basic-types-interfaces)
+   2. [TypeScript Generics](#02_genericsts-question-set-typescript-generics)
+   3. [TypeScript Utility Types](#03_utility_typests-question-set-typescript-utility-types)
+   4. [TypeScript Type Guards & Narrowing](#04_type_guardsts-question-set-typescript-type-guards-narrowing)
+   5. [TypeScript Advanced Types](#05_advanced_typests-question-set-typescript-advanced-types)
+   6. [TypeScript Decorators & Metadata](#06_decoratorsts-question-set-typescript-decorators-metadata)
+   7. [TypeScript Design Patterns](#07_design_patternsts-question-set-typescript-design-patterns)
+   8. [TypeScript with React](#08_react_typescripttsx-question-set-typescript-with-react)
+   9. [Theory and Interview Q&A — theory interview qa ts](#file-09_theory_interview_qats)
+
+### 3. React
+
+   1. [useState & useEffect — most asked React hooks](#01_usestate_useeffectjsx-question-set-usestate-useeffect-most-asked-react-hooks)
+   2. [Custom Hooks](#02_custom_hooksjsx-question-set-custom-hooks)
+   3. [useReducer & useContext](#03_usereducer_usecontextjsx-question-set-usereducer-usecontext)
+   4. [useMemo & useCallback — React Performance Hooks](#04_usememo_usecallbackjsx-question-set-usememo-usecallback-react-performance-hooks)
+   5. [useRef, forwardRef & useImperativeHandle](#05_useref_forwardrefjsx-question-set-useref-forwardref-useimperativehandle)
+   6. [Component Patterns](#06_component_patternsjsx-question-set-component-patterns)
+   7. [React.lazy, Suspense, Error Boundaries & Code Splitting](#07_lazy_suspense_errorboundaryjsx-question-set-reactlazy-suspense-error-boundaries-code-splitting)
+   8. [Advanced React Patterns](#08_advanced_patternsjsx-question-set-advanced-react-patterns)
+   9. [SOLID PRINCIPLES IN REACT](#09_solid_principlesjsx-solid-principles-in-react)
+   10. [Theory and Interview Q&A — theory interview qa jsx](#file-10_theory_interview_qajsx)
+
+### 4. Node.js
+
+   1. [Node.js Event Loop](#01_event_loopjs-question-set-nodejs-event-loop)
+   2. [Node.js Streams & Buffers](#02_streams_buffersjs-question-set-nodejs-streams-buffers)
+   3. [Express.js Middleware & Patterns](#03_express_middlewarejs-question-set-expressjs-middleware-patterns)
+   4. [Node.js Authentication & JWT](#04_authenticationjs-question-set-nodejs-authentication-jwt)
+   5. [Node.js EventEmitter & Custom Events](#05_event_emitterjs-question-set-nodejs-eventemitter-custom-events)
+   6. [Node.js Cluster, Worker Threads & child_process](#06_cluster_workersjs-question-set-nodejs-cluster-worker-threads-child_process)
+   7. [Node.js File System (fs)](#07_file_systemjs-question-set-nodejs-file-system-fs)
+   8. [Node.js Error Handling](#08_error_handlingjs-question-set-nodejs-error-handling)
+   9. [Node.js REST API Patterns](#09_rest_api_patternsjs-question-set-nodejs-rest-api-patterns)
+   10. [RACE CONDITIONS IN NODE.JS — WHAT THEY ARE AND HOW TO AVOID THEM](#10_race_conditionsjs-race-conditions-in-nodejs-what-they-are-and-how-to-avoid-them)
+   11. [Theory and Interview Q&A — theory interview qa js](#file-11_theory_interview_qajs)
+
+### 5. Docker
+
+   1. [Q1. Simple Node.js Dockerfile](#01_dockerfile_basicsmd-q1-simple-nodejs-dockerfile)
+   2. [Q1. Basic docker-compose.yml structure](#02_docker_composemd-q1-basic-docker-composeyml-structure)
+   3. [Q1. Bridge networks (default and custom)](#03_networkingmd-q1-bridge-networks-default-and-custom)
+   4. [Q1. Named volumes](#04_volumes_storagemd-q1-named-volumes)
+   5. [Q1. Run containers as non-root](#05_securitymd-q1-run-containers-as-non-root)
+   6. [Q1. Basic registry push/pull](#06_cicd_registrymd-q1-basic-registry-pushpull)
+   7. [Q1. Resource limits](#07_productionmd-q1-resource-limits)
+   8. [Q1. What is Docker and how does it differ from a virtual machine?**](#08_interview_qamd-q1-what-is-docker-and-how-does-it-differ-from-a-virtual-machine)
+   9. [SECTION 1: BASIC](#09_theory_advanced_qamd-section-1-basic)
+
+### 6. Kubernetes
+
+   1. [Architecture Overview](#01_core_conceptsmd-architecture-overview)
+   2. [Overview](#02_workloadsmd-overview)
+   3. [How Pod Networking Works](#03_services_networkingmd-how-pod-networking-works)
+   4. [Storage Concepts](#04_storagemd-storage-concepts)
+   5. [Why configuration management matters](#05_config_secretsmd-why-configuration-management-matters)
+   6. [Security Layers in Kubernetes](#06_securitymd-security-layers-in-kubernetes)
+   7. [Horizontal Pod Autoscaler (HPA)](#07_advancedmd-horizontal-pod-autoscaler-hpa)
+   8. [What is Helm?](#08_helm_interview_qamd-what-is-helm)
+   9. [SECTION 1: BASIC](#09_theory_advanced_qamd-section-1-basic)
+
+### 7. Azure
+
+   1. [What is Azure?](#01_core_services_aadmd-what-is-azure)
+   2. [Azure App Service — Managed Web Hosting](#02_app_service_functionsmd-azure-app-service-managed-web-hosting)
+   3. [Azure Blob Storage — Object Storage](#03_storage_cdnmd-azure-blob-storage-object-storage)
+   4. [Azure Database for PostgreSQL — Flexible Server](#04_databasesmd-azure-database-for-postgresql-flexible-server)
+   5. [Virtual Network (VNet)](#05_networkingmd-virtual-network-vnet)
+   6. [Azure Container Registry (ACR)](#06_aks_acrmd-azure-container-registry-acr)
+   7. [Why Azure Pipelines?](#07_pipelines_devopsmd-why-azure-pipelines)
+   8. [Azure Fundamentals](#08_interview_qamd-azure-fundamentals)
+
+### 8. AWS
+
+   1. [What is AWS?](#01_core_services_iammd-what-is-aws)
+   2. [EC2 — Elastic Compute Cloud](#02_ec2_vpcmd-ec2-elastic-compute-cloud)
+   3. [S3 — Simple Storage Service](#03_s3_cloudfrontmd-s3-simple-storage-service)
+   4. [Lambda — Serverless Functions](#04_lambda_api_gatewaymd-lambda-serverless-functions)
+   5. [RDS — Relational Database Service](#05_rds_dynamodb_cachemd-rds-relational-database-service)
+   6. [Why Event-Driven?](#06_sqs_sns_eventbridgemd-why-event-driven)
+   7. [Container Services — Choosing the Right One](#07_ecs_eks_ecrmd-container-services-choosing-the-right-one)
+   8. [CI/CD Concepts](#08_cicd_interview_qamd-cicd-concepts)
+
+### 9. Next.js
+
+   1. [Next.js App Router — Fundamentals](#01_app_router_fundamentalstsx-question-set-nextjs-app-router-fundamentals)
+   2. [Next.js Data Fetching](#02_data_fetching_server_actionstsx-question-set-nextjs-data-fetching)
+   3. [Next.js Routing — Dynamic, Parallel, Intercepting, Middleware](#03_routing_middlewaretsx-question-set-nextjs-routing-dynamic-parallel-intercepting-middleware)
+   4. [Next.js Authentication Patterns](#04_authenticationtsx-question-set-nextjs-authentication-patterns)
+   5. [Next.js Performance Optimization](#05_performance_optimizationtsx-question-set-nextjs-performance-optimization)
+   6. [Next.js Pages Router — Data Fetching](#06_pages_router_data_fetchingtsx-question-set-nextjs-pages-router-data-fetching)
+   7. [Next.js SEO, Metadata & Internationalization](#07_seo_metadata_i18ntsx-question-set-nextjs-seo-metadata-internationalization)
+   8. [Next.js Interview Q&A — Comprehensive](#08_interview_qatsx-question-set-nextjs-interview-qa-comprehensive)
+   9. [Theory and Interview Q&A — theory interview qa tsx](#file-09_theory_interview_qatsx)
+
+### 10. GraphQL
+
+   1. [GraphQL — Schema Definition Language (SDL)](#01_schema_types_sdljs-question-set-graphql-schema-definition-language-sdl)
+   2. [GraphQL Resolvers, Context & Middleware](#02_resolvers_contextjs-question-set-graphql-resolvers-context-middleware)
+   3. [GraphQL — DataLoader & N+1 Problem](#03_dataloader_n_plus_1js-question-set-graphql-dataloader-n1-problem)
+   4. [GraphQL Mutations & Subscriptions](#04_mutations_subscriptionsjs-question-set-graphql-mutations-subscriptions)
+   5. [Apollo Client — Queries, Mutations & Cache](#05_apollo_clientjsx-question-set-apollo-client-queries-mutations-cache)
+   6. [GraphQL Security, Error Handling & Performance](#06_security_error_handlingjs-question-set-graphql-security-error-handling-performance)
+   7. [GraphQL Federation & Schema Stitching](#07_federation_stitchingjs-question-set-graphql-federation-schema-stitching)
+   8. [GraphQL — Interview Questions & Advanced Patterns](#08_interview_qa_patternsjs-question-set-graphql-interview-questions-advanced-patterns)
+   9. [Theory and Interview Q&A — theory interview qa js](#file-09_theory_interview_qajs)
+
+### 11. Web Security
+
+   1. [Theory and Interview Q&A — theory interview qa js](#file-01_theory_interview_qajs)
+
+---
+
+---
+
+# JavaScript
+
+> DSA, Algorithms, Patterns, Functional Programming
 
 
 > **Target:** 7+ year Full Stack MERN Developer | **Files:** 26
@@ -6323,7 +6344,9 @@ module.exports = {
 
 ---
 
-# 🔷 TypeScript
+# TypeScript
+
+> Types, Generics, Decorators, Design Patterns
 
 
 > **Target:** 7+ year Full Stack MERN Developer | **Files:** 9
@@ -9420,7 +9443,9 @@ export type { Repository, UserId, ProductId, ValidEmail, RouteParams, DeepReadon
 
 ---
 
-# ⚛️ React
+# React
+
+> Hooks, Context, Performance, Advanced Patterns
 
 
 > **Target:** 7+ year Full Stack MERN Developer | **Files:** 10
@@ -12609,7 +12634,9 @@ const ProductList = lazy(() => import('productsApp/ProductList'));
 
 ---
 
-# 🟢 Node.js
+# Node.js
+
+> Event Loop, Streams, Auth, REST API, Clustering
 
 
 > **Target:** 7+ year Full Stack MERN Developer | **Files:** 11
@@ -16365,7 +16392,9 @@ module.exports = { gzipFile, processArray, callAPI };
 
 ---
 
-# 🐳 Docker & Containers
+# Docker
+
+> Dockerfile, Compose, Networking, Security, CI/CD
 
 
 > **Target:** 7+ year Full Stack MERN Developer | **Files:** 9
@@ -18945,7 +18974,9 @@ docker pull myrepo/myapp:latest   # verifies Notary signature
 
 ---
 
-# ☸️ Kubernetes
+# Kubernetes
+
+> Pods, Workloads, Networking, Storage, Security, Helm
 
 
 > **Target:** 7+ year Full Stack MERN Developer | **Files:** 9
@@ -22183,7 +22214,9 @@ spec:
 
 ---
 
-# 🔵 Azure Cloud Services
+# Azure
+
+> AAD, App Service, Storage, Databases, AKS, Pipelines
 
 
 > **Target:** 7+ year Full Stack MERN Developer | **Files:** 8
@@ -24347,7 +24380,9 @@ az monitor metrics alert create \
 
 ---
 
-# 🟠 AWS Cloud Services
+# AWS
+
+> IAM, EC2, S3, Lambda, RDS, SQS, ECS/EKS
 
 
 > **Target:** 7+ year Full Stack MERN Developer | **Files:** 8
@@ -26856,7 +26891,9 @@ jobs:
 
 ---
 
-# ▲ Next.js
+# Next.js
+
+> App Router, Data Fetching, Auth, SEO, Performance
 
 
 > **Target:** 7+ year Full Stack MERN Developer | **Files:** 9
@@ -30336,7 +30373,9 @@ const Chart = dynamic(() => import('recharts').then(m => m.LineChart), { ssr: fa
 
 ---
 
-# 🔺 GraphQL
+# GraphQL
+
+> Schema, Resolvers, DataLoader, Federation, Apollo
 
 
 > **Target:** 7+ year Full Stack MERN Developer | **Files:** 9
@@ -33163,7 +33202,9 @@ module.exports = { encodeCursor, decodeCursor };
 
 ---
 
-# 🔒 Web Security
+# Web Security
+
+> OWASP, Auth, XSS, CSRF, Injection, Best Practices
 
 
 > **Target:** 7+ year Full Stack MERN Developer | **Files:** 1
