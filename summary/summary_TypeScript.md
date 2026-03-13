@@ -19,6 +19,7 @@
 <a id="typescript-basic-types-interfaces"></a>
 ## 01_basic_types_interfaces.ts — QUESTION SET: TypeScript Basic Types & Interfaces
 
+```typescript
 /**
  * QUESTION SET: TypeScript Basic Types & Interfaces
  *
@@ -305,10 +306,12 @@ export type { User, Admin, Shape, Status, RGB, LogLevel, Route };
 export { Direction, Color, HttpMethod, Routes };
 
 ---
+```
 
 <a id="typescript-generics"></a>
 ## 02_generics.ts — QUESTION SET: TypeScript Generics
 
+```typescript
 /**
  * QUESTION SET: TypeScript Generics
  *
@@ -632,10 +635,12 @@ export { Stack, UserRepository, memoize, promisify, QueryBuilder, succeed, fail 
 export type { Repository, Result, ElementOf, Head, Tail, PaginatedResponse };
 
 ---
+```
 
 <a id="typescript-utility-types"></a>
 ## 03_utility_types.ts — QUESTION SET: TypeScript Utility Types
 
+```typescript
 /**
  * QUESTION SET: TypeScript Utility Types
  *
@@ -927,10 +932,12 @@ export type {
 };
 
 ---
+```
 
 <a id="typescript-type-guards"></a>
 ## 04_type_guards.ts — QUESTION SET: TypeScript Type Guards & Narrowing
 
+```typescript
 /**
  * QUESTION SET: TypeScript Type Guards & Narrowing
  *
@@ -1262,10 +1269,12 @@ export {
 };
 
 ---
+```
 
 <a id="typescript-advanced-types"></a>
 ## 05_advanced_types.ts — QUESTION SET: TypeScript Advanced Types
 
+```typescript
 /**
  * QUESTION SET: TypeScript Advanced Types
  *
@@ -1599,10 +1608,12 @@ export type { JsonValue, DeepPartial, DeepReadonly, TreeNode, UserId, PostId, Em
 export { toUserId, toEmail };
 
 ---
+```
 
 <a id="typescript-decorators"></a>
 ## 06_decorators.ts — QUESTION SET: TypeScript Decorators & Metadata
 
+```typescript
 /**
  * QUESTION SET: TypeScript Decorators & Metadata
  *
@@ -1955,10 +1966,12 @@ const ctrl = container.resolve<UserController>(UserController);
 export { Singleton, retry, memoize, throttle, Container };
 
 ---
+```
 
 <a id="typescript-design-patterns"></a>
 ## 07_design_patterns.ts — QUESTION SET: TypeScript Design Patterns
 
+```typescript
 /**
  * QUESTION SET: TypeScript Design Patterns
  *
@@ -2343,10 +2356,12 @@ order.transition("cancel");    // warn: not allowed from delivered
 export { AppConfig, NotificationFactory, QueryBuilder, TypedEventEmitter, OrderStateMachine };
 
 ---
+```
 
 <a id="typescript-react-typescript"></a>
 ## 08_react_typescript.tsx — QUESTION SET: TypeScript with React
 
+```tsx
 /**
  * QUESTION SET: TypeScript with React
  *
@@ -2707,10 +2722,12 @@ async function fakeLogin(email: string, password: string): Promise<AuthUser> {
 export { Button, Card, FancyInput, CartComponent, AuthProvider, useAuth, useFetch, useLocalStorage };
 
 ---
+```
 
 <a id="typescript-theory-interview-qa"></a>
 ## FILE: 09_theory_interview_qa.ts
 
+```typescript
 /*
 =============================================================
   TYPESCRIPT THEORY — INTERVIEW Q&A
@@ -3099,4 +3116,4 @@ export { UserRepository };
 export type { Repository, UserId, ProductId, ValidEmail, RouteParams, DeepReadonly };
 
 ---
-
+```

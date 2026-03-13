@@ -20,6 +20,7 @@
 <a id="react-usestate-useeffect"></a>
 ## 01_useState_useEffect.jsx — QUESTION SET: useState & useEffect — most asked React hooks
 
+```jsx
 /**
  * QUESTION SET: useState & useEffect — most asked React hooks
  *
@@ -225,10 +226,12 @@ function BatchingDemo() {
 export { Counter, UserProfile, WindowSize, Timer, BatchingDemo };
 
 ---
+```
 
 <a id="react-custom-hooks"></a>
 ## 02_custom_hooks.jsx — QUESTION SET: Custom Hooks
 
+```jsx
 /**
  * QUESTION SET: Custom Hooks
  *
@@ -516,10 +519,12 @@ export {
 };
 
 ---
+```
 
 <a id="react-usereducer-usecontext"></a>
 ## 03_useReducer_useContext.jsx — QUESTION SET: useReducer & useContext
 
+```jsx
 /**
  * QUESTION SET: useReducer & useContext
  *
@@ -768,10 +773,12 @@ export {
 };
 
 ---
+```
 
 <a id="react-usememo-usecallback"></a>
 ## 04_useMemo_useCallback.jsx — QUESTION SET: useMemo & useCallback — React Performance Hooks
 
+```jsx
 /**
  * QUESTION SET: useMemo & useCallback — React Performance Hooks
  *
@@ -1006,10 +1013,12 @@ function DataTable({ rows: initialRows }) {
 export { ExpensiveList, Parent, DataTable, StaleClosureFix };
 
 ---
+```
 
 <a id="react-useref-forwardref"></a>
 ## 05_useRef_forwardRef.jsx — QUESTION SET: useRef, forwardRef & useImperativeHandle
 
+```jsx
 /**
  * QUESTION SET: useRef, forwardRef & useImperativeHandle
  *
@@ -1267,10 +1276,12 @@ export {
 };
 
 ---
+```
 
 <a id="react-component-patterns"></a>
 ## 06_component_patterns.jsx — QUESTION SET: Component Patterns
 
+```jsx
 /**
  * QUESTION SET: Component Patterns
  *
@@ -1566,10 +1577,12 @@ export {
 };
 
 ---
+```
 
 <a id="react-lazy-suspense-errorboundary"></a>
 ## 07_lazy_suspense_errorboundary.jsx — QUESTION SET: React.lazy, Suspense, Error Boundaries & Code Splitting
 
+```jsx
 /**
  * QUESTION SET: React.lazy, Suspense, Error Boundaries & Code Splitting
  *
@@ -1820,10 +1833,12 @@ function createResource(fetchFn) {
 export { Dashboard, Router, ErrorBoundary, SafeBomb, PageLayout };
 
 ---
+```
 
 <a id="react-advanced-patterns"></a>
 ## 08_advanced_patterns.jsx — QUESTION SET: Advanced React Patterns
 
+```jsx
 /**
  * QUESTION SET: Advanced React Patterns
  *
@@ -2103,10 +2118,12 @@ function deepUpdate(state, path, updater) {
 export { Modal, PortalDemo, SearchWithTransition, SearchWithDeferred, FetchButton, OptimisticTodoList };
 
 ---
+```
 
 <a id="react-solid-principles"></a>
 ## 09_solid_principles.jsx — SOLID PRINCIPLES IN REACT
 
+```jsx
 /**
  * SOLID PRINCIPLES IN REACT
  *
@@ -2591,10 +2608,12 @@ export {
 };
 
 ---
+```
 
 <a id="react-theory-interview-qa"></a>
 ## FILE: 10_theory_interview_qa.jsx
 
+```jsx
 /*
 =============================================================
   REACT THEORY — INTERVIEW Q&A
@@ -3192,4 +3211,4 @@ const ProductList = lazy(() => import('productsApp/ProductList'));
 */
 
 ---
-
+```

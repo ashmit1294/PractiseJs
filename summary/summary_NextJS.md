@@ -19,6 +19,7 @@
 <a id="nextjs-app-router-fundamentals"></a>
 ## 01_app_router_fundamentals.tsx — QUESTION SET: Next.js App Router — Fundamentals
 
+```tsx
 /**
  * QUESTION SET: Next.js App Router — Fundamentals
  *
@@ -321,10 +322,12 @@ export default function DashboardError({
 export {};
 
 ---
+```
 
 <a id="nextjs-data-fetching-server-actions"></a>
 ## 02_data_fetching_server_actions.tsx — QUESTION SET: Next.js Data Fetching
 
+```tsx
 /**
  * QUESTION SET: Next.js Data Fetching
  *
@@ -632,10 +635,12 @@ export async function GET_BY_ID(
 export {};
 
 ---
+```
 
 <a id="nextjs-routing-middleware"></a>
 ## 03_routing_middleware.tsx — QUESTION SET: Next.js Routing — Dynamic, Parallel, Intercepting, Middleware
 
+```tsx
 /**
  * QUESTION SET: Next.js Routing — Dynamic, Parallel, Intercepting, Middleware
  *
@@ -924,10 +929,12 @@ export async function POST(request: NextRequest) {
 export {};
 
 ---
+```
 
 <a id="nextjs-authentication"></a>
 ## 04_authentication.tsx — QUESTION SET: Next.js Authentication Patterns
 
+```tsx
 /**
  * QUESTION SET: Next.js Authentication Patterns
  *
@@ -1235,10 +1242,12 @@ export async function publishPostAction(postId: string) {
 export {};
 
 ---
+```
 
 <a id="nextjs-performance-optimization"></a>
 ## 05_performance_optimization.tsx — QUESTION SET: Next.js Performance Optimization
 
+```tsx
 /**
  * QUESTION SET: Next.js Performance Optimization
  *
@@ -1526,10 +1535,12 @@ async function DynamicRecommendations({ productId }) {
 export {};
 
 ---
+```
 
 <a id="nextjs-pages-router-data-fetching"></a>
 ## 06_pages_router_data_fetching.tsx — QUESTION SET: Next.js Pages Router — Data Fetching
 
+```tsx
 /**
  * QUESTION SET: Next.js Pages Router — Data Fetching
  * (Legacy but still widely used and heavily interviewed)
@@ -1829,10 +1840,12 @@ export default async function handler(
 export {};
 
 ---
+```
 
 <a id="nextjs-seo-metadata-i18n"></a>
 ## 07_seo_metadata_i18n.tsx — QUESTION SET: Next.js SEO, Metadata & Internationalization
 
+```tsx
 /**
  * QUESTION SET: Next.js SEO, Metadata & Internationalization
  *
@@ -2182,10 +2195,12 @@ export default function robots(): MetadataRoute.Robots {
 export {};
 
 ---
+```
 
 <a id="nextjs-interview-qa"></a>
 ## 08_interview_qa.tsx — QUESTION SET: Next.js Interview Q&A — Comprehensive
 
+```tsx
 /**
  * QUESTION SET: Next.js Interview Q&A — Comprehensive
  *
@@ -2862,10 +2877,12 @@ Next.js 14:
 export {};
 
 ---
+```
 
 <a id="nextjs-theory-interview-qa"></a>
 ## FILE: 09_theory_interview_qa.tsx
 
+```tsx
 /*
 =============================================================
   NEXT.JS THEORY — INTERVIEW Q&A
@@ -3482,4 +3499,4 @@ const Chart = dynamic(() => import('recharts').then(m => m.LineChart), { ssr: fa
 // Target: < 100KB for critical routes
 
 ---
-
+```

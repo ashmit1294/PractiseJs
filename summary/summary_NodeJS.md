@@ -21,6 +21,7 @@
 <a id="nodejs-event-loop"></a>
 ## 01_event_loop.js — QUESTION SET: Node.js Event Loop
 
+```javascript
 /**
  * QUESTION SET: Node.js Event Loop
  *
@@ -233,10 +234,12 @@ if (isMainThread) {
 module.exports = { readFileAsync };
 
 ---
+```
 
 <a id="nodejs-streams-buffers"></a>
 ## 02_streams_buffers.js — QUESTION SET: Node.js Streams & Buffers
 
+```javascript
 /**
  * QUESTION SET: Node.js Streams & Buffers
  *
@@ -498,10 +501,12 @@ const server = http.createServer((req, res) => {
 module.exports = { countLines, compressFile, CounterStream, ArrayCollector, CsvToJson };
 
 ---
+```
 
 <a id="nodejs-express-middleware"></a>
 ## 03_express_middleware.js — QUESTION SET: Express.js Middleware & Patterns
 
+```javascript
 /**
  * QUESTION SET: Express.js Middleware & Patterns
  *
@@ -774,10 +779,12 @@ function corsMiddleware(options = {}) {
 module.exports = { logger, authenticate, authorize, createRateLimiter, validate, AppError, asyncHandler, errorHandler };
 
 ---
+```
 
 <a id="nodejs-authentication"></a>
 ## 04_authentication.js — QUESTION SET: Node.js Authentication & JWT
 
+```javascript
 /**
  * QUESTION SET: Node.js Authentication & JWT
  *
@@ -1074,10 +1081,12 @@ module.exports = {
 };
 
 ---
+```
 
 <a id="nodejs-event-emitter"></a>
 ## 05_event_emitter.js — QUESTION SET: Node.js EventEmitter & Custom Events
 
+```javascript
 /**
  * QUESTION SET: Node.js EventEmitter & Custom Events
  *
@@ -1401,10 +1410,12 @@ const db = { user: { save: async () => {} } };
 module.exports = { MyEventEmitter, EventBus, AsyncEventEmitter };
 
 ---
+```
 
 <a id="nodejs-cluster-workers"></a>
 ## 06_cluster_workers.js — QUESTION SET: Node.js Cluster, Worker Threads & child_process
 
+```javascript
 /**
  * QUESTION SET: Node.js Cluster, Worker Threads & child_process
  *
@@ -1707,10 +1718,12 @@ process.on('message', (msg) => {
 module.exports = { WorkerPool, runCommand, execCommand };
 
 ---
+```
 
 <a id="nodejs-file-system"></a>
 ## 07_file_system.js — QUESTION SET: Node.js File System (fs)
 
+```javascript
 /**
  * QUESTION SET: Node.js File System (fs)
  *
@@ -2037,10 +2050,12 @@ module.exports = {
 };
 
 ---
+```
 
 <a id="nodejs-error-handling"></a>
 ## 08_error_handling.js — QUESTION SET: Node.js Error Handling
 
+```javascript
 /**
  * QUESTION SET: Node.js Error Handling
  *
@@ -2420,10 +2435,12 @@ module.exports = {
 };
 
 ---
+```
 
 <a id="nodejs-rest-api-patterns"></a>
 ## 09_rest_api_patterns.js — QUESTION SET: Node.js REST API Patterns
 
+```javascript
 /**
  * QUESTION SET: Node.js REST API Patterns
  *
@@ -2781,10 +2798,12 @@ const cache = { get: async () => null, setEx: async () => {} };
 module.exports = { InMemoryRateLimiter, applyFieldFilter, encodeCursor, decodeCursor, listPosts };
 
 ---
+```
 
 <a id="nodejs-race-conditions"></a>
 ## 10_race_conditions.js — RACE CONDITIONS IN NODE.JS — WHAT THEY ARE AND HOW TO AVOID THEM
 
+```javascript
 /**
  * RACE CONDITIONS IN NODE.JS — WHAT THEY ARE AND HOW TO AVOID THEM
  *
@@ -3316,10 +3335,12 @@ module.exports = {
 };
 
 ---
+```
 
 <a id="nodejs-theory-interview-qa"></a>
 ## FILE: 11_theory_interview_qa.js
 
+```javascript
 /*
 =============================================================
   NODE.JS THEORY — INTERVIEW Q&A
@@ -3760,4 +3781,4 @@ async function callAPI(path) {
 module.exports = { gzipFile, processArray, callAPI };
 
 ---
-
+```

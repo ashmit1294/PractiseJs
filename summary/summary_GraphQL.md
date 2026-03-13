@@ -19,6 +19,7 @@
 <a id="graphql-schema-types-sdl"></a>
 ## 01_schema_types_SDL.js — QUESTION SET: GraphQL — Schema Definition Language (SDL)
 
+```javascript
 /**
  * QUESTION SET: GraphQL — Schema Definition Language (SDL)
  *
@@ -292,10 +293,12 @@ const mergedTypeDefs = mergeTypeDefs([userTypeDefs, postTypeDefs]);
 module.exports = { typeDefs };
 
 ---
+```
 
 <a id="graphql-resolvers-context"></a>
 ## 02_resolvers_context.js — QUESTION SET: GraphQL Resolvers, Context & Middleware
 
+```javascript
 /**
  * QUESTION SET: GraphQL Resolvers, Context & Middleware
  *
@@ -577,10 +580,12 @@ const permissions = shield({
 module.exports = { resolvers, createContext };
 
 ---
+```
 
 <a id="graphql-dataloader-n-plus-1"></a>
 ## 03_dataloader_n_plus_1.js — QUESTION SET: GraphQL — DataLoader & N+1 Problem
 
+```javascript
 /**
  * QUESTION SET: GraphQL — DataLoader & N+1 Problem
  *
@@ -826,10 +831,12 @@ function hashQuery(query) {
 module.exports = { createLoaders, batchLoadUsers, batchLoadPostsByAuthor };
 
 ---
+```
 
 <a id="graphql-mutations-subscriptions"></a>
 ## 04_mutations_subscriptions.js — QUESTION SET: GraphQL Mutations & Subscriptions
 
+```javascript
 /**
  * QUESTION SET: GraphQL Mutations & Subscriptions
  *
@@ -1120,10 +1127,12 @@ function createRestNotifier(pubsub) {
 module.exports = { mutationResolvers, subscriptionResolvers, startServer, createRestNotifier };
 
 ---
+```
 
 <a id="graphql-apollo-client"></a>
 ## 05_apollo_client.jsx — QUESTION SET: Apollo Client — Queries, Mutations & Cache
 
+```jsx
 /**
  * QUESTION SET: Apollo Client — Queries, Mutations & Cache
  *
@@ -1465,10 +1474,12 @@ function cacheManipulationExamples(client) {
 export { client };
 
 ---
+```
 
 <a id="graphql-security-error-handling"></a>
 ## 06_security_error_handling.js — QUESTION SET: GraphQL Security, Error Handling & Performance
 
+```javascript
 /**
  * QUESTION SET: GraphQL Security, Error Handling & Performance
  *
@@ -1769,10 +1780,12 @@ function authDirectiveTransformer(schema) {
 module.exports = { NotFoundError, ValidationError, AuthError, formatError };
 
 ---
+```
 
 <a id="graphql-federation-stitching"></a>
 ## 07_federation_stitching.js — QUESTION SET: GraphQL Federation & Schema Stitching
 
+```javascript
 /**
  * QUESTION SET: GraphQL Federation & Schema Stitching
  *
@@ -2048,10 +2061,12 @@ const stitchedSchema = stitchSchemas({
 module.exports = { usersResolvers, postsResolvers, reviewsResolvers };
 
 ---
+```
 
 <a id="graphql-interview-qa-patterns"></a>
 ## 08_interview_qa_patterns.js — QUESTION SET: GraphQL — Interview Questions & Advanced Patterns
 
+```javascript
 /**
  * QUESTION SET: GraphQL — Interview Questions & Advanced Patterns
  *
@@ -2344,10 +2359,12 @@ const directiveExamples = gql`
 module.exports = { encodeCursor, decodeCursor, offsetPaginationResolvers, cursorPaginationResolvers };
 
 ---
+```
 
 <a id="graphql-theory-interview-qa"></a>
 ## FILE: 09_theory_interview_qa.js
 
+```javascript
 /*
 =============================================================
   GRAPHQL THEORY — INTERVIEW Q&A
@@ -2829,4 +2846,4 @@ function protectedResolver(parent, args, context) {
 module.exports = { encodeCursor, decodeCursor };
 
 ---
-
+```
