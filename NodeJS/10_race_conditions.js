@@ -26,7 +26,10 @@ const path = require('path');
 const { AsyncLocalStorage } = require('async_hooks');
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 1. CLASSIC ASYNC RACE — STALE DATA OVERWRITE
+// Q1. CLASSIC ASYNC RACE — STALE DATA OVERWRITE
+// WHAT: How can race conditions occur when two concurrent requests read-modify-write shared state?
+// THEORY: Request A reads value, B reads same value before A writes. Both write independently, one overwrites. Happens with async DB/file ops. Mutex locks prevent interleaving
+// Time: O(1) per op  Space: O(1)
 // ─────────────────────────────────────────────────────────────────────────────
 
 // ❌ BAD: Two simultaneous requests both read the counter, both increment,
@@ -49,10 +52,14 @@ async function incrementCounterBAD() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 2. FIX — MUTEX (Mutual Exclusion Lock)
+// Q2. FIX — MUTEX (Mutual Exclusion Lock)
+// WHAT: How does a Mutex lock prevent concurrent access to critical sections?
+// THEORY: _locked flag + _queue of waiting callers. acquire() returns Promise when lock available. _release() marks unlocked, resolves next waiter. FIFO queue ordering prevents races
+// Time: O(1) acquire  Space: O(w) waiters in queue
+// ─────────────────────────────────────────────────────────────────────────────
+
 // A mutex ensures only ONE piece of code runs a critical section at a time.
 // Others wait in a queue until the lock is released.
-// ─────────────────────────────────────────────────────────────────────────────
 
 class Mutex {
   constructor() {
