@@ -12,6 +12,9 @@
 
 // ─────────────────────────────────────────────
 // Q1. Generic functions
+// WHAT: How do generic functions reuse code for multiple types while maintaining type safety?
+// THEORY: <T> type parameter captures input type. Function body works with T without knowing concrete type. Inferred from arguments or explicit <Type>. identity<T>: T → T, first<T>: T[] → T
+// Time: O(1)  Space: O(1)
 // ─────────────────────────────────────────────
 
 // Identity — simplest generic function
@@ -51,6 +54,9 @@ function pipe(value: any, ...fns: Function[]): any {
 
 // ─────────────────────────────────────────────
 // Q2. Generic interfaces and classes
+// WHAT: How do you define generic interfaces and classes for reusable data structures and repositories?
+// THEORY: interface Repository<T, ID> defines T type and ID key type. Classes implement with specific types. Stack<T> stores items: T[]. Generic default params: Repository<T, ID = string>
+// Time: O(n) stack ops  Space: O(n) items stored
 // ─────────────────────────────────────────────
 
 // Generic interface

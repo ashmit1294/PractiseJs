@@ -13,6 +13,9 @@ const EventEmitter = require("events");
 
 // ─────────────────────────────────────────────
 // Q1. Custom error hierarchy
+// WHAT: How do you create domain-specific error types with proper HTTP status codes and error codes?
+// THEORY: Extend Error class with statusCode, code, isOperational flag. captureStackTrace for clean traces. Subclass for NotFound/Validation/Unauthorized. Distinguish operational vs programming errors
+// Time: O(1)  Space: O(1)
 // ─────────────────────────────────────────────
 
 class AppError extends Error {
@@ -66,6 +69,9 @@ class RateLimitError extends AppError {
 
 // ─────────────────────────────────────────────
 // Q2. asyncHandler wrapper — removes try/catch boilerplate in routes
+// WHAT: How do you wrap async route handlers to automatically catch errors without repeating try/catch?
+// THEORY: asyncHandler returns middleware that wraps async fn in Promise.resolve().catch(next). Errors forwarded to Express error handler. Reduces boilerplate per route
+// Time: O(1)  Space: O(1)
 // ─────────────────────────────────────────────
 
 function asyncHandler(fn) {

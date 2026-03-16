@@ -17,6 +17,9 @@ const crypto = require("crypto");
 
 // ─────────────────────────────────────────────
 // Q1. RESTful routing conventions
+// WHAT: What HTTP verbs and endpoint patterns define RESTful resource operations?
+// THEORY: GET /resource (list), POST (create), GET /:id (read), PUT /:id (replace), PATCH /:id (update), DELETE /:id (delete). Nested: GET /posts/:id/comments. Status: 200/201/204/400/404/500
+// Time: O(1)  Space: O(1)
 // ─────────────────────────────────────────────
 
 const router = express.Router();
@@ -35,6 +38,9 @@ const router = express.Router();
 
 // ─────────────────────────────────────────────
 // Q2. Input validation with Zod
+// WHAT: How do you validate request bodies with Zod schema validation?
+// THEORY: z.object() defines schema with type/min/max rules. safeParse() returns {success, data, error}. Partial() for PATCH. Transform for coercion. Middleware replaces req.body with parsed data
+// Time: O(f) fields  Space: O(e) errors
 // ─────────────────────────────────────────────
 
 const CreatePostSchema = z.object({

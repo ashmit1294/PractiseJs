@@ -18,6 +18,9 @@ const pipelineAsync = promisify(pipeline);
 
 // ─────────────────────────────────────────────
 // Q1. fs.promises — async file operations
+// WHAT: How do you safely read, write, and manipulate files asynchronously in Node.js?
+// THEORY: fs.promises API returns Promises. Use await or .then(). Atomic writes via temp file + rename. mkdir recursive, access for existence check. No blocking event loop
+// Time: O(n) file size  Space: O(n) file in memory
 // ─────────────────────────────────────────────
 
 async function readJsonFile(filePath) {
@@ -61,6 +64,9 @@ async function copyFile(src, dest) {
 
 // ─────────────────────────────────────────────
 // Q2. Streaming large files (avoid loading entire file into memory)
+// WHAT: How do you process large files without loading them entirely into memory?
+// THEORY: fs.createReadStream reads in chunks (highWaterMark=64KB default). for-await loop processes chunk-by-chunk. gzip/compress via streams. Line counting without full load
+// Time: O(n) file size  Space: O(c) chunk size constant
 // ─────────────────────────────────────────────
 
 // Count lines without loading entire file into memory
