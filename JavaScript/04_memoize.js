@@ -10,6 +10,9 @@
 
 // ─────────────────────────────────────────────
 // APPROACH 1: Basic memoize (single argument)
+// WHAT: How to cache function results to avoid recomputation?
+// THEORY: Use Map to store arg → result. First call computes + stores. Next calls return cached.
+// Time: O(1) lookup  Space: O(n) for cache
 // ─────────────────────────────────────────────
 function memoize(fn) {
   const cache = new Map();
@@ -27,7 +30,9 @@ function memoize(fn) {
 
 // ─────────────────────────────────────────────
 // APPROACH 2: Memoize with multiple arguments
-// Serialize args as a cache key
+// WHAT: How to memoize functions with multiple arguments?
+// THEORY: JSON.stringify(args) creates cache key. Each unique args has own cached result.
+// Time: O(1) lookup, O(k) stringify  Space: O(n*m) for cache
 // ─────────────────────────────────────────────
 function memoizeMultiArg(fn) {
   const cache = new Map();
@@ -45,6 +50,9 @@ function memoizeMultiArg(fn) {
 
 // ─────────────────────────────────────────────
 // APPROACH 3: Memoize with custom resolver (like lodash)
+// WHAT: How to use custom logic to generate cache keys?
+// THEORY: resolver function generates key. Flexible key generation. Expose cache property for clearing.
+// Time: O(1) to O(custom)  Space: O(n) for cache
 // ─────────────────────────────────────────────
 function memoizeWithResolver(fn, resolver) {
   const cache = new Map();
@@ -63,7 +71,9 @@ function memoizeWithResolver(fn, resolver) {
 
 // ─────────────────────────────────────────────
 // CLASSIC EXAMPLE: Memoized Fibonacci
-// Without memo: O(2^n)  With memo: O(n)
+// WHAT: Why is memoization powerful for recursive problems?
+// THEORY: Without memo: O(2^n) recomputes. With memo: O(n) each n computed once.
+// Time: O(n) with memo vs O(2^n) naive  Space: O(n) for memo cache
 // ─────────────────────────────────────────────
 function makeFibMemoized() {
   const cache = {};

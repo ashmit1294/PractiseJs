@@ -2,6 +2,9 @@
 
 ## RDS — Relational Database Service
 
+**WHAT**: How do I use traditional SQL databases in AWS?
+**THEORY**: RDS manages backups, patching, replication. Choose: Postgres/MySQL/MariaDB/Oracle/MSSQL. Multi-AZ for HA.
+
 ```
 RDS is a managed relational database.
 AWS handles: provisioning, patching, backups, failover, and monitoring.

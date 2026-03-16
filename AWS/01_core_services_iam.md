@@ -76,6 +76,9 @@ aws sts get-caller-identity
 
 ## Core Compute Services
 
+**WHAT**: What are the different ways to run code/applications in AWS?
+**THEORY**: EC2 for full control, Lambda for serverless, ECS/EKS for containers. Choose based on management overhead vs control needed.
+
 | Service | What it Does | Use Case |
 |---------|-------------|----------|
 | EC2 | Virtual machines in the cloud | Traditional server workloads, custom OS config |
@@ -89,6 +92,9 @@ aws sts get-caller-identity
 
 ## Core Storage Services
 
+**WHAT**: How do I persistently store data in AWS?
+**THEORY**: S3 for objects (files), EBS for volumes (databases), EFS for shared filesystems, Glacier for archives.
+
 | Service | Type | Use Case |
 |---------|------|----------|
 | S3 | Object store | File storage, backups, static websites, data lakes |
@@ -99,6 +105,9 @@ aws sts get-caller-identity
 ---
 
 ## Core Database Services
+
+**WHAT**: What database options does AWS offer?
+**THEORY**: RDS for SQL, DynamoDB for NoSQL, ElastiCache for in-memory, Redshift for analytics.
 
 | Service | Type | Use Case |
 |---------|------|----------|
@@ -111,6 +120,9 @@ aws sts get-caller-identity
 ---
 
 ## Core Networking Services
+
+**WHAT**: How do AWS components communicate and reach end-users?
+**THEORY**: VPC for isolation, Route 53 for DNS, CloudFront for CDN, API Gateway for APIs, Load Balancers for traffic distribution.
 
 | Service | What it Does |
 |---------|-------------|

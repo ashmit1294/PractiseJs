@@ -17,7 +17,10 @@
 
 // ─────────────────────────────────────────────
 // Q1. Climbing Stairs
+// WHAT: How many ways to climb n stairs if you can take 1 or 2 steps at a time?
+// THEORY: Reach stair n from n-1 (1 step) or n-2 (2 steps). Same as Fibonacci pattern.
 // n steps, can climb 1 or 2 at a time. How many ways?
+// Time: O(n)  Space: O(1)
 // Same pattern as Fibonacci.
 // ─────────────────────────────────────────────
 function climbStairs(n) {
@@ -31,7 +34,10 @@ function climbStairs(n) {
 
 // ─────────────────────────────────────────────
 // Q2. House Robber — max sum of non-adjacent elements
+// WHAT: What's maximum money you can rob without robbing adjacent houses?
+// THEORY: DP state: max(rob current + max from 2 steps back, skip current + max from 1 step).
 // Input: [1,2,3,1] → Output: 4 (rob house 0 and 2)
+// Time: O(n)  Space: O(1)
 // ─────────────────────────────────────────────
 function rob(nums) {
   let prev2 = 0, prev1 = 0;
@@ -45,7 +51,10 @@ function rob(nums) {
 
 // ─────────────────────────────────────────────
 // Q3. Coin Change — fewest coins to make amount
+// WHAT: What's minimum number of coins to make target amount?
+// THEORY: DP[i] = min coins to make amount i. Try each coin, take minimum of (1 + DP[i-coin]).
 // Input: coins=[1,5,10,25], amount=36 → Output: 3 (25+10+1)
+// Time: O(n*m) n=amount, m=coins  Space: O(n)
 // ─────────────────────────────────────────────
 function coinChange(coins, amount) {
   const dp = new Array(amount + 1).fill(Infinity);

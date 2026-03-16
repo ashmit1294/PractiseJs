@@ -10,6 +10,8 @@
 
 // ─────────────────────────────────────────────
 // Q1. Linear Search
+// WHAT: How to find target value in unsorted array?
+// THEORY: Simple iteration from start to end. Check each element.
 // Find the index of target in array (unsorted allowed)
 // Time: O(n)  Space: O(1)
 // ─────────────────────────────────────────────

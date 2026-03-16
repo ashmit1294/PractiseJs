@@ -18,6 +18,9 @@ Event-driven: A publishes an event; B processes it when ready (decoupled)
 
 ## SQS — Simple Queue Service
 
+**WHAT**: How do I decouple services by queueing messages?
+**THEORY**: SQS is a message queue. Producers send, consumers polled/pushed. Guarantees delivery, handles retries.
+
 ```
 SQS is a fully managed message queue.
 Producers send messages → SQS holds them → Consumers poll and process.

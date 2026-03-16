@@ -1,6 +1,10 @@
 # AWS: S3 and CloudFront
 
 ## S3 — Simple Storage Service
+
+**WHAT**: How do I store files in AWS at massive scale?
+**THEORY**: S3 is object storage (not filesystem). Buckets store objects with flat keys. Pay per GB stored, per request.
+
 S3 is an object store. You store files (objects) in containers (buckets).
 Unlike a filesystem (folders and files), S3 has flat keys that look like paths.
 

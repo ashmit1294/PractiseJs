@@ -10,6 +10,9 @@
 
 // ─────────────────────────────────────────────
 // Q1. Implement a Map from scratch using an array/hash
+// WHAT: How to implement a Map data structure from scratch?
+// THEORY: Maintain parallel arrays for keys/values. indexOf for lookup O(n). Expose chainable set method.
+// Time: O(n) ops average  Space: O(n) for storage
 // ─────────────────────────────────────────────
 class MyMap {
   constructor() {
@@ -74,6 +77,9 @@ class MyMap {
 
 // ─────────────────────────────────────────────
 // Q2. Count frequency of characters in a string using Map
+// WHAT: How to count character frequencies efficiently?
+// THEORY: Iterate string → update Map. .get() returns count or 0. Works with any type.
+// Time: O(n) characters  Space: O(k) unique chars
 // ─────────────────────────────────────────────
 function charFrequency(str) {
   const map = new Map();
@@ -96,7 +102,9 @@ function mostFreqChar(str) {
 
 // ─────────────────────────────────────────────
 // Q3. Two Sum using Map (O(n) solution)
-// Return indices of two numbers that add up to target
+// WHAT: How to find two numbers adding to target in O(n)?
+// THEORY: Iterate → check if complement exists in Map. Record indices. Add current to Map.
+// Time: O(n)  Space: O(n) for Map
 // ─────────────────────────────────────────────
 function twoSum(nums, target) {
   const seen = new Map(); // value → index
@@ -112,6 +120,9 @@ function twoSum(nums, target) {
 
 // ─────────────────────────────────────────────
 // Q4. Group anagrams together using Map
+// WHAT: How to group words that are anagrams of each other?
+// THEORY: Generate sorted-letters key for each word. Use as Map key. Group by key.
+// Time: O(n*k*log k) k=avg word len  Space: O(n) for Map
 // Input: ["eat","tea","tan","ate","nat","bat"]
 // Output: [["bat"],["nat","tan"],["ate","eat","tea"]]
 // ─────────────────────────────────────────────
@@ -127,7 +138,9 @@ function groupAnagrams(words) {
 
 // ─────────────────────────────────────────────
 // Q5. LRU Cache using Map (Map preserves insertion order)
-// get: O(1)  set: O(1)
+// WHAT: How to implement LRU Cache with O(1) operations?
+// THEORY: Map maintains insertion order. On access: delete + re-add to move to end (most recent).
+// Time: O(1) get/put  Space: O(capacity)
 // ─────────────────────────────────────────────
 class LRUCache {
   constructor(capacity) {

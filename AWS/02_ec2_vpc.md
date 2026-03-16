@@ -1,6 +1,10 @@
 # AWS: EC2 and VPC Networking
 
 ## EC2 — Elastic Compute Cloud
+
+**WHAT**: How do I run virtual machines in AWS?
+**THEORY**: EC2 instances are on-demand VMs. Pick an AMI (OS), instance type (CPU/RAM), and storage. Pay only for running time.
+
 EC2 lets you rent virtual machines (called "instances") on demand.
 You pick an AMI (OS image), instance type (CPU/RAM size), and storage.
 
@@ -55,6 +59,9 @@ node dist/index.js
 ---
 
 ## VPC — Virtual Private Cloud
+
+**WHAT**: How do I create an isolated network for my AWS resources?
+**THEORY**: VPC provides private IP space, subnets, routing tables, and security groups. Public subnets reach internet via IGW. Private subnets go through NAT.
 
 ```
 VPC = your own isolated network within AWS.

@@ -8,6 +8,9 @@
 // WEAKMAP
 // Keys MUST be objects. Not enumerable. GC-friendly.
 // Use: private data per instance, DOM node metadata, caching
+// WHAT: How to store private instance data without preventing garbage collection?
+// THEORY: WeakMap holds weak references to objects. Keys only. No leaks.
+// Time: O(1)  Space: O(n) entries
 // ─────────────────────────────────────────────
 
 // Q1. Private class fields using WeakMap

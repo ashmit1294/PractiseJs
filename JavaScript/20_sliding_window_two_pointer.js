@@ -18,7 +18,10 @@
 // ─────────────────────────────────────────────
 
 // Q1. Maximum Sum Subarray of Size K (Fixed Window)
+// WHAT: What's maximum sum of any contiguous subarray of size k?
+// THEORY: Maintain window of k elements. Slide by removing left, adding right. O(n) not O(n*k)!
 // Input: [2,1,5,1,3,2], k=3 → Output: 9 (5+1+3)
+// Time: O(n)  Space: O(1)
 function maxSumSubarrayK(arr, k) {
   let windowSum = 0;
   let maxSum = 0;
@@ -34,6 +37,9 @@ function maxSumSubarrayK(arr, k) {
 }
 
 // Q2. Average of all subarrays of size K
+// WHAT: What's average of every k-length subarray?
+// THEORY: Same sliding window. Divide by k to get average.
+// Time: O(n)  Space: O(k) output
 function avgSubarraysK(arr, k) {
   const result = [];
   let windowSum = 0;
@@ -49,7 +55,10 @@ function avgSubarraysK(arr, k) {
 }
 
 // Q3. Longest Substring Without Repeating Characters (Variable Window)
+// WHAT: What's longest substring with all unique characters?
+// THEORY: Expand right, track seen chars. When duplicate found, shrink left.
 // Input: "abcabcbb" → Output: 3 ("abc")
+// Time: O(n)  Space: O(min(n, charset size))
 function lengthOfLongestSubstring(s) {
   const seen = new Map(); // char → last seen index
   let maxLen = 0;
@@ -66,6 +75,9 @@ function lengthOfLongestSubstring(s) {
 }
 
 // Q4. Longest Substring with At Most K Distinct Characters
+// WHAT: What's longest substring with at most k unique characters?
+// THEORY: Expand right, track frequency. When >k distinct, shrink left.
+// Time: O(n)  Space: O(min(n, k))
 function lengthWithKDistinct(s, k) {
   const freq = new Map();
   let left = 0, maxLen = 0;

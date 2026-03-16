@@ -9,6 +9,9 @@
 
 // ─────────────────────────────────────────────
 // Q1. Implement a Set from scratch
+// WHAT: How to implement Set data structure maintaining uniqueness?
+// THEORY: Use array for storage. Check .has() before .add(). Maintain size counter.
+// Time: O(n) lookup  Space: O(n) storage
 // ─────────────────────────────────────────────
 class MySet {
   constructor(iterable = []) {
@@ -58,6 +61,9 @@ class MySet {
 
 // ─────────────────────────────────────────────
 // Q2. Remove duplicates from an array
+// WHAT: How to efficiently remove duplicate values from array?
+// THEORY: Spread into Set constructor. Set automatically deduplicates. Spread back to array.
+// Time: O(n)  Space: O(n)
 // ─────────────────────────────────────────────
 function removeDuplicates(arr) {
   return [...new Set(arr)];
@@ -70,6 +76,9 @@ function removeDuplicatesManual(arr) {
 
 // ─────────────────────────────────────────────
 // Q3. Find unique elements (elements appearing exactly once)
+// WHAT: How to find elements that appear only once in array?
+// THEORY: Track seen + duplicates Sets. Return filter where not in duplicates.
+// Time: O(n)  Space: O(n)
 // ─────────────────────────────────────────────
 function uniqueOnly(arr) {
   const seen = new Set();
@@ -83,6 +92,9 @@ function uniqueOnly(arr) {
 
 // ─────────────────────────────────────────────
 // Q4. Set operations — Union, Intersection, Difference
+// WHAT: How to perform mathematical set operations efficiently?
+// THEORY: Union: spread both. Intersection: filter A where in B. Difference: filter A where not in B.
+// Time: O(n+m)  Space: O(n+m)
 // ─────────────────────────────────────────────
 
 // Union: all elements from both sets

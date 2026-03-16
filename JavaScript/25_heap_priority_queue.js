@@ -19,6 +19,9 @@
 
 // ─────────────────────────────────────────────
 // Q1. Min-Heap Implementation
+// WHAT: How to maintain min-heap property when inserting/removing elements?
+// THEORY: Insert at end, bubble up. Extract root, move last to root, sift down.
+// Time: O(log n) insert/extract, O(1) peek  Space: O(n)
 // ─────────────────────────────────────────────
 class MinHeap {
   constructor() {

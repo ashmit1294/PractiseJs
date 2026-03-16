@@ -15,6 +15,9 @@
 
 // ─────────────────────────────────────────────
 // Q1. Build Graph from Edge List
+// WHAT: How to construct adjacency list from array of edges?
+// THEORY: Map each node → list of neighbors. For undirected, add edges both ways.
+// Time: O(e) edges  Space: O(v + e)
 // ─────────────────────────────────────────────
 function buildGraph(edges, directed = false) {
   const graph = new Map();
@@ -30,7 +33,10 @@ function buildGraph(edges, directed = false) {
 
 // ─────────────────────────────────────────────
 // Q2. BFS — Breadth First Search
+// WHAT: How to visit all nodes level by level in a graph?
+// THEORY: Use Queue (FIFO). Start from source. Process each node, enqueue unvisited neighbors.
 // Level-order traversal. Finds shortest path.
+// Time: O(v + e)  Space: O(v)
 // ─────────────────────────────────────────────
 function bfs(graph, start) {
   const visited = new Set([start]);

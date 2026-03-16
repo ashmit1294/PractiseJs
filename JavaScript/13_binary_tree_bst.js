@@ -34,6 +34,9 @@ function buildTree(arr) {
 
 // ─────────────────────────────────────────────
 // Q1. Tree Traversals (Inorder, Preorder, Postorder)
+// WHAT: How to visit all nodes in specific order (Left-Root-Right, Root-Left-Right, Left-Right-Root)?
+// THEORY: Recursion natural fit. Inorder gives sorted in BST. Three patterns for different use cases.
+// Time: O(n)  Space: O(h) recursion stack where h=height
 // ─────────────────────────────────────────────
 
 // Recursive

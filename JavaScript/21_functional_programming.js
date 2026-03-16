@@ -7,7 +7,10 @@
 
 // ─────────────────────────────────────────────
 // Q1. pipe — left-to-right function composition
+// WHAT: How to compose functions left to right?
+// THEORY: reduce with accumulator. Each function receives output of previous.
 // pipe(f, g, h)(x) = h(g(f(x)))
+// Time: O(n) functions  Space: O(1)
 // ─────────────────────────────────────────────
 function pipe(...fns) {
   return function (value) {
@@ -16,7 +19,10 @@ function pipe(...fns) {
 }
 
 // Q2. compose — right-to-left (mathematical convention)
+// WHAT: How to compose functions right to left?
+// THEORY: reduceRight opposite of pipe. Apply from right to left.
 // compose(f, g, h)(x) = f(g(h(x)))
+// Time: O(n) functions  Space: O(1)
 function compose(...fns) {
   return function (value) {
     return fns.reduceRight((acc, fn) => fn(acc), value);
@@ -25,7 +31,10 @@ function compose(...fns) {
 
 // ─────────────────────────────────────────────
 // Q3. groupBy — group array elements by a key function
+// WHAT: How to partition array into groups by a function?
+// THEORY: reduce to accumulator object. Key is fn(item). Group items by key.
 // groupBy([6.1, 4.2, 6.3], Math.floor) → { 6: [6.1,6.3], 4: [4.2] }
+// Time: O(n)  Space: O(n)
 // ─────────────────────────────────────────────
 function groupBy(arr, fn) {
   return arr.reduce((acc, item) => {
@@ -38,7 +47,10 @@ function groupBy(arr, fn) {
 
 // ─────────────────────────────────────────────
 // Q4. chunk — split array into chunks of size n
+// WHAT: How to split array into fixed-size sub-arrays?
+// THEORY: Loop with step size. slice each chunk from i to i+size.
 // chunk([1,2,3,4,5], 2) → [[1,2],[3,4],[5]]
+// Time: O(n)  Space: O(n) for result chunks
 // ─────────────────────────────────────────────
 function chunk(arr, size) {
   const result = [];

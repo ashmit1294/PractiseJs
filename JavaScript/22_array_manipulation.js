@@ -5,7 +5,10 @@
 
 // ─────────────────────────────────────────────
 // Q1. Chunk Array into groups of size n
+// WHAT: How to split array into fixed-size chunks?
+// THEORY: Loop with step size. slice(i, i+size) for each chunk.
 // chunk([1,2,3,4,5], 2) → [[1,2],[3,4],[5]]
+// Time: O(n)  Space: O(n)
 // ─────────────────────────────────────────────
 function chunk(arr, size) {
   const result = [];
@@ -17,6 +20,9 @@ function chunk(arr, size) {
 
 // ─────────────────────────────────────────────
 // Q2. Get unique values (deduplicate)
+// WHAT: How to remove duplicate values from array?
+// THEORY: Use Set which stores only unique values. Spread back to array.
+// Time: O(n)  Space: O(n)
 // ─────────────────────────────────────────────
 function unique(arr) {
   return [...new Set(arr)];
@@ -35,7 +41,10 @@ function uniqueBy(arr, fn) {
 
 // ─────────────────────────────────────────────
 // Q3. Intersection of multiple arrays
+// WHAT: What common values exist across all arrays?
+// THEORY: Create Set from first, filter others keeping only those in Set.
 // intersection([1,2,3], [2,3,4], [2,5]) → [2]
+// Time: O(n*m) n=total len, m=arrays  Space: O(k) result
 // ─────────────────────────────────────────────
 function intersection(...arrays) {
   return arrays.reduce((acc, arr) => {
@@ -46,7 +55,10 @@ function intersection(...arrays) {
 
 // ─────────────────────────────────────────────
 // Q4. Rotate Array by k positions (in-place)
+// WHAT: How to rotate array elements k positions to the right?
+// THEORY: Reverse whole array, then reverse first k and remaining separately.
 // Input: [1,2,3,4,5,6,7], k=3 → [5,6,7,1,2,3,4]
+// Time: O(n)  Space: O(1) if modify in-place
 // ─────────────────────────────────────────────
 function rotateArray(nums, k) {
   const n = nums.length;

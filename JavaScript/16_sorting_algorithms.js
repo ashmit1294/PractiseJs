@@ -17,8 +17,11 @@
 
 // ─────────────────────────────────────────────
 // Q1. Bubble Sort
+// WHAT: How to sort by repeatedly swapping adjacent out-of-order elements?
+// THEORY: Compare adjacent pairs, swap if wrong order. Repeat until sorted. Early exit if no swaps.
 // Repeatedly swap adjacent elements if in wrong order.
 // Stable | In-place
+// Time: O(n) best, O(n²) avg/worst  Space: O(1)
 // ─────────────────────────────────────────────
 function bubbleSort(arr) {
   const a = [...arr]; // don't mutate original
@@ -37,8 +40,11 @@ function bubbleSort(arr) {
 
 // ─────────────────────────────────────────────
 // Q2. Selection Sort
+// WHAT: How to sort by finding minimum and moving to sorted portion?
+// THEORY: Find min in unsorted section, swap to front. Repeat until sorted.
 // Find minimum in unsorted portion, swap to front.
 // Not stable | In-place
+// Time: O(n²) always  Space: O(1)
 // ─────────────────────────────────────────────
 function selectionSort(arr) {
   const a = [...arr];

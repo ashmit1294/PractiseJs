@@ -18,6 +18,9 @@
 
 // ─────────────────────────────────────────────
 // Q1. Factorial — n! = n * (n-1)!
+// WHAT: How to calculate n! (product of all positive integers up to n)?
+// THEORY: Base case: n≤1 → 1. Recursive: n * factorial(n-1). Tail version uses accumulator.
+// Time: O(n)  Space: O(n) call stack
 // ─────────────────────────────────────────────
 function factorial(n) {
   if (n <= 1) return 1;                          // base case
@@ -32,6 +35,9 @@ function factorialTail(n, acc = 1) {
 
 // ─────────────────────────────────────────────
 // Q2. Fibonacci — fib(n) = fib(n-1) + fib(n-2)
+// WHAT: How to compute nth Fibonacci number efficiently?
+// THEORY: Naive: O(2^n) exponential. Memoization: O(n) linear. DP bottom-up: O(n).
+// Time: O(2^n) naive, O(n) memo/DP  Space: O(n) memo/stack
 // ─────────────────────────────────────────────
 
 // Naive: O(2^n)

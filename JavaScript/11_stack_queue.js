@@ -13,6 +13,9 @@
 
 // ─────────────────────────────────────────────
 // Q1. Implement Stack from scratch
+// WHAT: How to implement LIFO (Last In, First Out) data structure?
+// THEORY: Use array. push() adds to end. pop() removes from end. O(1) both operations.
+// Time: O(1) push/pop/peek  Space: O(n)
 // ─────────────────────────────────────────────
 class Stack {
   constructor() {
@@ -42,6 +45,9 @@ class Stack {
 
 // ─────────────────────────────────────────────
 // Q2. Implement Queue from scratch
+// WHAT: How to implement FIFO (First In, First Out) data structure?
+// THEORY: Use array. push() to back for enqueue. shift() from front for dequeue.
+// Time: O(1) enqueue, O(n) dequeue worst  Space: O(n)
 // ─────────────────────────────────────────────
 class Queue {
   constructor() {
@@ -67,7 +73,9 @@ class Queue {
 
 // ─────────────────────────────────────────────
 // Q3. Implement Queue using Two Stacks
-// enqueue: O(1)  dequeue: O(n) amortized
+// WHAT: How to implement queue with optimal dequeue using two stacks?
+// THEORY: inbox for enqueue (O(1)). On dequeue, flip inbox to outbox. Amortized O(1).
+// Time: O(1) amortized  Space: O(n)
 // ─────────────────────────────────────────────
 class QueueUsingTwoStacks {
   constructor() {

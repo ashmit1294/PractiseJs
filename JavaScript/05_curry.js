@@ -51,6 +51,9 @@ function infiniteCurry(fn) {
 
 // ─────────────────────────────────────────────
 // APPROACH 4: sum(1)(2)(3) — returns number when called with no args
+// WHAT: How to create chainable functions that evaluate only when called with no args?
+// THEORY: Return function that accumulates, checks for undefined, stops recursion when no arg.
+// Time: O(n) where n=number of calls  Space: O(n) call stack
 // Classic interview question variant
 // ─────────────────────────────────────────────
 function sum(a) {

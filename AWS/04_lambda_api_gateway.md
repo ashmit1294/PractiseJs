@@ -2,6 +2,9 @@
 
 ## Lambda — Serverless Functions
 
+**WHAT**: How do I run code without managing servers?
+**THEORY**: Lambda runs functions on-demand. Pay per invocation and compute time. Scales automatically.
+
 ```
 Traditional server: runs 24/7, you pay even when idle
 Lambda: runs ONLY when triggered, you pay only for execution time (per 100ms)

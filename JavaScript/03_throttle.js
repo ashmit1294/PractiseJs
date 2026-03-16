@@ -12,6 +12,9 @@
 
 // ─────────────────────────────────────────────
 // APPROACH 1: Throttle using timestamps (leading edge)
+// WHAT: How to limit function execution to once per wait interval using timestamps?
+// THEORY: Track lastTime. If now - lastTime >= wait → execute. Leading edge fires immediately.
+// Time: O(1) per call  Space: O(1)
 // ─────────────────────────────────────────────
 function throttle(fn, wait) {
   let lastTime = 0;
@@ -27,6 +30,9 @@ function throttle(fn, wait) {
 
 // ─────────────────────────────────────────────
 // APPROACH 2: Throttle using setTimeout (trailing edge)
+// WHAT: How to throttle with a trailing call after wait period?
+// THEORY: If no pending timer → set timer for wait. Trailing edge only. Next call won't execute if timer pending.
+// Time: O(1) per call  Space: O(1)
 // ─────────────────────────────────────────────
 function throttleTrailing(fn, wait) {
   let timer = null;

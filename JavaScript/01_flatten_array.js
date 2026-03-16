@@ -9,6 +9,8 @@
 
 // ─────────────────────────────────────────────
 // APPROACH 1: Recursion
+// WHAT: How to flatten nested arrays using recursion?
+// THEORY: Check if element is array → recurse on it, concat result. Otherwise → push element.
 // Time: O(n)  Space: O(n)
 // ─────────────────────────────────────────────
 function flattenRecursive(arr) {
@@ -25,6 +27,9 @@ function flattenRecursive(arr) {
 
 // ─────────────────────────────────────────────
 // APPROACH 2: Using reduce + recursion (elegant)
+// WHAT: How to flatten using functional reduce pattern?
+// THEORY: Reduce accumulator. If array → concat recursive flatten. Else → concat value.
+// Time: O(n)  Space: O(n)
 // ─────────────────────────────────────────────
 function flattenReduce(arr) {
   return arr.reduce((acc, val) => {
@@ -36,6 +41,9 @@ function flattenReduce(arr) {
 
 // ─────────────────────────────────────────────
 // APPROACH 3: Iterative with a stack (no recursion)
+// WHAT: How to flatten using iteration to avoid stack overflow?
+// THEORY: Use stack to store items. Pop → if array spread into stack, else prepend to result.
+// Time: O(n)  Space: O(n)
 // ─────────────────────────────────────────────
 function flattenIterative(arr) {
   const stack = [...arr];

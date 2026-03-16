@@ -57,6 +57,9 @@ class LinkedList {
 
 // ─────────────────────────────────────────────
 // Q1. Reverse a Linked List (iterative + recursive)
+// WHAT: How to reverse a linked list in-place with O(1) space?
+// THEORY: Iterative: maintain prev/curr/next. Swap pointers. Recursive: after reaching end, relocate.
+// Time: O(n)  Space: O(1) iterative, O(n) recursive (call stack)
 // ─────────────────────────────────────────────
 function reverseList(head) {
   let prev = null;
@@ -80,6 +83,9 @@ function reverseListRecursive(head) {
 
 // ─────────────────────────────────────────────
 // Q2. Detect Cycle — Floyd's Tortoise & Hare
+// WHAT: How to detect if linked list has a cycle?
+// THEORY: Two pointers: slow moves 1 step, fast moves 2 steps. If meet → cycle exists. O(1) space!
+// Time: O(n)  Space: O(1)
 // Returns true if there's a cycle
 // ─────────────────────────────────────────────
 function hasCycle(head) {

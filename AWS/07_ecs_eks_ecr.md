@@ -71,6 +71,9 @@ aws ecr put-lifecycle-policy \
 
 ## ECS — Elastic Container Service
 
+**WHAT**: How do I run Docker containers in AWS?
+**THEORY**: ECS runs containerized workloads. Launch type: EC2 (you manage) or Fargate (serverless). ECR stores images.
+
 ```
 ECS Core Concepts:
   Cluster    → logical grouping of compute (Fargate tasks or EC2 instances)

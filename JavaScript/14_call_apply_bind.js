@@ -8,7 +8,9 @@
 
 // ─────────────────────────────────────────────
 // Q1. Implement Function.prototype.myCall
-//
+// WHAT: How to invoke function with custom `this` context and individual arguments?
+// THEORY: Temporarily assign function as property. Call with spread args. Delete after. Restores original context.
+// Time: O(1) assignment/deletion  Space: O(1)
 // call invokes fn immediately with given `this` context
 // and arguments passed individually.
 // fn.myCall(context, arg1, arg2, ...)
@@ -24,7 +26,9 @@ Function.prototype.myCall = function (context = globalThis, ...args) {
 
 // ─────────────────────────────────────────────
 // Q2. Implement Function.prototype.myApply
-//
+// WHAT: How to invoke function with custom `this` context and array of arguments?
+// THEORY: Identical to myCall but accepts array. Spread array before calling.
+// Time: O(1) assignment/deletion  Space: O(1)
 // Same as call but arguments are passed as an array.
 // fn.myApply(context, [arg1, arg2])
 // ─────────────────────────────────────────────

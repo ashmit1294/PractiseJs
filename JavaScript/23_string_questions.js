@@ -9,6 +9,9 @@
 
 // ─────────────────────────────────────────────
 // Q1. Reverse a string (4 ways)
+// WHAT: How to reverse a string using different approaches?
+// THEORY: split+reverse+join, reduceRight, loop backward, recursion.
+// Time: O(n) all approaches  Space: O(n) new string
 // ─────────────────────────────────────────────
 const reverseStr = (s) => s.split("").reverse().join("");
 const reverseStr2 = (s) => [...s].reduceRight((acc, ch) => acc + ch, "");
@@ -20,7 +23,10 @@ function reverseStr3(s) {
 
 // ─────────────────────────────────────────────
 // Q2. Check if anagram
+// WHAT: Do two strings contain same characters (just rearranged)?
+// THEORY: Same length required. Count chars in first, decrement with second.
 // Input: "listen", "silent" → true
+// Time: O(n)  Space: O(k) where k=charset size
 // ─────────────────────────────────────────────
 function isAnagram(s, t) {
   if (s.length !== t.length) return false;
@@ -35,7 +41,10 @@ function isAnagram(s, t) {
 
 // ─────────────────────────────────────────────
 // Q3. Reverse words in a sentence
+// WHAT: How to reverse word order while keeping words intact?
+// THEORY: Trim, split by space, reverse array, join.
 // Input: "  hello world  " → "world hello"
+// Time: O(n)  Space: O(n)
 // ─────────────────────────────────────────────
 function reverseWords(s) {
   return s.trim().split(/\s+/).reverse().join(" ");
