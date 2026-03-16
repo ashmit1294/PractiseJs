@@ -1,10 +1,10 @@
 # Full Stack MERN Developer — Interview Revision Reference
 
-**Level:** 7+ Years Full Stack (MERN)  |  **Topics:** 11  |  **Last Updated:** March 13, 2026
+**Level:** 7+ Years Full Stack (MERN)  |  **Topics:** 12  |  **Last Updated:** March 17, 2026
 
 A single consolidated reference covering everything from JavaScript fundamentals and
-TypeScript to React, Node.js, Docker, Kubernetes, Azure, AWS, Next.js, GraphQL, and
-Web Security. Every section contains working code examples, edge cases, complexity
+TypeScript to React, Node.js, Docker, Kubernetes, Azure, AWS, Next.js, GraphQL, MongoDB,
+and Web Security. Every section contains working code examples, edge cases, complexity
 analysis, and direct interview question-and-answer material.
 
 ---
@@ -23,7 +23,8 @@ analysis, and direct interview question-and-answer material.
 | 8 | [AWS](summary/summary_AWS.md) | IAM, EC2, S3, Lambda, RDS, SQS, ECS/EKS | 8 |
 | 9 | [Next.js](summary/summary_NextJS.md) | App Router, Data Fetching, Auth, SEO, Performance | 9 |
 | 10 | [GraphQL](summary/summary_GraphQL.md) | Schema, Resolvers, DataLoader, Federation, Apollo | 9 |
-| 11 | [Web Security](summary/summary_WebSecurity.md) | OWASP, Auth, XSS, CSRF, Injection, Best Practices | 1 |
+| 11 | [MongoDB](summary/summary_MongoDB.md) | BSON, Schema Design, Indexing, Aggregation, Transactions, Sharding | 9 |
+| 12 | [Web Security](summary/summary_WebSecurity.md) | OWASP, Auth, XSS, CSRF, Injection, Best Practices | 1 |
 
 ---
 
@@ -193,7 +194,20 @@ analysis, and direct interview question-and-answer material.
    9. [Theory interview qa](summary/summary_GraphQL.md#graphql-theory-interview-qa)
    - [Scenario-Based Questions](summary/summary_GraphQL.md#graphql-scenarios)
 
-### 11. Web Security
+### 11. MongoDB
+
+   1. [Core concepts BSON](summary/summary_MongoDB.md#mongodb-core-concepts-bson)
+   2. [Data modeling schema](summary/summary_MongoDB.md#mongodb-data-modeling-schema)
+   3. [Indexing query optimization](summary/summary_MongoDB.md#mongodb-indexing-query-optimization)
+   4. [Aggregation pipeline](summary/summary_MongoDB.md#mongodb-aggregation-pipeline)
+   5. [Transactions ACID](summary/summary_MongoDB.md#mongodb-transactions-acid)
+   6. [Replication sharding](summary/summary_MongoDB.md#mongodb-replication-sharding)
+   7. [Performance tuning](summary/summary_MongoDB.md#mongodb-performance-tuning)
+   8. [Security](summary/summary_MongoDB.md#mongodb-security)
+   9. [Interview qa scenarios](summary/summary_MongoDB.md#mongodb-interview-qa-scenarios)
+   - [Scenario-Based Questions](summary/summary_MongoDB.md#mongodb-scenarios)
+
+### 12. Web Security
 
    1. [Theory interview qa](summary/summary_WebSecurity.md#web-security-theory-interview-qa)
    - [Scenario-Based Questions](summary/summary_WebSecurity.md#web-security-scenarios)
