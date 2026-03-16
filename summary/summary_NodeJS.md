@@ -14,7 +14,7 @@
 7. [07_file_system.js — QUESTION SET: Node.js File System (fs)](#nodejs-file-system)
 8. [08_error_handling.js — QUESTION SET: Node.js Error Handling](#nodejs-error-handling)
 9. [09_rest_api_patterns.js — QUESTION SET: Node.js REST API Patterns](#nodejs-rest-api-patterns)
-10. [10_race_conditions.js — RACE CONDITIONS IN NODE.JS — WHAT THEY ARE AND HOW TO AVOID THEM](#nodejs-race-conditions) ✅ ENRICHED (Q1-Q2)
+10. [10_race_conditions.js — RACE CONDITIONS IN NODE.JS — WHAT THEY ARE AND HOW TO AVOID THEM](#nodejs-race-conditions)  (Q1-Q2)
 11. [FILE: 11_theory_interview_qa.js](#nodejs-theory-interview-qa)
    - [Scenario-Based Questions](#nodejs-scenarios)
 
@@ -2835,6 +2835,9 @@ const { AsyncLocalStorage } = require('async_hooks');
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 1. CLASSIC ASYNC RACE — STALE DATA OVERWRITE
+// WHAT: How can race conditions occur when two concurrent requests read-modify-write shared state?
+// THEORY: Request A reads value, B reads same value before A writes. Both write independently, one overwrites. Happens with async DB/file ops. Mutex locks prevent interleaving
+// Time: O(1) per op  Space: O(1)
 // ─────────────────────────────────────────────────────────────────────────────
 
 // ❌ BAD: Two simultaneous requests both read the counter, both increment,
@@ -2858,6 +2861,9 @@ async function incrementCounterBAD() {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 2. FIX — MUTEX (Mutual Exclusion Lock)
+// WHAT: How does a Mutex lock prevent concurrent access to critical sections?
+// THEORY: _locked flag + _queue of waiting callers. acquire() returns Promise when lock available. _release() marks unlocked, resolves next waiter. FIFO queue ordering prevents races
+// Time: O(1) acquire  Space: O(w) waiters in queue
 // A mutex ensures only ONE piece of code runs a critical section at a time.
 // Others wait in a queue until the lock is released.
 // ─────────────────────────────────────────────────────────────────────────────

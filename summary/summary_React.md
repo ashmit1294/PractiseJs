@@ -5,7 +5,7 @@
 
 ## Table of Contents
 
-1. [01_useState_useEffect.jsx — QUESTION SET: useState & useEffect — most asked React hooks](#react-usestate-useeffect) ✅ ENRICHED (Q1-Q5)
+1. [01_useState_useEffect.jsx — QUESTION SET: useState & useEffect — most asked React hooks](#react-usestate-useeffect)  (Q1-Q5)
 2. [02_custom_hooks.jsx — QUESTION SET: Custom Hooks](#react-custom-hooks)
 3. [03_useReducer_useContext.jsx — QUESTION SET: useReducer & useContext](#react-usereducer-usecontext)
 4. [04_useMemo_useCallback.jsx — QUESTION SET: useMemo & useCallback — React Performance Hooks](#react-usememo-usecallback)
@@ -40,6 +40,9 @@ import React, { useState, useEffect, useRef } from "react";
 // ─────────────────────────────────────────────
 // Q1. Counter with useState
 // What is the issue with stale closures in setState?
+// WHAT: How do you avoid capturing stale state values in async setState calls?
+// THEORY: Functional setState ((prev) => newState) receives the latest state value instead of closure, preventing stale values; state updates are asynchronous and batched
+// Time: O(1)  Space: O(1)
 // ─────────────────────────────────────────────
 function Counter() {
   const [count, setCount] = useState(0);
@@ -66,6 +69,9 @@ function Counter() {
 // ─────────────────────────────────────────────
 // Q2. Object state — merging pitfall
 // setState REPLACES, not merges, object state
+// WHAT: Why does setState not preserve other properties when updating object state?
+// THEORY: setState replaces the entire state object (not partial merge); use spread operator (...prev) to preserve properties, then override only the changed field
+// Time: O(1)  Space: O(n) where n=object properties
 // ─────────────────────────────────────────────
 function UserForm() {
   const [user, setUser] = useState({ name: "", email: "", age: 0 });

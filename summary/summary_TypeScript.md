@@ -5,7 +5,7 @@
 
 ## Table of Contents
 
-1. [01_basic_types_interfaces.ts — QUESTION SET: TypeScript Basic Types & Interfaces](#typescript-basic-types-interfaces) ✅ ENRICHED (Q1-Q5)
+1. [01_basic_types_interfaces.ts — QUESTION SET: TypeScript Basic Types & Interfaces](#typescript-basic-types-interfaces)  (Q1-Q5)
 2. [02_generics.ts — QUESTION SET: TypeScript Generics](#typescript-generics)
 3. [03_utility_types.ts — QUESTION SET: TypeScript Utility Types](#typescript-utility-types)
 4. [04_type_guards.ts — QUESTION SET: TypeScript Type Guards & Narrowing](#typescript-type-guards)
@@ -37,6 +37,9 @@
 
 // ─────────────────────────────────────────────
 // Q1. Primitive types
+// WHAT: How do TypeScript primitive types differ from any/unknown/never/void?
+// THEORY: string, number, boolean, null, undefined, symbol, bigint = primitives. any disables checking. unknown requires type narrowing. never = unreachable value. void = no return
+// Time: O(1)  Space: O(1)
 // ─────────────────────────────────────────────
 
 // TypeScript infers types; explicit annotations only needed when inference is weak
@@ -70,6 +73,9 @@ function logMessage(msg: string): void {
 
 // ─────────────────────────────────────────────
 // Q2. Interface vs type alias
+// WHAT: When should you use interface vs type alias in TypeScript?
+// THEORY: interface = object shapes, declaration merging, public APIs. type = unions, intersections, mapped/conditional types, complex compositions. Both work for objects; differ in features
+// Time: O(1)  Space: O(1)
 // ─────────────────────────────────────────────
 
 // INTERFACE — can be extended and re-declared (declaration merging)
