@@ -15,8 +15,9 @@ const { spawn, exec, fork } = require("child_process");
 
 // ─────────────────────────────────────────────
 // Q1. cluster module
-// Each worker is a separate OS process (separate V8 heap, event loop)
-// Primary process distributes incoming TCP connections via round-robin
+// WHAT: How do you scale a Node.js HTTP server to use all CPU cores?
+// THEORY: cluster.isPrimary forks 1 worker per CPU core. Each worker is separate process with own V8 heap. Primary distributes connections via round-robin. Listen for exit events to respawn
+// Time: O(n) fork  Space: O(n) processes
 // ─────────────────────────────────────────────
 
 function startClusteredServer() {
@@ -58,8 +59,9 @@ function startClusteredServer() {
 
 // ─────────────────────────────────────────────
 // Q2. worker_threads — CPU-bound tasks
-// Threads share the same memory — lower overhead than child processes
-// V8 isolate per thread, but SharedArrayBuffer enables shared memory
+// WHAT: When and how should you use Worker Threads instead of cluster for CPU-intensive work?
+// THEORY: Threads share memory (lower overhead), separate V8 isolate per thread. Use for blocking CPU work (prime checking, crypto). Less overhead than cluster but SharedArrayBuffer adds complexity
+// Time: O(1) spawn  Space: O(m) per m threads
 // ─────────────────────────────────────────────
 
 // Main thread
@@ -98,8 +100,9 @@ function cpuIntensiveTask(data) {
 
 // ─────────────────────────────────────────────
 // Q3. Worker Thread Pool (reuse workers)
-// Creating a worker per-request is expensive.
-// Maintain a pool and queue tasks.
+// WHAT: How do you pool and reuse Worker Threads to avoid expensive per-request thread creation?
+// THEORY: Pre-spawn n workers (workers.length = CPU cores). Maintain queue of pending tasks. Assign task to free worker. Update busy flag. Reuse threads across many tasks
+// Time: O(1) queue add, O(1) assign  Space: O(n) pool + O(q) queue
 // ─────────────────────────────────────────────
 
 class WorkerPool {

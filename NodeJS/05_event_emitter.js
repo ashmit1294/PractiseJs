@@ -13,6 +13,9 @@ const EventEmitter = require("events");
 
 // ─────────────────────────────────────────────
 // Q1. EventEmitter basics
+// WHAT: How do you use on(), once(), off() to subscribe to and manage events in Node.js?
+// THEORY: on(event, listener) = subscribe forever, once(event, listener) = one-time only, off(event, listener) = unsubscribe, emit(event, data) = trigger all listeners
+// Time: O(n) listeners for emit  Space: O(m) listeners stored
 // ─────────────────────────────────────────────
 
 class OrderService extends EventEmitter {
@@ -56,6 +59,9 @@ orderService.removeAllListeners("order:placed");
 
 // ─────────────────────────────────────────────
 // Q2. Custom lightweight EventEmitter (from scratch)
+// WHAT: How do you implement a basic EventEmitter from scratch with on/off/emit/once?
+// THEORY: Use Map(event → Set of listeners) to store subscriptions. emit() calls all listeners. once() wraps listener to remove itself after execution. off() finds and removes listener
+// Time: O(n) emit, O(1) on/off  Space: O(m) total listeners
 // ─────────────────────────────────────────────
 
 class MyEventEmitter {
@@ -116,6 +122,9 @@ class MyEventEmitter {
 
 // ─────────────────────────────────────────────
 // Q3. Event-driven architecture — pub/sub within a process
+// WHAT: How do you design a publish-subscribe system for decoupled microservices within a process?
+// THEORY: EventBus extends EventEmitter. subscribe(event, handler) returns unsubscribe function. publish(event, payload) wraps data with timestamp. Handlers don't know about each other.
+// Time: O(n) publish  Space: O(s) subscriptions
 // ─────────────────────────────────────────────
 
 class EventBus extends EventEmitter {
@@ -159,7 +168,9 @@ unsubEmail();
 
 // ─────────────────────────────────────────────
 // Q4. Domain event pattern (DDD-style)
-// Collect events during a transaction, emit after commit
+// WHAT: How do you accumulate events during a transaction and emit them after database commit?
+// THEORY: AggregateRoot collects #domainEvents array. Entity creates events via addDomainEvent(). After DB save succeeds, emit all events. Clear array. Prevents side-effects if rollback
+// Time: O(1) add, O(e) publish  Space: O(e) events buffer
 // ─────────────────────────────────────────────
 
 class AggregateRoot {
@@ -209,6 +220,9 @@ async function saveUserWithEvents(user, eventBus) {
 
 // ─────────────────────────────────────────────
 // Q5. Memory leak prevention
+// WHAT: How do you prevent memory leaks when using EventEmitter listeners?
+// THEORY: maxListeners default 10 triggers warning. Store listener references for off(). Use once() for one-time handlers. Don't add listeners in loops/requests. Call off() in cleanup. Inspect with rawListeners()
+// Time: O(1)  Space: O(m) listeners
 // ─────────────────────────────────────────────
 
 /*
@@ -242,6 +256,9 @@ process.on("uncaughtException", (err) => {
 
 // ─────────────────────────────────────────────
 // Q6. Async event listeners with error handling
+// WHAT: How do you handle asynchronous listeners and catch their errors in EventEmitter?
+// THEORY: emitAsync() wraps listeners in Promise.all(). onAsync() catches rejections and emit 'error' event. Async errors don't crash process if 'error' handler exists. Chain error listeners
+// Time: O(n) listeners, awaits all  Space: O(n) Promise array
 // ─────────────────────────────────────────────
 
 class AsyncEventEmitter extends EventEmitter {

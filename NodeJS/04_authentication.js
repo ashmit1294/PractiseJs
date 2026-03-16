@@ -15,6 +15,9 @@ const crypto = require("crypto");
 
 // ─────────────────────────────────────────────
 // Q1. Password hashing
+// WHAT: How do you securely hash passwords so they cannot be reversed even if DB is breached?
+// THEORY: bcrypt with SALT_ROUNDS=12: hash=bcrypt(password+salt), compare via bcrypt.compare(). One-way function. Salting prevents rainbow tables. Slow by design
+// Time: O(2^s) where s=SALT_ROUNDS  Space: O(1)
 // ─────────────────────────────────────────────
 
 const SALT_ROUNDS = 12; // higher = slower = more secure (12 is a solid default)
@@ -29,6 +32,9 @@ async function verifyPassword(plaintext, hash) {
 
 // ─────────────────────────────────────────────
 // Q2. JWT access token
+// WHAT: How do you create short-lived JWT tokens for stateless authentication?
+// THEORY: jwt.sign(payload, secret, {expiresIn}). Verify with jwt.verify(token, secret). Short expiry (15m) reduces damage if token stolen. Payload unsigned by default.
+// Time: O(1)  Space: O(1)
 // ─────────────────────────────────────────────
 
 const ACCESS_SECRET = process.env.ACCESS_TOKEN_SECRET;
@@ -48,10 +54,9 @@ function verifyAccessToken(token) {
 
 // ─────────────────────────────────────────────
 // Q3. Refresh token rotation
-//
-// - Refresh token is long-lived (7d), stored in DB
-// - On each use, old token is revoked + new token issued
-//   (rotation prevents replay of stolen refresh tokens)
+// WHAT: How does refresh token rotation prevent replay attacks from stolen tokens?
+// THEORY: Long-lived refresh in DB with jti (unique ID). On use, revoke old + issue new. Detect reuse = revoke entire family. Prevents stolen token reuse after rotation
+// Time: O(1) token ops  Space: O(n) for n revoked tokens
 // ─────────────────────────────────────────────
 
 const REFRESH_SECRET = process.env.REFRESH_TOKEN_SECRET;
@@ -110,6 +115,9 @@ async function refreshTokenRoute(req, res) {
 
 // ─────────────────────────────────────────────
 // Q4. Session-based auth with Redis
+// WHAT: How do you store user sessions in Redis for distributed, scalable authentication?
+// THEORY: express-session + RedisStore. Each login regenerates sessionId, stores userId in Redis. HTTP-only cookie for security. TTL auto-cleanup. Call req.session.regenerate on login
+// Time: O(1) Redis ops  Space: O(s) for s sessions
 // ─────────────────────────────────────────────
 
 const session = require("express-session");
@@ -163,6 +171,9 @@ function requireSession(req, res, next) {
 
 // ─────────────────────────────────────────────
 // Q5. JWT auth middleware (stateless)
+// WHAT: How do you implement stateless authentication with JWT in middleware?
+// THEORY: Extract Bearer token from Authorization header. Verify with jwt.verify(). Attach user to req. Catch TokenExpiredError/JsonWebTokenError. No DB lookup needed.
+// Time: O(1)  Space: O(1)
 // ─────────────────────────────────────────────
 
 function authenticate(req, res, next) {
@@ -195,6 +206,9 @@ function authorize(...roles) {
 
 // ─────────────────────────────────────────────
 // Q6. OAuth2 with Passport.js (Google)
+// WHAT: How do you integrate OAuth2 social login (Google) using Passport.js?
+// THEORY: Setup GoogleStrategy with clientID/secret. In callback, upsert user by googleId. Serialize userId to session. Deserialize on subsequent requests. Two-route pattern: /auth/google + /callback
+// Time: O(1) serialize  Space: O(1) session
 // ─────────────────────────────────────────────
 
 const passport = require("passport");

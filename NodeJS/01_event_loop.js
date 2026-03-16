@@ -18,6 +18,9 @@
 
 // ─────────────────────────────────────────────
 // Q1. Event loop order — predict the output
+// WHAT: What is the execution order of sync, nextTick, Promise, setTimeout, and setImmediate?
+// THEORY: Synchronous first → nextTick microtask → Promise microtasks → timers phase → check phase. Never mix execution without understanding phases
+// Time: O(1)  Space: O(1)
 // ─────────────────────────────────────────────
 console.log("1 — synchronous");
 
@@ -41,8 +44,11 @@ console.log("6 — synchronous");
 
 // ─────────────────────────────────────────────
 // Q2. Nested microtasks — nextTick in a loop
-// nextTick can STARVE the event loop if used recursively!
+// WHAT: Can process.nextTick recursively block the event loop and starve I/O operations?
+// THEORY: Yes, recursive nextTick starves event loop (microtask queue never empties). Use setImmediate for recursive async to yield control
+// Time: O(n) recursive calls  Space: O(n) call stack depth
 // ─────────────────────────────────────────────
+// nextTick can STARVE the event loop if used recursively!
 // DANGEROUS — starves I/O:
 // process.nextTick(function tick() {
 //   process.nextTick(tick); // infinite nextTick loop blocks everything
@@ -58,8 +64,11 @@ function safeRecursion() {
 
 // ─────────────────────────────────────────────
 // Q3. setTimeout vs setImmediate — which runs first?
-// It depends on whether we're inside an I/O callback!
+// WHAT: Is setTimeout or setImmediate guaranteed to run first, and does execution context matter?
+// THEORY: Outside I/O: non-deterministic order. Inside I/O callback: setImmediate always runs first (check phase comes after poll phase)
+// Time: O(1)  Space: O(1)
 // ─────────────────────────────────────────────
+// It depends on whether we're inside an I/O callback!
 
 // Outside I/O callback — order is non-deterministic
 setTimeout(() => console.log("timeout"), 0);
@@ -75,8 +84,11 @@ fs.readFile(__filename, () => {
 
 // ─────────────────────────────────────────────
 // Q4. process.nextTick use case
-// Execute callback AFTER the current operation but BEFORE any I/O
+// WHAT: When should process.nextTick be used to emit events in class constructors?
+// THEORY: Use nextTick to defer event emission until after constructor returns, ensuring listeners can attach before event fires. Defer operations after current execution phase
+// Time: O(1)  Space: O(1)
 // ─────────────────────────────────────────────
+// Execute callback AFTER the current operation but BEFORE any I/O
 
 // Use case: emit event after constructor returns
 const EventEmitter = require("events");
@@ -97,6 +109,9 @@ em.on("ready", () => console.log("Emitter is ready!"));
 
 // ─────────────────────────────────────────────
 // Q5. Promise chaining and microtask queue
+// WHAT: What is the execution order when mixing await, setTimeout, and synchronous code?
+// THEORY: Synchronous runs first, then all microtasks (Promise.then, await), then setTimeout (next macrotask). Await pauses function until Promise resolves
+// Time: O(1)  Space: O(1) per await
 // ─────────────────────────────────────────────
 async function asyncVsSync() {
   console.log("A");
@@ -119,6 +134,9 @@ console.log("F"); // runs before B — F is synchronous, B needs microtask queue
 
 // ─────────────────────────────────────────────
 // Q6. Call Stack visualization
+// WHAT: How does the call stack work when functions call other functions?
+// THEORY: Each function call pushes to stack, returns pop from stack. Stack grows with depth, LIFO order. FIFO errors show call stack trace from innermost to outermost
+// Time: O(d) depth traversal  Space: O(d) call stack depth
 // ─────────────────────────────────────────────
 function multiply(a, b) { return a * b; }
 function square(n) { return multiply(n, n); }
@@ -136,6 +154,9 @@ printSquare(5);
 
 // ─────────────────────────────────────────────
 // Q7. Non-blocking I/O with callbacks
+// WHAT: Why can Node.js handle thousands of concurrent I/O operations without blocking?
+// THEORY: I/O operations delegated to libuv thread pool or OS async syscalls. Main thread registers callback and continues. When I/O completes, callback queued in poll phase
+// Time: O(1) per operation  Space: O(n) for n concurrent operations
 // ─────────────────────────────────────────────
 const path = require("path");
 
@@ -153,8 +174,11 @@ function readFileAsync(filePath, callback) {
 
 // ─────────────────────────────────────────────
 // Q8. Worker Threads for CPU-intensive tasks
-// Use when: computation blocks event loop > 100ms
+// WHAT: When should Worker Threads be used in Node.js instead of relying on the event loop?
+// THEORY: Use for CPU-intensive work blocking event loop >100ms (image processing, crypto, complex calculations). Do NOT use for I/O (async model is efficient). Off-load computation to separate JS thread with separate event loop
+// Time: O(1) spawn  Space: O(m) per m worker threads
 // ─────────────────────────────────────────────
+// Use when: computation blocks event loop > 100ms
 const { Worker, isMainThread, parentPort, workerData } = require("worker_threads");
 
 if (isMainThread) {

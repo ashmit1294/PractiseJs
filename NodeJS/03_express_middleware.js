@@ -18,6 +18,9 @@ const app = express();
 
 // ─────────────────────────────────────────────
 // Q1. Write a custom logging middleware
+// WHAT: How do you log HTTP requests with method, URL, status code, and response time?
+// THEORY: Intercept res.end using bind(), record start time, calculate duration. Call next() to pass to next middleware
+// Time: O(1)  Space: O(1)
 // ─────────────────────────────────────────────
 function logger(req, res, next) {
   const start = Date.now();
@@ -37,6 +40,9 @@ app.use(logger);
 
 // ─────────────────────────────────────────────
 // Q2. Authentication middleware (JWT)
+// WHAT: How do you validate JWT tokens in Express middleware to protect routes?
+// THEORY: Extract Bearer token from Authorization header, verify with jwt.verify(). Attach decoded user to req.user. Throw on invalid/expired token for error handler. Return 401/403 errors
+// Time: O(1) verification  Space: O(1) token storage in req
 // ─────────────────────────────────────────────
 const jwt = require("jsonwebtoken");
 
@@ -73,6 +79,9 @@ function authorize(...roles) {
 
 // ─────────────────────────────────────────────
 // Q3. Rate limiting middleware (implement from scratch)
+// WHAT: How do you implement a rate limiter to throttle API requests per IP address?
+// THEORY: Track IP in Map with count+resetAt. Check current count. Return 429 if exceeded. Reset window when expired. Prevents brute-force attacks
+// Time: O(1) per request  Space: O(m) for m unique IPs
 // ─────────────────────────────────────────────
 function createRateLimiter({ windowMs = 60000, max = 100 } = {}) {
   const clients = new Map(); // ip → { count, resetAt }
@@ -101,6 +110,9 @@ app.use("/api/", createRateLimiter({ windowMs: 60000, max: 60 }));
 
 // ─────────────────────────────────────────────
 // Q4. Input validation middleware
+// WHAT: How do you validate request body fields before processing in Express?
+// THEORY: Define schema with rules (required, type, minLength, maxLength, pattern). Iterate fields, collect errors. Return 400 with errors or pass to next. Reusable across routes
+// Time: O(f) fields  Space: O(e) error messages
 // ─────────────────────────────────────────────
 function validate(schema) {
   return (req, res, next) => {
@@ -143,7 +155,9 @@ const userSchema = {
 
 // ─────────────────────────────────────────────
 // Q5. Error handling middleware (4 args)
-// MUST be registered LAST with 4 parameters
+// WHAT: How do you catch and handle errors globally in Express with proper error handler registration?
+// THEORY: 4-argument middleware (err, req, res, next). Log errors for debugging. Return known errors with details, hide programming errors. Register LAST after all routes
+// Time: O(1)  Space: O(1) response
 // ─────────────────────────────────────────────
 class AppError extends Error {
   constructor(message, statusCode = 500, code = "INTERNAL_ERROR") {
@@ -185,6 +199,9 @@ app.use(errorHandler); // register last!
 
 // ─────────────────────────────────────────────
 // Q6. Router pattern — modular routes
+// WHAT: How do you organize Express routes into reusable, modular routers?
+// THEORY: Create express.Router(), add middleware and routes to it, mount with app.use(path, router). Encapsulates routes, middleware, auth. Compose multiple routers into main app
+// Time: O(1) mounting  Space: O(r) routers + routes
 // ─────────────────────────────────────────────
 const usersRouter = express.Router();
 
@@ -216,6 +233,9 @@ app.use("/api/users", usersRouter);
 
 // ─────────────────────────────────────────────
 // Q7. CORS middleware
+// WHAT: How do you handle Cross-Origin Resource Sharing (CORS) to allow requests from specific origins?
+// THEORY: Check request origin against whitelist. Set Access-Control headers in response. Handle OPTIONS preflight requests. Return 204 for preflight or pass to next
+// Time: O(1)  Space: O(1)
 // ─────────────────────────────────────────────
 function corsMiddleware(options = {}) {
   const {

@@ -17,8 +17,9 @@ const pipelineAsync = promisify(pipeline);
 
 // ─────────────────────────────────────────────
 // Q1. Reading a large file with streams
-// Without streams: reads entire file into memory
-// With streams: reads in 16KB chunks (highWaterMark default)
+// WHAT: How can streams read large files without loading entire file into memory?
+// THEORY: Streams read in 16KB chunks (highWaterMark default), process piece-by-piece. With for-await loop, memory usage stays constant regardless of file size
+// Time: O(n) file size  Space: O(c) constant chunk size
 // ─────────────────────────────────────────────
 
 // BAD for large files — reads ALL into RAM
@@ -44,7 +45,9 @@ async function countLines(filePath) {
 
 // ─────────────────────────────────────────────
 // Q2. Pipe — chain streams
-// pipe() handles backpressure automatically
+// WHAT: How does pipe() connect streams and what problem does it solve?
+// THEORY: pipe() chain multiple streams (source → transform → destination). Automatically handles backpressure so slow consumers pause fast producers. Prevents memory overflow
+// Time: O(n) total data  Space: O(c) buffered chunks
 // ─────────────────────────────────────────────
 async function compressFile(inputPath, outputPath) {
   const zlib = require("zlib");
@@ -59,7 +62,9 @@ async function compressFile(inputPath, outputPath) {
 
 // ─────────────────────────────────────────────
 // Q3. Custom Readable stream
-// Push data into the stream via _read() or push()
+// WHAT: How do you create a custom Readable stream that generates or transforms data?
+// THEORY: Extend Readable class, implement _read() method. Call this.push(data) to emit data, this.push(null) to signal EOF. objectMode for non-buffer values
+// Time: O(1) per _read call  Space: O(1) per chunk
 // ─────────────────────────────────────────────
 class CounterStream extends Readable {
   constructor(max, options = {}) {
@@ -85,6 +90,9 @@ class CounterStream extends Readable {
 
 // ─────────────────────────────────────────────
 // Q4. Custom Writable stream
+// WHAT: How do you create a custom Writable stream that receives and processes data?
+// THEORY: Extend Writable class, implement _write(chunk, encoding, callback). MUST call callback() to signal ready for next chunk. _final() runs on stream.end()
+// Time: O(1) per _write call  Space: O(m) accumulated in items array
 // ─────────────────────────────────────────────
 class ArrayCollector extends Writable {
   constructor(options) {
@@ -105,7 +113,9 @@ class ArrayCollector extends Writable {
 
 // ─────────────────────────────────────────────
 // Q5. Custom Transform stream
-// Reads data from one side, emits different data on the other
+// WHAT: How do you create a stream that reads input and emits transformed output?
+// THEORY: Extend Transform class, implement _transform(chunk, encoding, callback). Call this.push(transformed) to emit result. _flush(callback) runs on end for final output
+// Time: O(n) input size  Space: O(c) buffered chunks
 // ─────────────────────────────────────────────
 
 // Uppercase transformer
@@ -154,7 +164,9 @@ class CsvToJson extends Transform {
 
 // ─────────────────────────────────────────────
 // Q6. Backpressure handling
-// When consumer is slower than producer, Writable signals to pause
+// WHAT: What is backpressure and how do streams prevent memory overflow from fast producers?
+// THEORY: write() returns false when buffer full (backpressure signal). Pause consumer, listen to 'drain' event to resume. pipeline() automates this. Prevents OOM errors
+// Time: O(1) per write  Space: O(b) internal buffer size
 // ─────────────────────────────────────────────
 function writeWithBackpressure(readable, writable) {
   readable.on("data", (chunk) => {
@@ -175,6 +187,9 @@ function writeWithBackpressure(readable, writable) {
 
 // ─────────────────────────────────────────────
 // Q7. Buffer basics
+// WHAT: How does Node.js Buffer work and why is it needed for binary data?
+// THEORY: Buffer = fixed-size raw binary data outside V8 heap. Needed for files, crypto, network (non-text). Buffer.from/alloc/allocUnsafe for creation. toString/toJSON for conversion
+// Time: O(n) for copy/concat  Space: O(n) buffer size
 // ─────────────────────────────────────────────
 
 // Create a buffer
@@ -202,6 +217,9 @@ buf1.copy(copy, 0, 0, 5);
 
 // ─────────────────────────────────────────────
 // Q8. Streaming HTTP response
+// WHAT: How do streams improve HTTP response handling for large data?
+// THEORY: Instead of buffering entire response in memory, stream produces data as client consumes. Listen to 'close' for early disconnection. Reduces memory and latency
+// Time: O(n) total data  Space: O(c) buffered chunks sent per tick
 // ─────────────────────────────────────────────
 const http = require("http");
 
