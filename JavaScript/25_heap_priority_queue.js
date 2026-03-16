@@ -19,6 +19,7 @@
 
 // ─────────────────────────────────────────────
 // Q1. Min-Heap Implementation
+// WHAT: Build min-heap with insert/extract-min operations? THEORY: Array representation. Insert→bubbleUp O(log n). Extract→replace with last, siftDown O(log n).
 // ─────────────────────────────────────────────
 class MinHeap {
   constructor() {
@@ -72,6 +73,7 @@ class MinHeap {
 
 // ─────────────────────────────────────────────
 // Q2. Max-Heap Implementation
+// WHAT: Build max-heap with insert/extract-max operations? THEORY: Same as min-heap but reverse comparisons. bubbleUp/siftDown check parent ≥ children.
 // ─────────────────────────────────────────────
 class MaxHeap {
   constructor() { this.heap = []; }
@@ -116,6 +118,7 @@ class MaxHeap {
 }
 
 // ─────────────────────────────────────────────
+// WHAT: Generic PQ with custom priority via comparator? THEORY: Heap with comparator function. enqueue/dequeue O(log n). Flexible min/max/custom ordering.
 // Q3. Priority Queue (generic comparator)
 // ─────────────────────────────────────────────
 class PriorityQueue {
@@ -162,6 +165,7 @@ class PriorityQueue {
   }
 }
 
+// WHAT: Find Kth largest element efficiently? THEORY: Min-heap of size K. Maintain k largest, root is kth. O(n log k).
 // ─────────────────────────────────────────────
 // Q4. Kth Largest Element in Array
 // Input: [3,2,1,5,6,4], k=2 → Output: 5
@@ -175,7 +179,8 @@ function findKthLargest(nums, k) {
   }
   return minHeap.peek(); // root is kth largest
 }
-
+WHAT: Find K most frequent elements using heap? THEORY: Count frequencies in Map. Min-heap (freq) keep K most frequent. O(n log k).
+// 
 // ─────────────────────────────────────────────
 // Q5. Top K Frequent Elements
 // Input: [1,1,1,2,2,3], k=2 → Output: [1,2]
@@ -194,7 +199,9 @@ function topKFrequent(nums, k) {
   const result = [];
   while (pq.size) result.push(pq.dequeue()[0]);
   return result.reverse(); // most frequent first
-}
+}─────────────────────────────────────────────
+// Q6. Merge K Sorted Arrays using Min-Heap
+// WHAT: Merge K sorted arrays efficiently? THEORY: Min-heap tracks (value, arrayIdx, elemIdx). Extract min, enqueue next element. O(n log K).
 
 // ─────────────────────────────────────────────
 // Q6. Merge K Sorted Arrays using Min-Heap
@@ -217,7 +224,8 @@ function mergeKSortedArrays(arrays) {
       pq.enqueue([arrays[arrIdx][elemIdx + 1], arrIdx, elemIdx + 1]);
     }
   }
-  return result;
+  rWHAT: Find running median from stream of numbers? THEORY: Two heaps (lower max, upper min). Maintain balance ≤→≥. Odd size = lower.peek, even = avg.
+// eturn result;
 }
 
 // ─────────────────────────────────────────────

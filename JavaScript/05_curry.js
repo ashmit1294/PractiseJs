@@ -10,6 +10,9 @@
 
 // ─────────────────────────────────────────────
 // APPROACH 1: Basic curry (auto-detects arity via fn.length)
+// WHAT: How to transform f(a,b,c) into f(a)(b)(c)?
+// THEORY: Check if received args >= fn.length (arity). If yes → call. Else → return function to collect more.
+//         fn.length = function's parameter count. Recursive accumulation.
 // ─────────────────────────────────────────────
 function curry(fn) {
   return function curried(...args) {
@@ -24,6 +27,9 @@ function curry(fn) {
 
 // ─────────────────────────────────────────────
 // APPROACH 2: Partial application (like curry but flexible)
+// WHAT: How to preset some arguments and return a function for remaining?
+// THEORY: Capture preset args in closure. New function receives remaining args + combines both.
+//         Similar to curry but doesn't check arity. Can partially apply any number of arguments.
 // ─────────────────────────────────────────────
 function partial(fn, ...presetArgs) {
   return function (...laterArgs) {
@@ -33,7 +39,9 @@ function partial(fn, ...presetArgs) {
 
 // ─────────────────────────────────────────────
 // APPROACH 3: Infinite curry — sum(1)(2)(3)()
-// Call with no args to get the result
+// WHAT: How to support curry with no defined arity, terminating with empty call?
+// THEORY: Accumulate args in closure. If empty call → flush and evaluate. Else → append + return curried.
+//         Useful for sum(a)(b)(c)() pattern. Flexible argument count.
 // ─────────────────────────────────────────────
 function infiniteCurry(fn) {
   let allArgs = [];
@@ -51,7 +59,9 @@ function infiniteCurry(fn) {
 
 // ─────────────────────────────────────────────
 // APPROACH 4: sum(1)(2)(3) — returns number when called with no args
-// Classic interview question variant
+// WHAT: How to support sum(1)(2)(3) that returns a number (not a function)?
+// THEORY: Return value or function based on input. If b === undefined → return accumulated sum. Else → recurse with b.
+//         Classic interview pattern. Relies on value vs function behavior.
 // ─────────────────────────────────────────────
 function sum(a) {
   return function (b) {

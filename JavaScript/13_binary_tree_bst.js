@@ -34,6 +34,7 @@ function buildTree(arr) {
 
 // ─────────────────────────────────────────────
 // Q1. Tree Traversals (Inorder, Preorder, Postorder)
+// WHAT: Traverse tree in different orders? THEORY: Inorder (left-root-right): BST gives sorted order. Preorder (root-first): useful for cloning. Postorder (children-first): useful for deletion.
 // ─────────────────────────────────────────────
 
 // Recursive
@@ -67,7 +68,7 @@ function inorderIterative(root) {
 
 // ─────────────────────────────────────────────
 // Q2. Level Order Traversal (BFS)
-// Returns array of arrays — one per level
+// WHAT: Traverse tree level by level? THEORY: Use queue to process nodes. Track level size to group nodes by depth. Each iteration processes one level.
 // ─────────────────────────────────────────────
 function levelOrder(root) {
   if (!root) return [];
@@ -90,6 +91,7 @@ function levelOrder(root) {
 
 // ─────────────────────────────────────────────
 // Q3. Max Depth / Height of Binary Tree
+// WHAT: Find maximum depth of tree? THEORY: Recursively compute max depth of left and right subtrees. Return 1 + max of both. O(n) time.
 // ─────────────────────────────────────────────
 function maxDepth(root) {
   if (!root) return 0;
@@ -97,7 +99,7 @@ function maxDepth(root) {
 }
 
 // ─────────────────────────────────────────────
-// Q4. Check if tree is balanced
+// WHAT: Check if tree is height-balanced? THEORY: At each node, height difference ≤ 1. Return -1 if unbalanced. O(n) time, bottom-up approach.
 // A tree is balanced if height difference of left/right ≤ 1
 // ─────────────────────────────────────────────
 function isBalanced(root) {
@@ -114,7 +116,7 @@ function isBalanced(root) {
 }
 
 // ─────────────────────────────────────────────
-// Q5. Diameter of Binary Tree
+// WHAT: Find longest path between any two nodes? THEORY: Track max diameter: left_depth + right_depth. Update max at each node. O(n) single pass.
 // Longest path between any two nodes
 // ─────────────────────────────────────────────
 function diameterOfBinaryTree(root) {
@@ -133,6 +135,7 @@ function diameterOfBinaryTree(root) {
 }
 
 // ─────────────────────────────────────────────
+// WHAT: Find lowest common ancestor of two nodes? THEORY: If found both on opposite sides, node is LCA. Recurse left/right. Return non-null result.
 // Q6. Lowest Common Ancestor (LCA)
 // ─────────────────────────────────────────────
 function lowestCommonAncestor(root, p, q) {
@@ -143,6 +146,7 @@ function lowestCommonAncestor(root, p, q) {
   return left || right;
 }
 
+// WHAT: View tree from right side—which nodes are visible? THEORY: Level-order traversal. At each level, capture rightmost node. O(n) time.
 // ─────────────────────────────────────────────
 // Q7. Binary Tree Right Side View
 // ─────────────────────────────────────────────
@@ -162,7 +166,7 @@ function rightSideView(root) {
   return result;
 }
 
-// ─────────────────────────────────────────────
+// WHAT: Check if tree is valid BST? THEORY: Track valid range (min, max) for each node. Left subtree must be in (min, root), right in (root, max).
 // Q8. Validate Binary Search Tree
 // BST property: left < root < right (all subtrees)
 // ─────────────────────────────────────────────
@@ -173,6 +177,7 @@ function isValidBST(root, min = -Infinity, max = Infinity) {
          isValidBST(root.right, root.val, max);
 }
 
+// WHAT: Find root-to-leaf path with target sum? THEORY: DFS from root, subtract node value. At leaf, check if sum equals value. Backtrack on return.
 // ─────────────────────────────────────────────
 // Q9. Path Sum — check if root-to-leaf path has given sum
 // ─────────────────────────────────────────────
@@ -201,7 +206,8 @@ function pathSumAll(root, target) {
   dfs(root, target, []);
   return results;
 }
-
+WHAT: Convert tree to string and back? THEORY: Preorder traversal with null markers. Use counter to track position. Rebuild recursively from serialized data.
+// 
 // ─────────────────────────────────────────────
 // Q10. Serialize and Deserialize Binary Tree
 // ─────────────────────────────────────────────

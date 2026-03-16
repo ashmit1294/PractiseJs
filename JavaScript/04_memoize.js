@@ -10,6 +10,9 @@
 
 // ─────────────────────────────────────────────
 // APPROACH 1: Basic memoize (single argument)
+// WHAT: How to cache function results to avoid recomputation?
+// THEORY: Use Map to store arg → result. First call computes + stores. Next calls with same arg return cached result.
+//         Trades memory for speed. Effective for pure functions.
 // ─────────────────────────────────────────────
 function memoize(fn) {
   const cache = new Map();
@@ -27,7 +30,9 @@ function memoize(fn) {
 
 // ─────────────────────────────────────────────
 // APPROACH 2: Memoize with multiple arguments
-// Serialize args as a cache key
+// WHAT: How to memoize functions with multiple arguments?
+// THEORY: JSON.stringify(args) creates cache key from all args. Works for primitives + plain objects.
+//         Each unique args combination has its own cached result.
 // ─────────────────────────────────────────────
 function memoizeMultiArg(fn) {
   const cache = new Map();
@@ -45,6 +50,9 @@ function memoizeMultiArg(fn) {
 
 // ─────────────────────────────────────────────
 // APPROACH 3: Memoize with custom resolver (like lodash)
+// WHAT: How to use custom logic to generate cache keys?
+// THEORY: resolver function generates key from args. Provides flexibility for complex key generation.
+//         Expose cache property to allow external clearing (e.g., memoized.cache.clear()).
 // ─────────────────────────────────────────────
 function memoizeWithResolver(fn, resolver) {
   const cache = new Map();
@@ -63,7 +71,9 @@ function memoizeWithResolver(fn, resolver) {
 
 // ─────────────────────────────────────────────
 // CLASSIC EXAMPLE: Memoized Fibonacci
-// Without memo: O(2^n)  With memo: O(n)
+// WHAT: Why is memoization powerful for recursive problems?
+// THEORY: Without memo: Recomputes same subproblems = O(2^n). With memo: Each n computed once = O(n).
+//         Demonstrates exponential benefit of caching overlapping subproblems.
 // ─────────────────────────────────────────────
 function makeFibMemoized() {
   const cache = {};

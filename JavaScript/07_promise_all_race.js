@@ -8,8 +8,9 @@
 
 // ─────────────────────────────────────────────
 // 1. Promise.all
-// Resolves when ALL promises resolve.
-// Rejects immediately if ANY promise rejects.
+// WHAT: How to wait for ALL promises and fail on first rejection?
+// THEORY: Track resolved count + results array. If any rejects → reject immediately. When resolved count = length → resolve with results.
+//         Short-circuits on first rejection. Returns in order.
 // ─────────────────────────────────────────────
 function promiseAll(promises) {
   return new Promise((resolve, reject) => {
@@ -30,7 +31,9 @@ function promiseAll(promises) {
 
 // ─────────────────────────────────────────────
 // 2. Promise.race
-// Resolves/rejects with the FIRST settled promise.
+// WHAT: How to wait for the FIRST promise to settle?
+// THEORY: Attach .then/.catch to each promise. Whichever resolves/rejects first wins. Others ignored afterward.
+//         Simple forEach, no counters needed. Fast failure or value.
 // ─────────────────────────────────────────────
 function promiseRace(promises) {
   return new Promise((resolve, reject) => {
@@ -42,8 +45,9 @@ function promiseRace(promises) {
 
 // ─────────────────────────────────────────────
 // 3. Promise.allSettled
-// Waits for ALL promises to settle (resolve or reject).
-// Never rejects. Returns array of {status, value/reason}.
+// WHAT: How to collect results from ALL promises, even if some reject?
+// THEORY: Track settled count + results array. Each promise → .then/.catch + .finally. Never reject, append {status, value/reason}.
+//         Resolve only when settled count = length. Returns status + result for each.
 // ─────────────────────────────────────────────
 function promiseAllSettled(promises) {
   return new Promise((resolve) => {
@@ -70,8 +74,9 @@ function promiseAllSettled(promises) {
 
 // ─────────────────────────────────────────────
 // 4. Promise.any
-// Resolves with the FIRST fulfilled promise.
-// Rejects only if ALL promises reject (AggregateError).
+// WHAT: How to resolve with the FIRST fulfilled promise, rejecting only if all fail?
+// THEORY: Track rejectedCount + errors array. If any fulfills → resolve immediately. If rejected count = length → reject AggregateError.
+//         Opposite of .all. Ignore rejections until all fail.
 // ─────────────────────────────────────────────
 function promiseAny(promises) {
   return new Promise((resolve, reject) => {

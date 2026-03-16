@@ -15,6 +15,7 @@
 
 // ─────────────────────────────────────────────
 // Q1. Build Graph from Edge List
+// WHAT: Convert edge list to adjacency list representation? THEORY: Map each node to neighbors. For undirected, add edges both ways. O(e) where e=edges.
 // ─────────────────────────────────────────────
 function buildGraph(edges, directed = false) {
   const graph = new Map();
@@ -30,7 +31,7 @@ function buildGraph(edges, directed = false) {
 
 // ─────────────────────────────────────────────
 // Q2. BFS — Breadth First Search
-// Level-order traversal. Finds shortest path.
+// WHAT: Traverse graph level by level finding shortest path? THEORY: Queue-based. Visit node, add unvisited neighbors. O(V+E) time.
 // ─────────────────────────────────────────────
 function bfs(graph, start) {
   const visited = new Set([start]);
@@ -52,6 +53,7 @@ function bfs(graph, start) {
 
 // ─────────────────────────────────────────────
 // Q3. DFS — Depth First Search (iterative + recursive)
+// WHAT: Traverse graph going deep first? THEORY: Stack (iterative) or recursion. Mark visited. O(V+E) time.  
 // ─────────────────────────────────────────────
 function dfsIterative(graph, start) {
   const visited = new Set();
@@ -82,7 +84,7 @@ function dfsRecursive(graph, node, visited = new Set()) {
 }
 
 // ─────────────────────────────────────────────
-// Q4. Shortest Path (BFS — unweighted graph)
+// WHAT: Find distances from source to all nodes? THEORY: BFS computes shortest path. Store distance to each visited node. O(V+E) time.
 // Returns distance map from source to all nodes
 // ─────────────────────────────────────────────
 function shortestPath(graph, start) {
@@ -102,6 +104,7 @@ function shortestPath(graph, start) {
 }
 
 // ─────────────────────────────────────────────
+// WHAT: Check if path exists between two nodes? THEORY: DFS/BFS. If reached destination return true. If exhausted without finding, return false. O(V+E).
 // Q5. Has Path — does path exist between source and dest?
 // ─────────────────────────────────────────────
 function hasPath(graph, src, dst, visited = new Set()) {
@@ -115,6 +118,7 @@ function hasPath(graph, src, dst, visited = new Set()) {
 }
 
 // ─────────────────────────────────────────────
+// WHAT: Count connected components in graph? THEORY: Union-Find: merge connected nodes, count distinct roots. O((V+E)α(V)) amortized.
 // Q6. Number of Connected Components
 // ─────────────────────────────────────────────
 function countComponents(n, edges) {
@@ -142,7 +146,7 @@ function countComponents(n, edges) {
 
 // ─────────────────────────────────────────────
 // Q7. Detect Cycle in Directed Graph (DFS + coloring)
-// 0 = unvisited, 1 = in stack (gray), 2 = done (black)
+// WHAT: Check if directed graph has cycle? THEORY: 3-color nodes: white (unvisited), gray (in-progress), black (done). Back edge to gray = cycle. O(V+E).
 // ─────────────────────────────────────────────
 function hasCycleDirected(graph) {
   const color = new Map();
@@ -163,8 +167,7 @@ function hasCycleDirected(graph) {
   return false;
 }
 
-// ─────────────────────────────────────────────
-// Q8. Topological Sort (Kahn's Algorithm — BFS)
+// WHAT: Order nodes such that edges go left-to-right (DAG only)? THEORY: In-degree-based. Start nodes with 0 in-degree. Reduce neighbors' in-degree. O(V+E).
 // Only for Directed Acyclic Graphs (DAG)
 // Use case: task scheduling, build systems, course prerequisites
 // ─────────────────────────────────────────────
@@ -196,8 +199,7 @@ function topologicalSort(numCourses, prerequisites) {
 
 // ─────────────────────────────────────────────
 // Q9. Number of Islands (Grid BFS/DFS)
-// Input: 2D grid of '1' (land) and '0' (water)
-// Count connected components of land
+// WHAT: Count connected components of land in 2D grid? THEORY: DFS from each unvisited land cell, mark all connected as visited. O(rows*cols).
 // ─────────────────────────────────────────────
 function numIslands(grid) {
   let count = 0;

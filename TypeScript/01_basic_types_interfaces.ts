@@ -13,6 +13,10 @@
 
 // ─────────────────────────────────────────────
 // Q1. Primitive types
+// WHAT: What types should you use and when does TypeScript infer them?
+// THEORY: Explicit annotations only needed when inference fails (usually function params/returns).
+//         any = no type checking (avoid). unknown = type-safe alternative (must narrow). 
+//         never = impossible value. void = no return.
 // ─────────────────────────────────────────────
 
 // TypeScript infers types; explicit annotations only needed when inference is weak
@@ -46,9 +50,11 @@ function logMessage(msg: string): void {
 
 // ─────────────────────────────────────────────
 // Q2. Interface vs type alias
+// WHAT: Should you use interface or type for object shapes?
+// THEORY: interface = for object shapes, supports extends + declaration merging. 
+//         type = more flexible (unions, intersections, mapped, conditional). 
+//         Use interface in public APIs (clearer intent). Use type for complex compositions.
 // ─────────────────────────────────────────────
-
-// INTERFACE — can be extended and re-declared (declaration merging)
 interface User {
   id: string;
   email: string;
@@ -79,10 +85,11 @@ type AdminUser = User & { role: string; permissions: string[] };
 
 // ─────────────────────────────────────────────
 // Q3. Optional, readonly, and index signatures
+// WHAT: How do you make properties optional or immutable? How do you support dynamic property names?
+// THEORY: ? = optional (string | undefined). readonly = can't reassign. 
+//         [key: string]: type = any string key allowed. Record<string, type> = cleaner syntax.
 // ─────────────────────────────────────────────
-
-interface Product {
-  readonly id: string;       // cannot be reassigned after creation
+  {readonly id: string;       // cannot be reassigned after creation
   name: string;
   price: number;
   description?: string;      // optional — type is string | undefined
@@ -105,9 +112,10 @@ type UserRoles = Record<string, "admin" | "user" | "guest">;
 
 // ─────────────────────────────────────────────
 // Q4. Function types
+// WHAT: How do you type functions with specific param and return types?
+// THEORY: Type alias: (a: T, b: T) => R. Overloads: multiple signatures, one implementation. 
+//         Call signature: interface with (params): R + extra properties. Rest params: (...args: T[]): R.
 // ─────────────────────────────────────────────
-
-// Function type alias
 type Comparator<T> = (a: T, b: T) => number;
 type Predicate<T> = (value: T) => boolean;
 type Mapper<A, B> = (value: A) => B;
@@ -135,9 +143,10 @@ function sum(...nums: number[]): number {
 
 // ─────────────────────────────────────────────
 // Q5. Union and intersection types
+// WHAT: How do you combine types? When is type narrowing needed?
+// THEORY: Union: one of several (a | b | c). Discriminated union: each variant has unique literal for narrowing.
+//         Intersection: both constraints (A & B). Narrowing: if/typeof/switch to refine union type.
 // ─────────────────────────────────────────────
-
-type StringOrNumber = string | number;
 type Status = "active" | "inactive" | "pending";
 
 // Discriminated union — each variant has a unique literal discriminant
@@ -166,9 +175,10 @@ type SerialLoggable = Serialisable & Loggable;
 
 // ─────────────────────────────────────────────
 // Q6. Literal types and const assertion
+// WHAT: How do you constrain to exact values instead of broad types?
+// THEORY: Literal type: specific value only ("north" not string). as const: narrows object/array to exact literals.
+//         Prevents accidental reassignment. Useful for routes, constants. Creates readonly structure.
 // ─────────────────────────────────────────────
-
-// Literal type — only one specific value is allowed
 const direction: "north" | "south" | "east" | "west" = "north";
 
 // as const — narrows types to their exact literal values
@@ -187,9 +197,10 @@ const coords = [51.5074, -0.1278] as const; // readonly [51.5074, -0.1278]
 
 // ─────────────────────────────────────────────
 // Q7. Tuple types
+// WHAT: How do you type fixed-length arrays with different types per position?
+// THEORY: Tuple: fixed length [T1, T2, T3]. Rest elements: [T, ...T[]] for variable length.
+//         Named elements: [key: K, value: V] for clarity. Common: useState returns [value, setter, updater].
 // ─────────────────────────────────────────────
-
-type Pair<T, U> = [T, U];
 type RGB = [number, number, number];
 type Entry<K, V> = [key: K, value: V]; // named tuple elements
 
@@ -211,9 +222,10 @@ const [count, inc, dec] = useCounter(10);
 
 // ─────────────────────────────────────────────
 // Q8. Enum vs const enum vs union literal
+// WHAT: When should you use enum? What's the difference?
+// THEORY: enum = runtime object (overhead). const enum = inlined at compile, no object (preferred).
+//         Union literal: "A" | "B" | "C" = simplest, most flexible. Rule: prefer union literals.
 // ─────────────────────────────────────────────
-
-// Regular enum — generates a runtime object (two-way mapping for numeric)
 enum Direction {
   Up,    // 0
   Down,  // 1

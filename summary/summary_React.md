@@ -1,6 +1,13 @@
 ﻿# React — Interview Revision Summary
 
-> **Target:** 7+ year Full Stack MERN Developer | **Files:** 10
+> **Target:** 7+ year Full Stack MERN Developer | **Status:** ✅ All hooks patterns enriched with WHAT/THEORY | **Files:** 10
+
+## Update Notes
+
+🔄 **Latest Enhancement (March 2026):**
+- File 01_useState_useEffect.jsx: All 8 React hooks questions enriched with WHAT/THEORY format
+- Each question includes core problem and 2-3 theory bullet points
+- Examples: Stale closures, state merging, cleanup patterns, batching
 
 ## Table of Contents
 

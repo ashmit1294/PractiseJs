@@ -7,6 +7,7 @@
 
 // ─────────────────────────────────────────────
 // Q1. pipe — left-to-right function composition
+// WHAT: Compose functions executing left-to-right? THEORY: Pass value through function sequence. Each output = next input. pipe(f,g,h)(x) = h(g(f(x))).
 // pipe(f, g, h)(x) = h(g(f(x)))
 // ─────────────────────────────────────────────
 function pipe(...fns) {
@@ -16,6 +17,7 @@ function pipe(...fns) {
 }
 
 // Q2. compose — right-to-left (mathematical convention)
+// WHAT: Compose functions executing right-to-left? THEORY: compose(f,g,h)(x) = f(g(h(x))). Mathematical notation. Opposite of pipe.
 // compose(f, g, h)(x) = f(g(h(x)))
 function compose(...fns) {
   return function (value) {
@@ -25,6 +27,7 @@ function compose(...fns) {
 
 // ─────────────────────────────────────────────
 // Q3. groupBy — group array elements by a key function
+// WHAT: Group array elements by result of key function? THEORY: Reduce array, compute key for each, append to bucket. O(n) time.
 // groupBy([6.1, 4.2, 6.3], Math.floor) → { 6: [6.1,6.3], 4: [4.2] }
 // ─────────────────────────────────────────────
 function groupBy(arr, fn) {
@@ -38,6 +41,7 @@ function groupBy(arr, fn) {
 
 // ─────────────────────────────────────────────
 // Q4. chunk — split array into chunks of size n
+// WHAT: Split array into subarrays of size n? THEORY: Iterate step n, slice from i to i+n. Last chunk may be smaller. O(n).
 // chunk([1,2,3,4,5], 2) → [[1,2],[3,4],[5]]
 // ─────────────────────────────────────────────
 function chunk(arr, size) {
@@ -49,6 +53,7 @@ function chunk(arr, size) {
 }
 
 // ─────────────────────────────────────────────
+// WHAT: Transpose multiple arrays (zip/unzip)? THEORY: zip: take i-th elem from each array. min length determines result size. O(n*m).
 // Q5. zip — combine corresponding elements from multiple arrays
 // zip([1,2,3], ['a','b','c']) → [[1,'a'],[2,'b'],[3,'c']]
 // ─────────────────────────────────────────────
@@ -64,6 +69,7 @@ function unzip(arr) {
 }
 
 // ─────────────────────────────────────────────
+// WHAT: Flatten nested object to dot-notation keys? THEORY: Recursive traversal. For objects, recurse with prefixed keys. For values, assign. O(n).
 // Q6. flatten object (nested → flat with dot notation keys)
 // { a: { b: { c: 1 } } } → { 'a.b.c': 1 }
 // ─────────────────────────────────────────────
@@ -92,6 +98,7 @@ function unflattenObject(obj) {
   }, {});
 }
 
+// WHAT: Deep structural comparison vs shallow equality? THEORY: Recursive comparison handling arrays/objects. Check types, keys, values recursively. O(n).
 // ─────────────────────────────────────────────
 // Q7. Deep Equal — compare two values structurally
 // ─────────────────────────────────────────────
@@ -115,6 +122,7 @@ function deepEqual(a, b) {
   return false;
 }
 
+// WHAT: Difference by transformed value? THEORY: Apply iteratee to arr2, put results in Set. Filter arr1 on iteratee not in set. O(n).
 // ─────────────────────────────────────────────
 // Q8. differenceBy — elements in arr1 not in arr2 by iteratee
 // differenceBy([2.1,1.2], [2.3,3.4], Math.floor) → [1.2]
@@ -124,6 +132,7 @@ function differenceBy(arr1, arr2, fn) {
   return arr1.filter((item) => !set2.has(fn(item)));
 }
 
+// WHAT: Publish-subscribe event system? THEORY: Map event names to callbacks. on/off/emit methods. once(r) wraps listener to self-remove. O(1) emit.
 // ─────────────────────────────────────────────
 // Q9. Custom Event Emitter (Observer pattern)
 // ─────────────────────────────────────────────
@@ -169,7 +178,8 @@ class EventEmitter {
     return (this._listeners.get(event) || []).length;
   }
 }
-
+WHAT: Reactive pattern with subscribers and operators? THEORY: Lazy subscription. Subscriber object with next/error/complete. Chainable operators (map, filter). Async handling.
+// 
 // ─────────────────────────────────────────────
 // Q10. Implement Observable (simplified RxJS-like)
 // ─────────────────────────────────────────────

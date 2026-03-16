@@ -5,6 +5,7 @@
 
 // ─────────────────────────────────────────────
 // Q1. Chunk Array into groups of size n
+// WHAT: Split array into subarrays of size n? THEORY: Iterate by size steps, slice chunks. Last chunk may be smaller. O(n).
 // chunk([1,2,3,4,5], 2) → [[1,2],[3,4],[5]]
 // ─────────────────────────────────────────────
 function chunk(arr, size) {
@@ -17,6 +18,7 @@ function chunk(arr, size) {
 
 // ─────────────────────────────────────────────
 // Q2. Get unique values (deduplicate)
+// WHAT: Remove duplicates from array? THEORY: Use Set (dedup) or filter with seen Set (for objects). O(n).
 // ─────────────────────────────────────────────
 function unique(arr) {
   return [...new Set(arr)];
@@ -34,6 +36,7 @@ function uniqueBy(arr, fn) {
 }
 
 // ─────────────────────────────────────────────
+// WHAT: Find common elements across multiple arrays? THEORY: convert each to Set, filter by membership. O(n*m).
 // Q3. Intersection of multiple arrays
 // intersection([1,2,3], [2,3,4], [2,5]) → [2]
 // ─────────────────────────────────────────────
@@ -45,6 +48,7 @@ function intersection(...arrays) {
 }
 
 // ─────────────────────────────────────────────
+// WHAT: Rotate array right by k positions in-place? THEORY: Reverse entire array, then reverse [0..k-1], then [k..n-1]. O(n), O(1) space.
 // Q4. Rotate Array by k positions (in-place)
 // Input: [1,2,3,4,5,6,7], k=3 → [5,6,7,1,2,3,4]
 // ─────────────────────────────────────────────
@@ -65,6 +69,7 @@ function rotateArray(nums, k) {
   return nums;
 }
 
+// WHAT: Unbiased random shuffle? THEORY: Fisher-Yates: iterate backward, swap i with random j∈[0..i]. O(n) unbiased.
 // ─────────────────────────────────────────────
 // Q5. Shuffle Array — Fisher-Yates Algorithm
 // Unbiased O(n) shuffle
@@ -78,6 +83,7 @@ function shuffle(arr) {
   return a;
 }
 
+// WHAT: Spiral matrix traversal (right→down→left→up)? THEORY: Track boundaries (top/bottom/left/right). Shrink after each edge. O(m*n).
 // ─────────────────────────────────────────────
 // Q6. Matrix — Spiral Order traversal
 // Input: [[1,2,3],[4,5,6],[7,8,9]] → [1,2,3,6,9,8,7,4,5]
@@ -103,7 +109,8 @@ function spiralOrder(matrix) {
   }
   return result;
 }
-
+WHAT: Rotate NxN matrix 90° clockwise in-place? THEORY: Transpose (swap [i][j]↔[j][i]), then reverse each row. O(n²) time, O(1) space.
+// 
 // ─────────────────────────────────────────────
 // Q7. Rotate Matrix 90° clockwise (in-place)
 // ─────────────────────────────────────────────
@@ -123,7 +130,8 @@ function rotateMatrix(matrix) {
   }
   return matrix;
 }
-
+WHAT: Set entire row/column to 0 if element is 0? THEORY: Track zero rows/cols in Sets, second pass sets values. O(m*n) time, O(m+n) space.
+// 
 // ─────────────────────────────────────────────
 // Q8. Set Matrix Zeroes
 // If element is 0, set its entire row and column to 0
@@ -143,7 +151,8 @@ function setZeroes(matrix) {
     }
   }
   return matrix;
-}
+}WHAT: Product of all elements except self (no division)? THEORY: Left pass stores prefix products, right pass multiplies suffix products. O(n), O(n).
+// 
 
 // ─────────────────────────────────────────────
 // Q9. Product of Array Except Self
@@ -167,7 +176,8 @@ function productExceptSelf(nums) {
     rightProduct *= nums[i];
   }
   return result;
-}
+}WHAT: Find single duplicate in [1..n] array (n+1 elements)? THEORY: Treat as linked list (nums[i]=next). Floyd's cycle detection. O(n), O(1).
+// 
 
 // ─────────────────────────────────────────────
 // Q10. Find duplicate in array [1..n] using Floyd's Cycle
@@ -188,7 +198,8 @@ function findDuplicate(nums) {
     slow = nums[slow];
     fast = nums[fast];
   }
-  return slow;
+  rWHAT: Sort array with evens before odds (maintain order)? THEORY: Two-pointer opposing ends. If odd on left/even on right, swap. O(n), O(1).
+// eturn slow;
 }
 
 // ─────────────────────────────────────────────
@@ -203,7 +214,8 @@ function sortArrayByParity(nums) {
     if (nums[left] % 2 === 0) left++;
     if (nums[right] % 2 === 1) right--;
   }
-  return nums;
+  rWHAT: Merge overlapping intervals? THEORY: Sort by start, iterate through tracking last end. Extend or push new interval. O(n log n).
+// eturn nums;
 }
 
 // ─────────────────────────────────────────────

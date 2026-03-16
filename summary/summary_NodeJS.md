@@ -1,6 +1,13 @@
 ﻿# Node.js — Interview Revision Summary
 
-> **Target:** 7+ year Full Stack MERN Developer | **Files:** 11
+> **Target:** 7+ year Full Stack MERN Developer | **Status:** ✅ Event loop and core async concepts enriched | **Files:** 11
+
+## Update Notes
+
+🔄 **Latest Enhancement (March 2026):**
+- File 01_event_loop.js: All 8 event loop questions enriched with WHAT/THEORY format
+- Covers: Event loop phases, microtask queue, nextTick vs setImmediate, process.nextTick, Promises, Call stack, I/O, Worker threads
+- Theory includes complexity analysis and common gotchas
 
 ## Table of Contents
 

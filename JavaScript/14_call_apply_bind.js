@@ -8,10 +8,7 @@
 
 // ─────────────────────────────────────────────
 // Q1. Implement Function.prototype.myCall
-//
-// call invokes fn immediately with given `this` context
-// and arguments passed individually.
-// fn.myCall(context, arg1, arg2, ...)
+// WHAT: Implement call() method binding this context? THEORY: Create temporary property on context, invoke function, delete property. O(1) operation.
 // ─────────────────────────────────────────────
 Function.prototype.myCall = function (context = globalThis, ...args) {
   // Assign `this` (the function) as a method on context
@@ -24,9 +21,7 @@ Function.prototype.myCall = function (context = globalThis, ...args) {
 
 // ─────────────────────────────────────────────
 // Q2. Implement Function.prototype.myApply
-//
-// Same as call but arguments are passed as an array.
-// fn.myApply(context, [arg1, arg2])
+// WHAT: Implement apply() with array arguments? THEORY: Same as call but spread array as arguments. Internally similar: create temp property, invoke, clean up.
 // ─────────────────────────────────────────────
 Function.prototype.myApply = function (context = globalThis, args = []) {
   const sym = Symbol();
@@ -40,10 +35,7 @@ Function.prototype.myApply = function (context = globalThis, args = []) {
 // Q3. Implement Function.prototype.myBind
 //
 // bind returns a NEW function with fixed `this` and
-// optional preset arguments (partial application).
-// fn.myBind(context, arg1, arg2)(moreArgs)
-// ─────────────────────────────────────────────
-Function.prototype.myBind = function (context, ...presetArgs) {
+// WHAT: Implement bind() returning preset function? THEORY: Return new function with fixed context and preset args. Support constructor with 'new'. Preserve prototype chain.xt, ...presetArgs) {
   const fn = this;
 
   function bound(...laterArgs) {
@@ -62,12 +54,7 @@ Function.prototype.myBind = function (context, ...presetArgs) {
 //
 // new Fn(args) does:
 //   1. Create a new empty object
-//   2. Set its __proto__ to Fn.prototype
-//   3. Call Fn with `this` = new object
-//   4. Return the object (unless Fn returns an object itself)
-// ─────────────────────────────────────────────
-function myNew(Constructor, ...args) {
-  const obj = Object.create(Constructor.prototype); // step 1 & 2
+// WHAT: Implement new operator creating instances? THEORY: Create empty object. Link to constructor.prototype. Call constructor with new object as this. Return object if non-primitive result.& 2
   const result = Constructor.apply(obj, args);       // step 3
   // If constructor explicitly returns an object, use that; otherwise use obj
   return result instanceof Object ? result : obj;    // step 4
@@ -83,7 +70,8 @@ function myObjectCreate(proto, propertiesObject) {
   function F() {} // empty constructor
   F.prototype = proto;
   const obj = new F();
-  if (propertiesObject !== undefined) {
+  iWHAT: Implement Object.create() for prototypal inheritance? THEORY: Create empty constructor. Set prototype to argument. Return new instance with optional property descriptors.
+// f (propertiesObject !== undefined) {
     Object.defineProperties(obj, propertiesObject);
   }
   return obj;
@@ -95,14 +83,16 @@ function myObjectCreate(proto, propertiesObject) {
 // (AOP - Aspect Oriented Programming pattern)
 // ─────────────────────────────────────────────
 Function.prototype.before = function (beforeFn) {
-  const originalFn = this;
-  return function (...args) {
+  cWHAT: Chain function execution—run before hook? THEORY: AOP pattern. Wrap original function. Call before hook first, then original. Return original result.
     beforeFn.apply(this, args);
     return originalFn.apply(this, args);
   };
 };
 
+// ─────────────────────────────────────────────
 // Q7. Implement Function.prototype.after
+// WHAT: Chain function execution—run after hook? THEORY: Similar to before. Call original first, capture result. Call after hook. Return result.
+// ─────────────────────────────────────────────
 Function.prototype.after = function (afterFn) {
   const originalFn = this;
   return function (...args) {
@@ -111,7 +101,8 @@ Function.prototype.after = function (afterFn) {
     return result;
   };
 };
-
+WHAT: Ensure function executes only once? THEORY: Closure tracks called state. First call invokes function, caches result. Subsequent calls return cached result without re-execution.
+// 
 // ─────────────────────────────────────────────
 // Q8. Implement once() — function that can only be called once
 // ─────────────────────────────────────────────

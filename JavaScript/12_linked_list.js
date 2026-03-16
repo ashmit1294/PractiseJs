@@ -57,6 +57,7 @@ class LinkedList {
 
 // ─────────────────────────────────────────────
 // Q1. Reverse a Linked List (iterative + recursive)
+// WHAT: Reverse a singly linked list? THEORY: Iterative: three-pointer technique (prev, curr, next). O(n) time, O(1) space. Recursive: reverse tail first, then fix links.
 // ─────────────────────────────────────────────
 function reverseList(head) {
   let prev = null;
@@ -80,7 +81,7 @@ function reverseListRecursive(head) {
 
 // ─────────────────────────────────────────────
 // Q2. Detect Cycle — Floyd's Tortoise & Hare
-// Returns true if there's a cycle
+// WHAT: Detect if linked list has a cycle? THEORY: Two pointers: slow (1 step), fast (2 steps). If they meet—cycle exists. O(n) time, O(1) space.
 // ─────────────────────────────────────────────
 function hasCycle(head) {
   let slow = head;
@@ -110,6 +111,7 @@ function detectCycleStart(head) {
 
 // ─────────────────────────────────────────────
 // Q3. Find Middle of Linked List
+// WHAT: Find middle node of linked list? THEORY: Slow/fast pointer technique. Slow moves 1 step, fast moves 2. When fast reaches end, slow is at middle.
 // ─────────────────────────────────────────────
 function findMiddle(head) {
   let slow = head;
@@ -122,6 +124,7 @@ function findMiddle(head) {
 }
 
 // ─────────────────────────────────────────────
+// WHAT: Merge two sorted lists into one sorted list? THEORY: Dummy node simplifies logic. Compare heads, attach smaller. Continue until one list exhausted, attach remainder.
 // Q4. Merge Two Sorted Linked Lists
 // ─────────────────────────────────────────────
 function mergeSortedLists(l1, l2) {
@@ -137,7 +140,7 @@ function mergeSortedLists(l1, l2) {
   return dummy.next;
 }
 
-// ─────────────────────────────────────────────
+// WHAT: Remove nth node from end without length? THEORY: Two pointers n+1 apart. Move both until fast reaches end. Skip node with slow.next = slow.next.next.───────────
 // Q5. Remove Nth Node from End of List
 // Use two-pointer technique: gap = n
 // ─────────────────────────────────────────────
@@ -156,6 +159,7 @@ function removeNthFromEnd(head, n) {
   return dummy.next;
 }
 
+// WHAT: Check if linked list reads same forwards and backwards? THEORY: Find middle, reverse second half, compare both halves. O(n) time, O(1) space.
 // ─────────────────────────────────────────────
 // Q6. Check if Linked List is a Palindrome
 // ─────────────────────────────────────────────
@@ -186,7 +190,7 @@ function isPalindrome(head) {
   }
   return true;
 }
-
+WHAT: Find intersection node of two lists? THEORY: Two pointers traverse both lists, each length L1+L2. Both reach intersection same time. O(n+m) time.
 // ─────────────────────────────────────────────
 // Q7. Intersection of Two Linked Lists
 // Return node at which the two lists intersect, or null
@@ -203,7 +207,8 @@ function getIntersectionNode(headA, headB) {
   }
   return a; // null if no intersection
 }
-
+WHAT: Flatten list with child pointers into single level? THEORY: Stack stores next pointers when encountering child. Recursively flatten child, then pop and continue.
+// 
 // ─────────────────────────────────────────────
 // Q8. Flatten a Multilevel Doubly Linked List
 // ─────────────────────────────────────────────

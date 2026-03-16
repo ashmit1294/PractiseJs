@@ -18,6 +18,7 @@
 
 // ─────────────────────────────────────────────
 // Q1. Factorial — n! = n * (n-1)!
+// WHAT: Calculate factorial recursively? THEORY: Base case: n ≤ 1 returns 1. Recursive: n * factorial(n-1). Simple linear recursion. O(n) time/space.
 // ─────────────────────────────────────────────
 function factorial(n) {
   if (n <= 1) return 1;                          // base case
@@ -32,6 +33,7 @@ function factorialTail(n, acc = 1) {
 
 // ─────────────────────────────────────────────
 // Q2. Fibonacci — fib(n) = fib(n-1) + fib(n-2)
+// WHAT: Calculate fibonacci number efficiently? THEORY: Naive O(2^n). Memoization O(n). DP O(n) space, or O(1) with rolling variables.
 // ─────────────────────────────────────────────
 
 // Naive: O(2^n)
@@ -58,7 +60,7 @@ function fibDP(n) {
 
 // ─────────────────────────────────────────────
 // Q3. Power — x^n (fast exponentiation)
-// Simple: O(n)  |  Fast power: O(log n)
+// WHAT: Compute x^n efficiently recursively? THEORY: Exponentiation by squaring. If even: (x^n/2)^2. If odd: x * x^(n-1). O(log n) time.
 // ─────────────────────────────────────────────
 function power(x, n) {
   if (n === 0) return 1;
@@ -72,6 +74,7 @@ function power(x, n) {
 
 // ─────────────────────────────────────────────
 // Q4. Sum of digits   1234 → 10
+// WHAT: Sum digits of number recursively? THEORY: Base: n < 10 return n. Recursive: (n % 10) + sumDigits(n / 10). Extract last digit, strip, recurse. O(log n) where n is value.
 // ─────────────────────────────────────────────
 function sumDigits(n) {
   n = Math.abs(n);
@@ -80,6 +83,7 @@ function sumDigits(n) {
 }
 
 // ─────────────────────────────────────────────
+// WHAT: Reverse string recursively? THEORY: Base: length ≤ 1 return str. Recursive: strip first char, recurse rest, append first at end. O(n²) due to string operations.
 // Q5. Reverse a string recursively
 // ─────────────────────────────────────────────
 function reverseString(str) {
@@ -87,6 +91,7 @@ function reverseString(str) {
   return reverseString(str.slice(1)) + str[0];
 }
 
+// WHAT: Check if string is palindrome recursively? THEORY: Base: length ≤ 1 return true. Check first vs last char, recurse middle. O(n) time.
 // ─────────────────────────────────────────────
 // Q6. Check palindrome recursively
 // ─────────────────────────────────────────────
@@ -96,6 +101,7 @@ function isPalindrome(str) {
   return isPalindrome(str.slice(1, -1));
 }
 
+// WHAT: Flatten deeply nested arrays? THEORY: Check if element is array—recurse and concat. Else concat directly. O(n) where n=total elements.
 // ─────────────────────────────────────────────
 // Q7. Flatten nested array recursively (no .flat)
 // ─────────────────────────────────────────────
@@ -103,7 +109,7 @@ function flatten(arr) {
   return arr.reduce((acc, val) =>
     Array.isArray(val) ? acc.concat(flatten(val)) : acc.concat(val), []);
 }
-
+WHAT: Generate all permutations recursively? THEORY: Pick each character, recurse with remaining. Build result by concatenating. O(n * n!) time.
 // ─────────────────────────────────────────────
 // Q8. All Permutations of a string/array
 // Input: "abc" → ["abc","acb","bac","bca","cab","cba"]
@@ -138,8 +144,7 @@ function permuteArray(nums) {
   return result;
 }
 
-// ─────────────────────────────────────────────
-// Q9. All Subsets (Power Set)
+// WHAT: Generate all subsets of array? THEORY: Backtracking: include/exclude each element. Build subsets by choosing to add or skip. O(2^n) subsets total.Power Set)
 // Input: [1,2,3] → [[], [1], [2], [3], [1,2], [1,3], [2,3], [1,2,3]]
 // 2^n subsets total
 // ─────────────────────────────────────────────
@@ -161,7 +166,7 @@ function subsets(nums) {
 
 // ─────────────────────────────────────────────
 // Q10. Generate All Valid Parentheses
-// Input: n=2 → ["(())", "()()"]
+// WHAT: Generate all valid parenthesis combinations? THEORY: Backtracking: track open count. Add '(' if < n. Add ')' if < open. At 2n length, complete. O(4^n / √n) Catalan.
 // ─────────────────────────────────────────────
 function generateParentheses(n) {
   const result = [];
@@ -178,8 +183,7 @@ function generateParentheses(n) {
 
 // ─────────────────────────────────────────────
 // Q11. Tower of Hanoi
-// Move n disks from source to target using auxiliary
-// Time: O(2^n)
+// WHAT: Move n disks between pegs following rules? THEORY: Move n-1 to auxiliary, move largest to target, move n-1 from auxiliary to target. Recursive pattern. O(2^n).
 // ─────────────────────────────────────────────
 function hanoi(n, from = "A", to = "C", aux = "B") {
   if (n === 0) return;
@@ -191,8 +195,7 @@ function hanoi(n, from = "A", to = "C", aux = "B") {
 // ─────────────────────────────────────────────
 // Q12. Combination Sum
 // Find all combinations that sum to target (can reuse elements)
-// Input: candidates=[2,3,6,7], target=7 → [[2,2,3],[7]]
-// ─────────────────────────────────────────────
+// WHAT: Find all combinations summing to target (reuse allowed)? THEORY: Backtracking: for each candidate, if reusable recurse from same index. Track path, backtrack. O(n^(target/min)).
 function combinationSum(candidates, target) {
   const result = [];
 
@@ -215,7 +218,8 @@ function combinationSum(candidates, target) {
 // Q13. Word Search in Grid (recursive DFS + backtracking)
 // ─────────────────────────────────────────────
 function exist(board, word) {
-  const rows = board.length;
+  cWHAT: Search for word in 2D grid (adjacent cells only)? THEORY: DFS from each cell. Mark visited. At each step, recurse to adjacent cells. Backtrack to try other paths.
+// onst rows = board.length;
   const cols = board[0].length;
 
   function dfs(r, c, idx) {
@@ -248,7 +252,7 @@ function exist(board, word) {
 // Q14. N-Queens Problem
 // Place N queens on NxN board so no two attack each other
 // ─────────────────────────────────────────────
-function solveNQueens(n) {
+funWHAT: Place n queens such that no two attack? THEORY: Backtracking: try each column per row. Check safety (no conflicts in column/diagonals). Recurse if safe, backtrack if blocked.
   const result = [];
   const board = Array.from({ length: n }, () => ".".repeat(n).split(""));
 

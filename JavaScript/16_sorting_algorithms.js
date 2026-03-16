@@ -17,8 +17,7 @@
 
 // ─────────────────────────────────────────────
 // Q1. Bubble Sort
-// Repeatedly swap adjacent elements if in wrong order.
-// Stable | In-place
+// WHAT: Sort by repeatedly comparing adjacent pairs? THEORY: Stable in-place sort. Swap if out of order. Early exit if no swaps (already sorted). O(n²) worst case, O(n) best.
 // ─────────────────────────────────────────────
 function bubbleSort(arr) {
   const a = [...arr]; // don't mutate original
@@ -37,8 +36,7 @@ function bubbleSort(arr) {
 
 // ─────────────────────────────────────────────
 // Q2. Selection Sort
-// Find minimum in unsorted portion, swap to front.
-// Not stable | In-place
+// WHAT: Sort by finding minimum each iteration? THEORY: Not stable in-place sort. Find min in unsorted portion, swap to front. O(n²) always.
 // ─────────────────────────────────────────────
 function selectionSort(arr) {
   const a = [...arr];
@@ -55,8 +53,7 @@ function selectionSort(arr) {
 // ─────────────────────────────────────────────
 // Q3. Insertion Sort
 // Build sorted portion by inserting each element in place.
-// Stable | In-place | Best for nearly sorted data
-// ─────────────────────────────────────────────
+// WHAT: Build sorted portion by inserting elements? THEORY: Stable in-place sort. Shift elements right, insert at correct position. Good for nearly sorted data. O(n) best, O(n²) worst.
 function insertionSort(arr) {
   const a = [...arr];
   for (let i = 1; i < a.length; i++) {
@@ -74,8 +71,7 @@ function insertionSort(arr) {
 // ─────────────────────────────────────────────
 // Q4. Merge Sort
 // Divide and conquer — split, sort, merge.
-// Stable | NOT in-place | O(n log n) guaranteed
-// ─────────────────────────────────────────────
+// WHAT: Divide-and-conquer sort by merging? THEORY: Stable sort, not in-place. Divide array in half, recursively sort, merge sorted halves. O(n log n) guaranteed.
 function mergeSort(arr) {
   if (arr.length <= 1) return arr;
 
@@ -101,9 +97,7 @@ function merge(left, right) {
 // Q5. Quick Sort
 // Pick pivot, partition, recurse on subarrays.
 // Not stable | In-place (here functional version)
-// Average O(n log n) | Worst O(n²) with bad pivot
-// ─────────────────────────────────────────────
-function quickSort(arr) {
+// WHAT: Divide-and-conquer using pivot partition? THEORY: Not stable in-place sort. Choose pivot, partition left/right, recurse. O(n log n) avg, O(n²) worst (bad pivot).
   if (arr.length <= 1) return arr;
 
   const pivot = arr[Math.floor(arr.length / 2)]; // middle element as pivot
@@ -142,8 +136,7 @@ function partition(arr, low, high) {
 // Build max-heap, extract maximum repeatedly.
 // Not stable | In-place | O(n log n) guaranteed
 // ─────────────────────────────────────────────
-function heapSort(arr) {
-  const a = [...arr];
+funWHAT: Sort using heap data structure? THEORY: Not stable in-place sort. Build max-heap, extract maximum repeatedly. O(n log n) guaranteed.
   const n = a.length;
 
   // Build max-heap (heapify from bottom up)
@@ -178,8 +171,7 @@ function heapify(arr, n, root) {
 // Only for non-negative integers within a known range.
 // Time: O(n + k)  Space: O(k) where k = max value
 // ─────────────────────────────────────────────
-function countingSort(arr) {
-  if (!arr.length) return [];
+funWHAT: Sort non-negative integers using counts? THEORY: Iterate array storing frequency. Rebuild from counts. O(n+k) where k=max value. Not comparison-based.
   const max = Math.max(...arr);
   const count = new Array(max + 1).fill(0);
 
@@ -198,8 +190,7 @@ function countingSort(arr) {
 // Time: O(nk) where k = number of digits
 // ─────────────────────────────────────────────
 function radixSort(arr) {
-  const max = Math.max(...arr);
-  let exp = 1;
+  cWHAT: Sort integers digit by digit? THEORY: Counting sort each digit position, from LSD to MSD. O(nk) where k=digits. Non-comparison-based.
 
   const a = [...arr];
   while (Math.floor(max / exp) > 0) {
@@ -229,7 +220,7 @@ function countingSortByDigit(arr, exp) {
 // Sort array containing only 0, 1, 2 in O(n) one pass
 // ─────────────────────────────────────────────
 function sortColors(arr) {
-  const a = [...arr];
+  cWHAT: Sort array containing only 0, 1, 2 in one pass? THEORY: Three pointers: low, mid, high. Move mid, swap with low/high as needed. O(n) one-pass in-place.
   let low = 0, mid = 0, high = a.length - 1;
 
   while (mid <= high) {
@@ -251,7 +242,8 @@ function sortColors(arr) {
 // ─────────────────────────────────────────────
 function sortByKey(arr, key, direction = "asc") {
   return [...arr].sort((a, b) => {
-    if (a[key] < b[key]) return direction === "asc" ? -1 : 1;
+   WHAT: Sort objects by property value? THEORY: Use sort() with custom comparator. Compare properties by key, support asc/desc direction. O(n log n) time.
+//  if (a[key] < b[key]) return direction === "asc" ? -1 : 1;
     if (a[key] > b[key]) return direction === "asc" ? 1 : -1;
     return 0;
   });

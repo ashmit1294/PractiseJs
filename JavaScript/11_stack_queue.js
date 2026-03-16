@@ -13,6 +13,7 @@
 
 // ─────────────────────────────────────────────
 // Q1. Implement Stack from scratch
+// WHAT: How to implement a stack using an array? THEORY: LIFO order. Use push/pop for O(1) operations. Track size to detect empty state.
 // ─────────────────────────────────────────────
 class Stack {
   constructor() {
@@ -42,6 +43,7 @@ class Stack {
 
 // ─────────────────────────────────────────────
 // Q2. Implement Queue from scratch
+// WHAT: How to implement a queue using an array? THEORY: FIFO order. Use push/shift pair but O(n) shift. enqueue/dequeue track size.
 // ─────────────────────────────────────────────
 class Queue {
   constructor() {
@@ -66,7 +68,7 @@ class Queue {
 }
 
 // ─────────────────────────────────────────────
-// Q3. Implement Queue using Two Stacks
+// WHAT: How to implement queue efficiently using two stacks? THEORY: Inbox for enqueue (O(1)). Lazy transfer to outbox on dequeue—O(1) amortized. Eliminates O(n) shift.
 // enqueue: O(1)  dequeue: O(n) amortized
 // ─────────────────────────────────────────────
 class QueueUsingTwoStacks {
@@ -101,7 +103,7 @@ class QueueUsingTwoStacks {
 
 // ─────────────────────────────────────────────
 // Q4. Valid Parentheses — using Stack
-// Given s = "({[]})", return true if balanced
+// WHAT: Check if brackets are balanced using stack? THEORY: Push open brackets, pop on close—must match. Empty stack at end = valid. O(n) time.
 // ─────────────────────────────────────────────
 function isValidParentheses(s) {
   const stack = [];
@@ -119,6 +121,7 @@ function isValidParentheses(s) {
 
 // ─────────────────────────────────────────────
 // Q5. Min Stack — get minimum element in O(1)
+// WHAT: How to find minimum in stack while maintaining order? THEORY: Parallel minStack tracks current min at each state. Push/pop both stacks. O(1) getMin.
 // ─────────────────────────────────────────────
 class MinStack {
   constructor() {
@@ -145,7 +148,7 @@ class MinStack {
 
 // ─────────────────────────────────────────────
 // Q6. Decode String using Stack
-// Input: "3[a2[c]]" → Output: "accaccacc"
+// WHAT: Decode nested string patterns with numbers and brackets? THEORY: Separate numStack and strStack. On '[' push current state. On ']' pop and repeat pattern.
 // ─────────────────────────────────────────────
 function decodeString(s) {
   const numStack = [];
@@ -173,8 +176,7 @@ function decodeString(s) {
 
 // ─────────────────────────────────────────────
 // Q7. Next Greater Element using Stack (monotonic stack)
-// For each element, find the next greater element to its right.
-// Input: [4, 5, 2, 10]  Output: [5, 10, 10, -1]
+// WHAT: Find next greater element for each array element? THEORY: Monotonic decreasing stack of indices. Pop when finding greater element. O(n) single pass.
 // ─────────────────────────────────────────────
 function nextGreaterElement(nums) {
   const result = new Array(nums.length).fill(-1);
@@ -192,7 +194,8 @@ function nextGreaterElement(nums) {
 // ─────────────────────────────────────────────
 // Q8. Circular Queue (Ring Buffer)
 // ─────────────────────────────────────────────
-class CircularQueue {
+claWHAT: How to implement queue with fixed capacity (reusing space)? THEORY: Fixed array with head/tail pointers. Both pointers wrap using modulo. Distinguishes full vs empty.
+// ss CircularQueue {
   constructor(capacity) {
     this.capacity = capacity;
     this.queue = new Array(capacity);

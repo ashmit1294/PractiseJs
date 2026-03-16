@@ -10,6 +10,9 @@
 
 // ─────────────────────────────────────────────
 // APPROACH 1: Basic debounce
+// WHAT: How to delay function execution until wait time elapses?
+// THEORY: Store timer reference. Each call → clear old timer + set new one. Only last call executes.
+//         Essential for search inputs, resize handlers (prevent rapid successive calls).
 // ─────────────────────────────────────────────
 function debounce(fn, wait) {
   let timer = null;
@@ -24,8 +27,9 @@ function debounce(fn, wait) {
 
 // ─────────────────────────────────────────────
 // APPROACH 2: Debounce with leading edge option
-// leading: true  → fires immediately on FIRST call, then waits
-// leading: false → fires after the wait period (default)
+// WHAT: How to execute function immediately on first call, then debounce subsequent calls?
+// THEORY: Check if leading=true AND no timer running → execute immediately. Always set new timer.
+//         Trailing edge (default) fires after wait. Leading edge fires before wait.
 // ─────────────────────────────────────────────
 function debounceAdvanced(fn, wait, { leading = false } = {}) {
   let timer = null;
@@ -45,6 +49,9 @@ function debounceAdvanced(fn, wait, { leading = false } = {}) {
 
 // ─────────────────────────────────────────────
 // APPROACH 3: Debounce with cancel and flush
+// WHAT: How to provide control to manually cancel or force-execute pending function?
+// THEORY: Attach .cancel() to clear timer. Attach .flush() to execute immediately.
+//         Useful when debounced function must be called before unmounting or form submission.
 // ─────────────────────────────────────────────
 function debounceWithControl(fn, wait) {
   let timer = null;

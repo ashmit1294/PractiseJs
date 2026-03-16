@@ -10,8 +10,7 @@
 
 // ─────────────────────────────────────────────
 // Q1. Linear Search
-// Find the index of target in array (unsorted allowed)
-// Time: O(n)  Space: O(1)
+// WHAT: Find element in unsorted array? THEORY: Iterate through array, compare each element. Return index on match, -1 if not found. O(n) time.
 // ─────────────────────────────────────────────
 function linearSearch(arr, target) {
   for (let i = 0; i < arr.length; i++) {
@@ -22,8 +21,7 @@ function linearSearch(arr, target) {
 
 // ─────────────────────────────────────────────
 // Q2. Binary Search (Iterative)
-// Array MUST be sorted.
-// Time: O(log n)  Space: O(1)
+// WHAT: Find element in sorted array efficiently? THEORY: Eliminate half array each iteration. Move mid based on comparison. O(log n) time.
 // ─────────────────────────────────────────────
 function binarySearch(arr, target) {
   let left = 0;
@@ -40,6 +38,7 @@ function binarySearch(arr, target) {
 
 // ─────────────────────────────────────────────
 // Q3. Binary Search (Recursive)
+// WHAT: Find element in sorted array recursively? THEORY: Divide array in half using mid. Recurse left or right based on comparison. Base: left > right = not found.
 // ─────────────────────────────────────────────
 function binarySearchRecursive(arr, target, left = 0, right = arr.length - 1) {
   if (left > right) return -1;
@@ -51,8 +50,7 @@ function binarySearchRecursive(arr, target, left = 0, right = arr.length - 1) {
 
 // ─────────────────────────────────────────────
 // Q4. Find First and Last Position of Target (Binary Search variant)
-// Input: sorted array with duplicates, e.g. [5,7,7,8,8,10], target=8
-// Output: [3, 4]
+// WHAT: Find range of indices where target appears in sorted array with duplicates? THEORY: Two binary searches—one for first, one for last position. O(log n) time.
 // ─────────────────────────────────────────────
 function searchRange(arr, target) {
   function findBound(isFirst) {
@@ -76,8 +74,7 @@ function searchRange(arr, target) {
 
 // ─────────────────────────────────────────────
 // Q5. Search in Rotated Sorted Array
-// Array was sorted then rotated at some pivot.
-// Input: [4,5,6,7,0,1,2], target=0 → Output: 4
+// WHAT: Search in sorted array rotated at unknown pivot? THEORY: Determine which half is sorted. Check if target in sorted half, search that. O(log n) time.
 // ─────────────────────────────────────────────
 function searchRotated(arr, target) {
   let left = 0, right = arr.length - 1;
@@ -102,6 +99,7 @@ function searchRotated(arr, target) {
 // ─────────────────────────────────────────────
 // Q6. Find Minimum in Rotated Sorted Array
 // ─────────────────────────────────────────────
+// WHAT: Find minimum in rotated sorted array? THEORY: Compare mid with right. If mid > right, min is on right. Otherwise on left. O(log n) time.
 function findMinRotated(arr) {
   let left = 0, right = arr.length - 1;
   while (left < right) {
@@ -114,9 +112,8 @@ function findMinRotated(arr) {
 
 // ─────────────────────────────────────────────
 // Q7. Jump Search
-// Best for sorted arrays on media where backtracking is costly.
-// Time: O(√n)  Space: O(1)
-// ─────────────────────────────────────────────
+// WHAT: Search sorted array with jump-then-scan? THEORY: Jump by √n steps until target exceeded, then linear search in that block. O(√n) time.
+// ───────────────────────────────────────────────────
 function jumpSearch(arr, target) {
   const n = arr.length;
   let step = Math.floor(Math.sqrt(n));
@@ -136,9 +133,7 @@ function jumpSearch(arr, target) {
 
 // ─────────────────────────────────────────────
 // Q8. Interpolation Search
-// Like binary search but estimates position based on value.
-// Best for uniformly distributed sorted arrays.
-// Time: O(log log n) avg, O(n) worst
+// WHAT: Search using value-based position estimate? THEORY: Like binary search but estimate position using interpolation formula. Best for uniformly distributed data. O(log log n) avg.
 // ─────────────────────────────────────────────
 function interpolationSearch(arr, target) {
   let low = 0;
@@ -161,13 +156,9 @@ function interpolationSearch(arr, target) {
 
 // ─────────────────────────────────────────────
 // Q9. Exponential Search
-// Useful for unbounded/infinite sorted arrays.
-// Find range first, then binary search within.
-// Time: O(log n)  Space: O(log n) recursive
+// WHAT: Search in unbounded or infinite sorted array? THEORY: Exponentially increase range until target exceeded. Binary search within found range. O(log n) time.
 // ─────────────────────────────────────────────
 function exponentialSearch(arr, target) {
-  if (arr[0] === target) return 0;
-
   let i = 1;
   while (i < arr.length && arr[i] <= target) i *= 2; // double each time
 
@@ -177,8 +168,7 @@ function exponentialSearch(arr, target) {
 
 // ─────────────────────────────────────────────
 // Q10. Find Peak Element (Binary Search variant)
-// A peak is any element greater than its neighbors.
-// Input: [1,2,3,1] → Output: 2 (index of element 3)
+// WHAT: Find peak element greater than neighbors? THEORY: Compare mid with mid+1. Move toward higher side. O(log n) time even with no sorted order.
 // ─────────────────────────────────────────────
 function findPeakElement(nums) {
   let left = 0, right = nums.length - 1;
@@ -192,13 +182,13 @@ function findPeakElement(nums) {
 
 // ─────────────────────────────────────────────
 // Q11. Count occurrences of target in sorted array
+// WHAT: Count how many times target appears in sorted array? THEORY: Find first and last positions using binary search. Difference + 1 = count. O(log n) time.
 // ─────────────────────────────────────────────
 function countOccurrences(arr, target) {
   const range = searchRange(arr, target);
   if (range[0] === -1) return 0;
   return range[1] - range[0] + 1;
-}
-
+} 
 // ─────────────────────────────────────────────
 // Q12. Sqrt(x) — integer square root using binary search
 // Input: 8 → Output: 2 (floor of √8 = 2.82...)
