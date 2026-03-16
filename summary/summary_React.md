@@ -1,7 +1,6 @@
 ﻿# React — Interview Revision Summary
 
 > **Target:** 7+ year Full Stack MERN Developer | **Files:** 10
-> **Status:** ✅ File 01_useState_useEffect.jsx (Q1-Q5) enriched with WHAT/THEORY format & Complexity | ⏳ Files 02-10 pending
 
 ## Table of Contents
 

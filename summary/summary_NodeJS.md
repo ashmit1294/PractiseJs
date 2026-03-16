@@ -1,7 +1,6 @@
 ﻿# Node.js — Interview Revision Summary
 
 > **Target:** 7+ year Full Stack MERN Developer | **Files:** 11
-> **Status:** ✅ File 10_race_conditions.js (Q1-Q2) enriched with WHAT/THEORY format | ⏳ Files 01-09, 11 pending
 
 ## Table of Contents
 

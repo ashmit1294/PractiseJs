@@ -1,7 +1,6 @@
 ﻿# TypeScript — Interview Revision Summary
 
 > **Target:** 7+ year Full Stack MERN Developer | **Files:** 9
-> **Status:** ✅ File 01_basic_types_interfaces.ts (Q1-Q5) enriched with WHAT/THEORY format & Complexity | ⏳ Files 02-09 pending
 
 ## Table of Contents
 

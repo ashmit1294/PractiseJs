@@ -1,7 +1,6 @@
 ﻿# AWS Cloud Services — Interview Revision Summary
 
 > **Target:** 7+ year Full Stack MERN Developer | **Files:** 8
-> **Status:** ✅ Files 01-07 enriched with WHAT/THEORY format & Complexity | ⏳ File 08 pending
 
 ## Table of Contents
 
