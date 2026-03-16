@@ -9,9 +9,6 @@
 
 // ─────────────────────────────────────────────
 // Q1. Implement a Set from scratch
-// WHAT: How to implement Set with add/has/delete/clear and iteration?
-// THEORY: Use array to store values. indexOf checks membership. add() appends if not exists. delete() removes and decrements size.
-//         Chainable add(). Provide forEach, values(), keys(), entries(), Symbol.iterator.
 // ─────────────────────────────────────────────
 class MySet {
   constructor(iterable = []) {
@@ -61,9 +58,6 @@ class MySet {
 
 // ─────────────────────────────────────────────
 // Q2. Remove duplicates from an array
-// WHAT: How to remove duplicates from an array?
-// THEORY: Spread Set into array [...new Set(arr)]. Set automatically deduplicates. Preserves first occurrence order.
-//         Filter alternative: filter((val, idx, self) => self.indexOf(val) === idx) is O(n²).
 // ─────────────────────────────────────────────
 function removeDuplicates(arr) {
   return [...new Set(arr)];
@@ -76,9 +70,6 @@ function removeDuplicatesManual(arr) {
 
 // ─────────────────────────────────────────────
 // Q3. Find unique elements (elements appearing exactly once)
-// WHAT: How to filter elements that appear exactly once?
-// THEORY: Track seen elements. If seen again → add to duplicates Set. Return elements not in duplicates.
-//         Two passes: build duplicates Set, filter to exclude.
 // ─────────────────────────────────────────────
 function uniqueOnly(arr) {
   const seen = new Set();
@@ -123,9 +114,6 @@ function isSubset(setA, setB) {
 
 // ─────────────────────────────────────────────
 // Q5. Find duplicates in an array using Set
-// WHAT: How to find which elements appear more than once?
-// THEORY: Track seen + duplicates Sets. For each value: if already seen → add to duplicates, else → add to seen.
-//         Return duplicates as array. One pass through array.
 // ─────────────────────────────────────────────
 function findDuplicates(arr) {
   const seen = new Set();
@@ -139,9 +127,6 @@ function findDuplicates(arr) {
 
 // ─────────────────────────────────────────────
 // Q6. Check if two arrays have common element
-// WHAT: How to quickly check if two arrays share any element?
-// THEORY: Convert arr1 to Set. For arr2, use some() to check if any element in Set.
-//         Short-circuits on first match. O(n+m) time.
 // ─────────────────────────────────────────────
 function hasCommon(arr1, arr2) {
   const set1 = new Set(arr1);
@@ -150,9 +135,7 @@ function hasCommon(arr1, arr2) {
 
 // ─────────────────────────────────────────────
 // Q7. Longest consecutive sequence (O(n) using Set)
-// WHAT: How to find longest consecutive number sequence in O(n)?
-// THEORY: Add all nums to Set. For each num, only start if num-1 doesn't exist (skip duplicates).
-//         Extend sequence while next+1 exists. Track max length. Avoids nested iteration.
+// Input: [100,4,200,1,3,2] → Output: 4 (sequence: 1,2,3,4)
 // ─────────────────────────────────────────────
 function longestConsecutive(nums) {
   const numSet = new Set(nums);
@@ -175,9 +158,6 @@ function longestConsecutive(nums) {
 
 // ─────────────────────────────────────────────
 // Q8. Contains duplicate (O(n) using Set)
-// WHAT: How to check for duplicates in linear time?
-// THEORY: Iterate array with seen Set. If element in Set → return true (found duplicate). Else → add to seen.
-//         Return false if complete iteration (no duplicates). Short-circuits early.
 // ─────────────────────────────────────────────
 function containsDuplicate(nums) {
   const seen = new Set();
@@ -190,9 +170,7 @@ function containsDuplicate(nums) {
 
 // ─────────────────────────────────────────────
 // Q9. Intersection of two arrays (no using Set ops)
-// WHAT: How to find common elements in two arrays?
-// THEORY: Convert arr1 to Set. Iterate arr2, keep if in Set, add to result Set (avoid duplicates).
-//         Return result as array. O(n+m) time, handles duplicates correctly.
+// Return elements common to both arrays (no duplicates)
 // ─────────────────────────────────────────────
 function arrayIntersection(arr1, arr2) {
   const set1 = new Set(arr1);
@@ -205,9 +183,6 @@ function arrayIntersection(arr1, arr2) {
 
 // ─────────────────────────────────────────────
 // Q10. Convert Set to/from Array and Object
-// WHAT: How to convert between Set and Array representations?
-// THEORY: Spread syntax [...set] or Array.from(set). Array to Set: new Set(array).
-//         Useful for deduplication or combining Set operations with array methods.
 // ─────────────────────────────────────────────
 const s = new Set([1, 2, 3, 2, 1]);
 

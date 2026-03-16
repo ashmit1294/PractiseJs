@@ -17,7 +17,8 @@
 
 // ─────────────────────────────────────────────
 // Q1. Climbing Stairs
-// WHAT: Count ways to climb n stairs (1 or 2 steps)? THEORY: Fibonacci pattern. At step n, get there from n-1 or n-2. dp[i] = dp[i-1] + dp[i-2]. O(n) time, O(1) space.
+// n steps, can climb 1 or 2 at a time. How many ways?
+// Same pattern as Fibonacci.
 // ─────────────────────────────────────────────
 function climbStairs(n) {
   if (n <= 2) return n;
@@ -30,7 +31,7 @@ function climbStairs(n) {
 
 // ─────────────────────────────────────────────
 // Q2. House Robber — max sum of non-adjacent elements
-// WHAT: Rob houses with max value (can't rob adjacent)? THEORY: DP decision: rob or skip. dp[i] = max(skip, rob+prev2). O(n) time, O(1) space with rolling variables.
+// Input: [1,2,3,1] → Output: 4 (rob house 0 and 2)
 // ─────────────────────────────────────────────
 function rob(nums) {
   let prev2 = 0, prev1 = 0;
@@ -44,7 +45,7 @@ function rob(nums) {
 
 // ─────────────────────────────────────────────
 // Q3. Coin Change — fewest coins to make amount
-// WHAT: Find minimum coins to make target amount? THEORY: DP: dp[i] = min(dp[i], 1 + dp[i-coin]) for each coin ≤ i. O(amount * coins) time/space.
+// Input: coins=[1,5,10,25], amount=36 → Output: 3 (25+10+1)
 // ─────────────────────────────────────────────
 function coinChange(coins, amount) {
   const dp = new Array(amount + 1).fill(Infinity);
@@ -75,7 +76,8 @@ function coinChangeWays(coins, amount) {
 
 // ─────────────────────────────────────────────
 // Q4. 0/1 Knapsack
-// WHAT: Max value of items within capacity (each used ≤1 time)? THEORY: 2D DP: dp[i][w] = max(skip, take). For each item and weight, decide optimally. O(n*W) time/space.
+// Given weights and values, max value within capacity
+// Each item can only be used ONCE
 // ─────────────────────────────────────────────
 function knapsack01(weights, values, capacity) {
   const n = weights.length;
@@ -99,7 +101,7 @@ function knapsack01(weights, values, capacity) {
 // ─────────────────────────────────────────────
 // Q5. Longest Common Subsequence (LCS)
 // Input: "abcde", "ace" → Output: 3 ("ace")
-// WHAT: Find longest common subsequence of two strings? THEORY: 2D DP: if chars match, dp[i][j] = 1 + dp[i-1][j-1]. Else max(dp[i-1][j], dp[i][j-1]). O(m*n).────
+// ─────────────────────────────────────────────
 function lcs(s1, s2) {
   const m = s1.length, n = s2.length;
   const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
@@ -116,7 +118,7 @@ function lcs(s1, s2) {
 // ─────────────────────────────────────────────
 // Q6. Longest Increasing Subsequence (LIS)
 // Input: [10,9,2,5,3,7,101,18] → Output: 4 ([2,3,7,101])
-// WHAT: Find longest strictly increasing subsequence? THEORY: DP: dp[i] = max length ending at i. For each j < i, if nums[j] < nums[i], update dp[i]. O(n²) time.
+// ─────────────────────────────────────────────
 function lengthOfLIS(nums) {
   const dp = new Array(nums.length).fill(1);
   let max = 1;
@@ -135,7 +137,8 @@ function lengthOfLIS(nums) {
 // ─────────────────────────────────────────────
 // Q7. Edit Distance (Levenshtein Distance)
 // Min operations (insert, delete, replace) to convert s1 → s2
-// WHAT: Min operations (insert, delete, replace) to convert string? THEORY: 2D DP: if chars match skip, else 1 + min(delete, insert, replace). O(m*n) time/space.────────────
+// Input: "horse", "ros" → Output: 3
+// ─────────────────────────────────────────────
 function editDistance(s1, s2) {
   const m = s1.length, n = s2.length;
   const dp = Array.from({ length: m + 1 }, (_, i) =>
@@ -161,7 +164,7 @@ function editDistance(s1, s2) {
 // ─────────────────────────────────────────────
 // Q8. Unique Paths in Grid (m × n)
 // Move only right or down, how many paths from top-left to bottom-right?
-// WHAT: Count paths from top-left to bottom-right (right/down only)? THEORY: dp[i][j] = dp[i-1][j] + dp[i][j-1]. Path count = sum of paths from top and left. O(m*n) time.
+// ─────────────────────────────────────────────
 function uniquePaths(m, n) {
   const dp = Array.from({ length: m }, () => new Array(n).fill(1));
 
@@ -176,8 +179,8 @@ function uniquePaths(m, n) {
 // ─────────────────────────────────────────────
 // Q9. Longest Palindromic Substring
 // Input: "babad" → Output: "bab" or "aba"
-// WHAT: Find longest palindrome substring? THEORY: Expand around each center (odd/even). Track max length and start position. O(n²) time, O(1) space.
-// ─────────────────────────────────────────────}
+// ─────────────────────────────────────────────
+function longestPalindrome(s) {
   let start = 0, maxLen = 1;
 
   function expand(left, right) {
@@ -201,7 +204,8 @@ function uniquePaths(m, n) {
 // ─────────────────────────────────────────────
 // Q10. Maximum Subarray — Kadane's Algorithm
 // Find contiguous subarray with the maximum sum
-// WHAT: Find max sum contiguous subarray? THEORY: Track current sum vs max. At each element, decide: continue or restart. O(n) time, O(1) space.
+// Input: [-2,1,-3,4,-1,2,1,-5,4] → Output: 6 ([4,-1,2,1])
+// ─────────────────────────────────────────────
 function maxSubArray(nums) {
   let maxSum = nums[0];
   let currentSum = nums[0];

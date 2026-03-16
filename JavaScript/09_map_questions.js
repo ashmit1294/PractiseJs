@@ -10,9 +10,6 @@
 
 // ─────────────────────────────────────────────
 // Q1. Implement a Map from scratch using an array/hash
-// WHAT: How to implement Map with get/set/has/delete/clear and iteration?
-// THEORY: Parallel arrays for keys + values. indexOf finds key. set() updates or appends. delete() removes both.
-//         forEach/keys/values/entries provide iteration. size tracks count. Map is chainable.
 // ─────────────────────────────────────────────
 class MyMap {
   constructor() {
@@ -77,9 +74,6 @@ class MyMap {
 
 // ─────────────────────────────────────────────
 // Q2. Count frequency of characters in a string using Map
-// WHAT: How to count occurrences using Map? What's the most frequent character?
-// THEORY: Iterate string, map.set(char, count+1). Most frequent: iterate Map entries, track max.
-//         Map iteration order = insertion order. Q2b finds max in single pass.
 // ─────────────────────────────────────────────
 function charFrequency(str) {
   const map = new Map();
@@ -102,9 +96,7 @@ function mostFreqChar(str) {
 
 // ─────────────────────────────────────────────
 // Q3. Two Sum using Map (O(n) solution)
-// WHAT: How to find two indices that sum to target in O(n) time?
-// THEORY: Track seen values + indices. For each num, check if complement exists in Map.
-//         If yes → return indices. Else → add num to Map. One pass through array.
+// Return indices of two numbers that add up to target
 // ─────────────────────────────────────────────
 function twoSum(nums, target) {
   const seen = new Map(); // value → index
@@ -120,9 +112,8 @@ function twoSum(nums, target) {
 
 // ─────────────────────────────────────────────
 // Q4. Group anagrams together using Map
-// WHAT: How to group words that are anagrams of each other?
-// THEORY: Sort letters per word as normalized key. Group words with same key in Map. Return Map values.
-//         Anagrams have identical sorted letters. O(n k log k) where k = word length.
+// Input: ["eat","tea","tan","ate","nat","bat"]
+// Output: [["bat"],["nat","tan"],["ate","eat","tea"]]
 // ─────────────────────────────────────────────
 function groupAnagrams(words) {
   const map = new Map();
@@ -136,9 +127,7 @@ function groupAnagrams(words) {
 
 // ─────────────────────────────────────────────
 // Q5. LRU Cache using Map (Map preserves insertion order)
-// WHAT: How to implement LRU Cache with constant-time get/set?
-// THEORY: Map preserves insertion order. On get/put() → delete old entry, re-insert (moves to end).
-//         First entry = LRU, last = MRU. When capacity exceeded → delete first entry. O(1) all ops.
+// get: O(1)  set: O(1)
 // ─────────────────────────────────────────────
 class LRUCache {
   constructor(capacity) {

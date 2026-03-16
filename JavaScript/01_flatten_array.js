@@ -9,9 +9,7 @@
 
 // ─────────────────────────────────────────────
 // APPROACH 1: Recursion
-// WHAT: How to flatten nested arrays using recursion?
-// THEORY: Check if element is array → recurse on it, concat result. Otherwise → push element.
-//         Simple and clean. Stack depth = max nesting level.
+// Time: O(n)  Space: O(n)
 // ─────────────────────────────────────────────
 function flattenRecursive(arr) {
   let result = [];
@@ -27,9 +25,6 @@ function flattenRecursive(arr) {
 
 // ─────────────────────────────────────────────
 // APPROACH 2: Using reduce + recursion (elegant)
-// WHAT: How to use reduce for recursive flattening?
-// THEORY: reduce accumulates result. If value is array → recurse + concat. Else → concat value.
-//         Functional style, same complexity as recursive approach.
 // ─────────────────────────────────────────────
 function flattenReduce(arr) {
   return arr.reduce((acc, val) => {
@@ -41,9 +36,6 @@ function flattenReduce(arr) {
 
 // ─────────────────────────────────────────────
 // APPROACH 3: Iterative with a stack (no recursion)
-// WHAT: How to flatten without recursion (stack-based approach)?
-// THEORY: Use explicit stack instead of call stack. Pop item: if array → push children. Else → add to result.
-//         Avoids recursion depth limits. Order maintained by prepending.
 // ─────────────────────────────────────────────
 function flattenIterative(arr) {
   const stack = [...arr];
@@ -62,9 +54,6 @@ function flattenIterative(arr) {
 
 // ─────────────────────────────────────────────
 // APPROACH 4: Flatten up to a specific depth
-// WHAT: How to limit flattening to a certain depth level?
-// THEORY: Pass depth parameter. At depth 0 → return as-is. If depth > 0 + array → recurse with depth-1.
-//         Useful for partial flattening, matches native .flat(depth) behavior.
 // ─────────────────────────────────────────────
 function flattenToDepth(arr, depth = 1) {
   if (depth === 0) return arr.slice();

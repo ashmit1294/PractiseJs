@@ -11,7 +11,8 @@
 // ─────────────────────────────────────────────────────────
 
 /*
-Q1 [BASIC]: What is the difference between var, let, and const?// WHAT: Differences between var/let/const (scope, hoisting, reassignment)? THEORY: var=function-scoped+hoisted+undefined; let=block-scoped+TDZ; const=immutable binding.─────────────────────────────────────────────────────────────
+Q1 [BASIC]: What is the difference between var, let, and const?
+─────────────────────────────────────────────────────────────
 A:
   var  → function-scoped, hoisted WITH initialization to undefined, re-declarable
   let  → block-scoped, hoisted WITHOUT initialization (TDZ), not re-declarable
@@ -31,7 +32,6 @@ A:
 
 /*
 Q2 [BASIC]: What is Hoisting?
-// WHAT: What is hoisting? (Variables/functions moved before execution?) THEORY: var/functions completely hoisted; let/const hoisted but in TDZ until declaration line.
 ─────────────────────────────
 A: JavaScript moves (hoists) declarations to the top of their scope during compilation.
    - var: hoisted and initialized to undefined
@@ -50,7 +50,6 @@ var sayHi = function(name) { return `Hi, ${name}`; }; // function EXPRESSION —
 
 /*
 Q3 [BASIC]: How does the Prototype Chain work?
-// WHAT: How does prototype chain resolve properties? THEORY: [[Prototype]] link walks object→proto→proto.proto until found or null. Every object has proto.
 ───────────────────────────────────────────────
 A: Every object has an internal [[Prototype]] link pointing to another object.
    Property lookup walks up the chain until found or null is reached.
@@ -76,7 +75,6 @@ class Cat {
 
 /*
 Q4 [BASIC]: Explain Closures with a real-world example.
-// WHAT: What are closures? (Function remembers outer scope?) THEORY: Function "closes over" variables from definition scope. Each closure gets own binding. Classic loop bug.
 ───────────────────────────────────────────────────────
 A: A closure is a function that "remembers" the variables from the scope where it was DEFINED,
    even after that outer function has returned.
@@ -120,7 +118,6 @@ for (var k = 0; k < 3; k++) {
 
 /*
 Q5 [BASIC]: What are the different values of `this`?
-// WHAT: What determines `this` value? THEORY: By call context: method=obj, constructor=new, arrow=lexical scope, global=window/undefined. call/apply/bind override.
 ─────────────────────────────────────────────────────
 A: `this` is determined by HOW a function is called (not where it's defined).
    - Global context: window (browser) | global (Node) | undefined (strict mode)
@@ -149,7 +146,6 @@ const person = {
 
 /*
 Q6 [INTERMEDIATE]: Microtask vs Macrotask queue — what is the exact execution order?
-// WHAT: Microtask/Macrotask execution order? THEORY: All microtasks drain between macrotasks. Queue: setTimeout(macro), Promise(micro), process.nextTick(micro first in Node).
 ────────────────────────────────────────────────────────────────────────────────────
 A: After each macrotask, ALL microtasks are drained before moving to the next macrotask.
 
@@ -173,7 +169,6 @@ console.log('6 - script end');         // sync
 // Why: sync runs first, then ALL microtasks (3, 5, then 4 from chained .then), finally macrotask (2)
 
 /*
-// WHAT: What are generators? (Pausable functions?) THEORY: yield pauses, .next() resumes returning {value, done}. Lazy evaluation, infinite sequences, custom iterables.
 Q7 [INTERMEDIATE]: How do Generators work and when would you actually use them?
 ───────────────────────────────────────────────────────────────────────────────
 A: Generators are pausable functions. `yield` suspends execution until `.next()` is called.
@@ -211,7 +206,6 @@ calc.next(5);        // send 5 → x=5, { value: 'Enter y:', done: false }
 calc.next(3);        // send 3 → y=3, returns { value: 8, done: true }
 
 /*
-// WHAT: Proxy/Reflect API for intercepting operations? THEORY: Proxy traps intercept ops (get, set, delete). Always use Reflect.xxx for delegation. Validation/logging/reactivity.
 Q8 [INTERMEDIATE]: Explain the Proxy and Reflect API with a practical use case.
 ───────────────────────────────────────────────────────────────────────────────
 A: Proxy wraps an object and intercepts fundamental operations (get, set, delete, etc.).
@@ -243,7 +237,6 @@ user.name = "Alice"; // OK
 user.age = 30;       // OK
 // user.age = -5;    // TypeError: Invalid value "-5" for property "age"
 
-// WHAT: TDZ concept and purpose? THEORY: Period between scope entry and let/const declaration. Throws ReferenceError to force explicit declaration. Better than var hoisting bugs.
 /*
 Q9 [INTERMEDIATE]: What is the Temporal Dead Zone (TDZ) and why was it introduced?
 ────────────────────────────────────────────────────────────────────────────────────
@@ -263,7 +256,6 @@ A: The TDZ is the period between entering the scope (block/function) and the act
 // TDZ also applies in DEFAULT PARAMETER expressions:
 function example(a = b, b = 1) {} // ReferenceError: `b` is in TDZ when `a` is evaluated
 
-// WHAT: WeakMap vs Map? THEORY: WeakMap: object keys, weak refs (GC-friendly), not enumerable. Use: private data, metadata without preventing GC. Map: strong refs, enumerable.
 /*
 Q10 [INTERMEDIATE]: How does WeakMap differ from Map, and when should you use it?
 ──────────────────────────────────────────────────────────────────────────────────
@@ -291,7 +283,6 @@ function expensiveComputation(x) { return x; }
 // ██ SECTION 3: ADVANCED
 // ─────────────────────────────────────────────────────────
 
-// WHAT: V8 JIT optimizations (Hidden Classes/Inline Caching)? THEORY: Hidden Classes=shapes for property layouts, IC caches shape+offset for fast lookup. Don't add/delete props dynamically.
 /*
 Q11 [ADVANCED]: How does V8 optimize JavaScript? What are Hidden Classes and Inline Caching?
 ─────────────────────────────────────────────────────────────────────────────────────────────
@@ -330,7 +321,6 @@ function makePoint(x, y, addZ = false) {
 const obj2 = { a: 1, b: 2 };
 delete obj2.a;   // shape transitions → slower
 obj2.a = null;   // prefer null-out over delete (keeps shape)
-// WHAT: Common memory leaks? THEORY: Forgotten listeners, closures holding large objects, globals, detached DOM, setInterval. Detect: Chrome Heap Snapshot, Node clinic.js.
 
 /*
 Q12 [ADVANCED]: What are common Memory Leak patterns in JavaScript and how do you detect them?
@@ -373,7 +363,6 @@ function startPolling() {
 // Chrome DevTools → Memory → Take Heap Snapshot, compare two snapshots
 // Node.js: --inspect + clinic.js memwatch, or node --expose_gc + manual gc()
 // Look for: growing "Detached HTMLElement" count, retained size, dominator tree
-// WHAT: CommonJS vs ESM differences? THEORY: CJS=sync, dynamic, copy exports. ESM=async, static, live bindings. ESM better tree-shaking. Interop: CJS→ESM via dynamic import().
 
 /*
 Q13 [ADVANCED]: What is the difference between CommonJS (require) and ES Modules (import)?
@@ -399,7 +388,6 @@ A: Two completely different module systems that interact in complex ways.
 
 // Interop (requires careful handling):
 // CJS importing ESM: only via dynamic import() → returns Promise
-// WHAT: TCO and Node.js limitation? THEORY: TCO=reuse stack frame for tail calls, O(1) stack. V8 removed it for debuggability. Workaround: trampolining pattern.
 // ESM importing CJS: default import only (gets module.exports as default)
 
 /*
@@ -491,7 +479,6 @@ class Entity {
   get id() { return this[INTERNAL_ID]; }
 }
 
-// WHAT: Promise combinator differences (all/allSettled/any/race)? THEORY: all=reject on first error. allSettled=always resolves. race=first settled. any=first success or AggregateError.
 /*
 Q16 [ADVANCED]: How does Promise.all, allSettled, any, and race actually differ
                 in error handling and short-circuit behavior?
@@ -531,10 +518,8 @@ function withTimeout(promise, ms) {
 // Promise.any([fail1, fail2, success]) → resolves with success
 // Promise.any([fail1, fail2]) → rejects with AggregateError containing all errors
 
-// WHAT: Duck typing vs composition patterns? THEORY: Duck typing=behavior-based. Prefer composition over inheritance to avoid fragile base class problem. Mixins/functional approach.
 /*
 Q17 [ADVANCED]: Explain Structural Typing, duck typing, and object composition
-// WHAT: Duck typing vs composition patterns? THEORY: Duck typing=behavior-based. Prefer composition over inheritance to avoid fragile base class problem. Mixins/functional approach.
                 patterns used in large JS codebases.
 ────────────────────────────────────────────────────────────────────────────────
 A: JS uses duck typing — if it walks like a duck and quacks like a duck, it is a duck.

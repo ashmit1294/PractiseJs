@@ -11,7 +11,6 @@
 // ─────────────────────────────────────────────
 
 // Q1. Private class fields using WeakMap
-// WHAT: Store private data per instance using WeakMap? THEORY: WeakMap(object→data). Keys are objects, GC-friendly. No iteration.
 const _private = new WeakMap();
 
 class BankAccount {
@@ -41,7 +40,6 @@ class BankAccount {
 }
 
 // Q2. Memoization using WeakMap (object keys)
-// WHAT: Cache function results keyed by object argument? THEORY: WeakMap stores object→result. Auto-GC when object dies. O(1) lookup.
 function memoizeObject(fn) {
   const cache = new WeakMap();
   return function (obj) {
@@ -58,7 +56,6 @@ function memoizeObject(fn) {
 // Use: tracking visited nodes, marking processed objects
 // ─────────────────────────────────────────────
 
-// WHAT: Detect circular object references recursively? THEORY: WeakSet tracks visited nodes. Add before recursing, delete on backtrack (only detect true cycles).
 // Q3. Detect circular references using WeakSet
 function hasCircularReference(obj) {
   const seen = new WeakSet();
@@ -76,7 +73,6 @@ function hasCircularReference(obj) {
   }
   return detect(obj);
 }
-// WHAT: Track which objects were processed without permanent marking? THEORY: WeakSet stores processed objects. Auto-GC when object dies. No enumeration.
 
 // Q4. Track which objects have been processed
 function processItems(items) {
@@ -95,7 +91,6 @@ function processItems(items) {
 // SYMBOL
 // Unique, immutable primitive. Used for unique keys,
 // well-known symbols (Symbol.iterator, Symbol.toPrimitive, etc.)
-// WHAT: Hide properties from enumeration using Symbols? THEORY: Symbol keys don't appear in Object.keys(), for..in, JSON.stringify. Use getOwnPropertySymbols().
 // ─────────────────────────────────────────────
 
 // Q5. Create unique property keys with Symbol
@@ -110,7 +105,6 @@ const user = {
 
 // Symbol keys are NOT enumerable — they won't show in:
 // Object.keys(), JSON.stringify(), for...in loops
-// WHAT: Make custom object iterable with for..of and spread? THEORY: Implement [Symbol.iterator]() returning {next}. next returns {value, done}.
 // But appear in: Object.getOwnPropertySymbols()
 
 // Q6. Implement Symbol.iterator — make object iterable
@@ -130,7 +124,6 @@ class Range {
           : { value: undefined, done: true };
       },
     };
-// WHAT: Control type coercion behavior (number vs string)? THEORY: Implement [Symbol.toPrimitive](hint). hint: 'number'|'string'|'default'. Return primitive.
   }
 }
 
@@ -150,7 +143,6 @@ class Temperature {
 // ─────────────────────────────────────────────
 // PROXY
 // Intercepts object operations: get, set, has, deleteProperty, apply
-// WHAT: Validate property assignments using Proxy? THEORY: Proxy set trap checks validators[prop]. Throw on invalid. O(setup) + O(check) per set.
 // Use: validation, logging, reactive systems (Vue 3's reactivity)
 // ─────────────────────────────────────────────
 
@@ -163,7 +155,6 @@ function createValidatedObject(target, validators) {
       }
       obj[prop] = value;
       return true;
-// WHAT: Make nested objects read-only using Proxy? THEORY: Block set/deleteProperty. On get, recursively wrap nested objects. O(depth).
     },
   });
 }
@@ -176,7 +167,6 @@ function readOnly(obj) {
     get(target, prop) {
       const val = target[prop];
       return typeof val === "object" && val !== null ? readOnly(val) : val;
-// WHAT: Log all property changes automatically? THEORY: Proxy set trap logs old/new values, calls onChange callback. Vue 3 reactivity pattern.
     },
   });
 }
@@ -189,7 +179,6 @@ function observable(target, onChange) {
       obj[prop] = value;
       onChange(prop, oldValue, value);
       return true;
-// WHAT: Return default value for undefined properties? THEORY: Proxy get trap checks if prop exists, return defaultValue if not. O(1).
     },
   });
 }
@@ -204,7 +193,6 @@ function withDefaults(target, defaultValue) {
 }
 
 // ─────────────────────────────────────────────
-// WHAT: Combine Proxy and Reflect for proper behavior? THEORY: Use Reflect.get/set inside traps to delegate correctly (handles receiver/this binding). Best practice.
 // REFLECT
 // Mirror of Proxy traps — same operations, but as functions.
 // Used inside Proxy handlers to perform the default behavior.

@@ -9,7 +9,6 @@
 
 // ─────────────────────────────────────────────
 // Q1. Reverse a string (4 ways)
-// WHAT: Reverse string using different techniques? THEORY: split+reverse+join, reduceRight, loop backward, spread. O(n) all.
 // ─────────────────────────────────────────────
 const reverseStr = (s) => s.split("").reverse().join("");
 const reverseStr2 = (s) => [...s].reduceRight((acc, ch) => acc + ch, "");
@@ -21,7 +20,6 @@ function reverseStr3(s) {
 
 // ─────────────────────────────────────────────
 // Q2. Check if anagram
-// WHAT: Check if two strings are anagrams (same chars, different order)? THEORY: Count characters in s, verify all exist in t. O(n).
 // Input: "listen", "silent" → true
 // ─────────────────────────────────────────────
 function isAnagram(s, t) {
@@ -36,7 +34,6 @@ function isAnagram(s, t) {
 }
 
 // ─────────────────────────────────────────────
-// WHAT: Reverse word order in sentence (trim + split → reverse)? THEORY: trim whitespace, split by regex, join reversed. O(n).
 // Q3. Reverse words in a sentence
 // Input: "  hello world  " → "world hello"
 // ─────────────────────────────────────────────
@@ -44,7 +41,6 @@ function reverseWords(s) {
   return s.trim().split(/\s+/).reverse().join(" ");
 }
 
-// WHAT: Check palindrome ignoring non-alphanumeric? THEORY: Clean string (lowercase, remove non-alphanumeric), two-pointer check. O(n).
 // ─────────────────────────────────────────────
 // Q4. Valid palindrome (ignore non-alphanumeric, case-insensitive)
 // Input: "A man, a plan, a canal: Panama" → true
@@ -57,8 +53,7 @@ function isPalindromeStr(s) {
   }
   return true;
 }
-WHAT: Look-and-say sequence (count consecutive chars)? THEORY: Iterate through result, count runs, append count+char. O(n) per iteration.
-// 
+
 // ─────────────────────────────────────────────
 // Q5. Count and Say sequence
 // "1" → "11" → "21" → "1211" → "111221"
@@ -80,8 +75,7 @@ function countAndSay(n) {
   }
   return result;
 }
-WHAT: Find longest common prefix of all strings? THEORY: Compare each string vertically, shrink prefix until match. O(n*m).
-// 
+
 // ─────────────────────────────────────────────
 // Q6. Longest Common Prefix
 // Input: ["flower","flow","flight"] → "fl"
@@ -96,8 +90,7 @@ function longestCommonPrefix(strs) {
     }
   }
   return prefix;
-}WHAT: Compress consecutive chars to char+count? THEORY: Iterate through, count consecutive, build compressed. Return smaller. O(n).
-// 
+}
 
 // ─────────────────────────────────────────────
 // Q7. String compression
@@ -116,8 +109,7 @@ function compressString(s) {
     }
   }
   return result.length < s.length ? result : s;
-}WHAT: Encode consecutive chars as count+char, then decode back? THEORY: encode: regex match groups. decode: regex replace groups. O(n).
-// 
+}
 
 // ─────────────────────────────────────────────
 // Q8. Run-Length Encoding / Decoding
@@ -128,8 +120,7 @@ function encode(s) {
   return s.replace(/(.)\1*/g, (match, ch) => match.length + ch);
 }
 
-function decode(s) { / Integer to Roman
-// WHAT: Convert roman numerals ↔ integers (subtractive notation)? THEORY: Map values, check if next char larger (subtract current). O(n).
+function decode(s) {
   return s.replace(/(\d+)(.)/g, (_, count, ch) => ch.repeat(Number(count)));
 }
 
@@ -155,8 +146,7 @@ function intToRoman(num) {
   for (let i = 0; i < vals.length; i++) {
     while (num >= vals[i]) { result += syms[i]; num -= vals[i]; }
   }
-  rWHAT: Check if all bracket types balanced and properly nested? THEORY: Stack: push open, pop on close, verify match. O(n).
-// eturn result;
+  return result;
 }
 
 // ─────────────────────────────────────────────
@@ -168,8 +158,7 @@ function isValidBrackets(s) {
   for (const ch of s) {
     if ("({[".includes(ch)) stack.push(ch);
     else if (stack.pop() !== map[ch]) return false;
-  }WHAT: Arrange string in zigzag pattern and read row-by-row? THEORY: Track row and direction. Toggle direction at top/bottom. O(n).
-// 
+  }
   return stack.length === 0;
 }
 
@@ -190,8 +179,7 @@ function zigzagConvert(s, numRows) {
     rows[row] += ch;
     if (row === 0 || row === numRows - 1) goingDown = !goingDown;
     row += goingDown ? 1 : -1;
-  }WHAT: Segment string using dictionary words (DP)?THEORY: DP[i] = true if substring [0..i-1] can be segmented. O(n²).
-// 
+  }
   return rows.join("");
 }
 

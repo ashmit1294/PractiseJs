@@ -1,13 +1,6 @@
 ﻿# TypeScript — Interview Revision Summary
 
-> **Target:** 7+ year Full Stack MERN Developer | **Status:** ✅ Type system concepts enriched with WHAT/THEORY | **Files:** 9
-
-## Update Notes
-
-🔄 **Latest Enhancement (March 2026):**
-- File 01_basic_types_interfaces.ts: All 8 type questions enriched with WHAT/THEORY format
-- Covers: Basic types, interfaces, types vs interfaces, extends vs implements, generics basics, utility types preview
-- Each Q includes real code patterns and TS compiler reasoning
+> **Target:** 7+ year Full Stack MERN Developer | **Files:** 9
 
 ## Table of Contents
 

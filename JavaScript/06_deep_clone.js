@@ -14,9 +14,7 @@
 
 // ─────────────────────────────────────────────
 // APPROACH 1: Basic recursive deep clone
-// WHAT: How to recursively copy nested objects and arrays?
-// THEORY: Base case: primitives + null → return as-is. Array → map each element. Object → iterate keys + recurse.
-//         Simple but misses Date, RegExp, circular refs, Map/Set, Symbol keys.
+// Handles: arrays, objects, primitives
 // ─────────────────────────────────────────────
 function deepCloneBasic(obj) {
   if (obj === null || typeof obj !== "object") return obj;
@@ -33,9 +31,7 @@ function deepCloneBasic(obj) {
 
 // ─────────────────────────────────────────────
 // APPROACH 2: Full deep clone
-// WHAT: How to handle Date, RegExp, Map, Set, circular references, and Symbol keys?
-// THEORY: Use WeakMap to track visited objects (circular refs). Check instanceof for Date/RegExp. 
-//         Handle Array/Map/Set with forEach. Copy Symbol + enumerable keys. Preserve prototypes.
+// Handles: Date, RegExp, Map, Set, circular refs, Symbol keys
 // ─────────────────────────────────────────────
 function deepClone(obj, visited = new WeakMap()) {
   // Primitives & null

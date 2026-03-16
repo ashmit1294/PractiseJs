@@ -18,8 +18,8 @@
 // ─────────────────────────────────────────────
 
 // Q1. Maximum Sum Subarray of Size K (Fixed Window)
-// WHAT: Find max sum of k consecutive elements? THEORY: Sliding window: initial window sum, slide right, remove leftmost. O(n) time.
-//
+// Input: [2,1,5,1,3,2], k=3 → Output: 9 (5+1+3)
+function maxSumSubarrayK(arr, k) {
   let windowSum = 0;
   let maxSum = 0;
 
@@ -34,7 +34,6 @@
 }
 
 // Q2. Average of all subarrays of size K
-// WHAT: Get averages of all k-sized windows? THEORY: Fixed-size sliding window. Compute sum, add/remove elements as window slides. O(n) time.
 function avgSubarraysK(arr, k) {
   const result = [];
   let windowSum = 0;
@@ -50,7 +49,6 @@ function avgSubarraysK(arr, k) {
 }
 
 // Q3. Longest Substring Without Repeating Characters (Variable Window)
-// WHAT: Find longest substring with unique characters? THEORY: Variable window: expand right, shrink left if repeat. Track max length. O(n) time.
 // Input: "abcabcbb" → Output: 3 ("abc")
 function lengthOfLongestSubstring(s) {
   const seen = new Map(); // char → last seen index
@@ -67,7 +65,6 @@ function lengthOfLongestSubstring(s) {
   return maxLen;
 }
 
-// WHAT: Find longest substring with ≤k distinct chars? THEORY: Variable window with char frequency map. Shrink when > k distinct. O(n) time.
 // Q4. Longest Substring with At Most K Distinct Characters
 function lengthWithKDistinct(s, k) {
   const freq = new Map();
@@ -86,7 +83,6 @@ function lengthWithKDistinct(s, k) {
   return maxLen;
 }
 
-// WHAT: Find smallest substring containing all chars from t? THEORY: Variable window tracking char counts. Expand, shrink when valid. O(m+n) time.
 // Q5. Minimum Window Substring containing all chars of t
 // Input: s="ADOBECODEBANC", t="ABC" → Output: "BANC"
 function minWindow(s, t) {
@@ -115,7 +111,7 @@ function minWindow(s, t) {
   }
   return minLen === Infinity ? "" : s.slice(minStart, minStart + minLen);
 }
-WHAT: Check if permutation of s1 exists in s2 as substring? THEORY: Sliding window comparing character frequency. Window size = s1 length. O(n) time.
+
 // Q6. Permutation in String
 // Check if any permutation of p exists as substring in s
 function checkInclusion(s1, s2) {
@@ -141,7 +137,6 @@ function checkInclusion(s1, s2) {
 // TWO POINTERS
 // ─────────────────────────────────────────────
 
-// WHAT: Find pair summing to target in sorted array? THEORY: Two pointers opposing ends. Sum too small = advance left. Too large = retreat right. O(n) time.
 // Q7. Two Sum II — sorted array, return 1-indexed pair
 function twoSumSorted(numbers, target) {
   let left = 0, right = numbers.length - 1;
@@ -153,8 +148,7 @@ function twoSumSorted(numbers, target) {
   }
   return [];
 }
-WHAT: Find all unique triplets summing to zero? THEORY: Sort array, fix one, two-pointer on rest. Skip duplicates. O(n²) time.
-// 
+
 // Q8. Three Sum — all unique triplets that sum to 0
 // Input: [-1,0,1,2,-1,-4] → [[-1,-1,2],[-1,0,1]]
 function threeSum(nums) {
@@ -181,7 +175,7 @@ function threeSum(nums) {
   }
   return result;
 }
-WHAT: Find pair indices maximizing water area between lines? THEORY: Two pointers opposite ends. Area = min height * width. Move shorter line in. O(n) time.
+
 // Q9. Container With Most Water
 // Find two lines that form a container holding the most water
 function maxWaterContainer(height) {
@@ -196,8 +190,7 @@ function maxWaterContainer(height) {
   }
   return maxArea;
 }
-WHAT: Compute trapped rainwater volume above elevation map? THEORY: Two pointers + max heights seen. Water = min(leftMax, rightMax) - current. O(n) time, O(1) space.
-// 
+
 // Q10. Trapping Rain Water
 // Input: [0,1,0,2,1,0,1,3,2,1,2,1] → Output: 6
 function trap(height) {
@@ -217,8 +210,7 @@ function trap(height) {
     }
   }
   return water;
-}WHAT: Remove duplicates keeping unique elements in-place? THEORY: Slow/fast pointers. Slow points to unique position, fast searches next unique. O(n) time, O(1) space.
-// 
+}
 
 // Q11. Remove Duplicates from Sorted Array (in-place)
 // Return length of array with unique elements
@@ -232,7 +224,6 @@ function removeDuplicatesSorted(nums) {
     }
   }
   return slow + 1;
-// WHAT: Move all zeros to end maintaining element order? THEORY: Slow ptr to non-zero position, fast finds non-zeros. Swap, append zeros. O(n) time, O(1) space.
 }
 
 // Q12. Move Zeros to End (in-place, maintain order)

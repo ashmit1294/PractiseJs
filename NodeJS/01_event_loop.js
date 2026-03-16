@@ -18,9 +18,6 @@
 
 // ─────────────────────────────────────────────
 // Q1. Event loop order — predict the output
-// WHAT: In what order do setTimeout, Promise, nextTick, setImmediate run?
-// THEORY: Sync code first → nextTick (microtask, highest) → Promises (microtask) →
-//         timers phase (setTimeout) → check phase (setImmediate).
 // ─────────────────────────────────────────────
 console.log("1 — synchronous");
 
@@ -44,9 +41,7 @@ console.log("6 — synchronous");
 
 // ─────────────────────────────────────────────
 // Q2. Nested microtasks — nextTick in a loop
-// WHAT: What happens if you recursively call process.nextTick?
-// THEORY: nextTick has highest priority, queue keeps growing → event loop NEVER reaches poll/timers.
-//         File I/O, network blocked. Called "event loop starvation". Fix: Use setImmediate instead.
+// nextTick can STARVE the event loop if used recursively!
 // ─────────────────────────────────────────────
 // DANGEROUS — starves I/O:
 // process.nextTick(function tick() {
@@ -63,9 +58,7 @@ function safeRecursion() {
 
 // ─────────────────────────────────────────────
 // Q3. setTimeout vs setImmediate — which runs first?
-// WHAT: Does setImmediate run before or after setTimeout(0)?
-// THEORY: Outside I/O callback = random order (both same iteration). Inside I/O callback = setImmediate 
-//         always first (check phase after poll). Don't rely on order; use Promises for guaranteed sequence.
+// It depends on whether we're inside an I/O callback!
 // ─────────────────────────────────────────────
 
 // Outside I/O callback — order is non-deterministic
@@ -82,9 +75,7 @@ fs.readFile(__filename, () => {
 
 // ─────────────────────────────────────────────
 // Q4. process.nextTick use case
-// WHAT: Why defer event emission from EventEmitter constructor?
-// THEORY: Emit in constructor = listener not attached yet = event lost. nextTick defers until 
-//         AFTER constructor + listener attachment. Standard Node.js pattern (many libraries use it).
+// Execute callback AFTER the current operation but BEFORE any I/O
 // ─────────────────────────────────────────────
 
 // Use case: emit event after constructor returns
@@ -106,9 +97,6 @@ em.on("ready", () => console.log("Emitter is ready!"));
 
 // ─────────────────────────────────────────────
 // Q5. Promise chaining and microtask queue
-// WHAT: What's the execution order of sync code, await Promise, and setTimeout?
-// THEORY: await queues in microtask queue (very fast). setTimeout queues in timers phase (waits full iteration).
-//         Sync runs first → microtasks → phases. await Promise.resolve() much faster than await setTimeout(0).
 // ─────────────────────────────────────────────
 async function asyncVsSync() {
   console.log("A");
@@ -131,9 +119,6 @@ console.log("F"); // runs before B — F is synchronous, B needs microtask queue
 
 // ─────────────────────────────────────────────
 // Q6. Call Stack visualization
-// WHAT: How does the call stack track function execution?
-// THEORY: Each function call PUSHED onto stack, then POPPED when returning. Sync calls block event loop.
-//         Deep recursion + sync = stack overflow. Async callbacks don't block (queued in event loop).
 // ─────────────────────────────────────────────
 function multiply(a, b) { return a * b; }
 function square(n) { return multiply(n, n); }
@@ -151,9 +136,6 @@ printSquare(5);
 
 // ─────────────────────────────────────────────
 // Q7. Non-blocking I/O with callbacks
-// WHAT: How can Node.js handle thousands of concurrent I/O operations?
-// THEORY: I/O delegated to libuv thread pool (file, DNS) or OS async (network). Main JS thread continues.
-//         When I/O completes, callback queued in poll phase. Main thread never blocks on I/O.
 // ─────────────────────────────────────────────
 const path = require("path");
 
@@ -171,9 +153,7 @@ function readFileAsync(filePath, callback) {
 
 // ─────────────────────────────────────────────
 // Q8. Worker Threads for CPU-intensive tasks
-// WHAT: When should you use Worker Threads?
-// THEORY: Use for CPU-intensive sync work that would block event loop (image processing, crypto).
-//         NOT for I/O — Node's async handles that efficiently. Default: 1 main thread + 4 worker threads.
+// Use when: computation blocks event loop > 100ms
 // ─────────────────────────────────────────────
 const { Worker, isMainThread, parentPort, workerData } = require("worker_threads");
 

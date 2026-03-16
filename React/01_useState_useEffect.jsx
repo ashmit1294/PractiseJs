@@ -14,9 +14,7 @@ import React, { useState, useEffect, useRef } from "react";
 
 // ─────────────────────────────────────────────
 // Q1. Counter with useState
-// WHAT: Why does setState fail inside setTimeout callbacks?
-// THEORY: setState(count+1) captures 'count' at callback creation (stale closure).
-//         Fix: Use setState(prev => prev+1) to always get current state from React.
+// What is the issue with stale closures in setState?
 // ─────────────────────────────────────────────
 function Counter() {
   const [count, setCount] = useState(0);
@@ -42,9 +40,7 @@ function Counter() {
 
 // ─────────────────────────────────────────────
 // Q2. Object state — merging pitfall
-// WHAT: How do you safely update object state without losing other fields?
-// THEORY: useState setState REPLACES object (doesn't merge like class setState).
-//         Must use spread: setState(prev => ({...prev, field: value}))
+// setState REPLACES, not merges, object state
 // ─────────────────────────────────────────────
 function UserForm() {
   const [user, setUser] = useState({ name: "", email: "", age: 0 });
@@ -65,9 +61,7 @@ function UserForm() {
 
 // ─────────────────────────────────────────────
 // Q3. Lazy initialization of useState
-// WHAT: When should you pass a function vs a value to useState?
-// THEORY: useState(value) evaluated every render (wasteful if expensive).
-//         useState(() => value) runs ONCE at mount (use for localStorage, calculations).
+// Pass a function when initial state is expensive to compute
 // ─────────────────────────────────────────────
 function ExpensiveInit() {
   // WRONG: computeHeavy() runs on EVERY render
@@ -84,9 +78,7 @@ function ExpensiveInit() {
 
 // ─────────────────────────────────────────────
 // Q4. useEffect — data fetching with cleanup
-// WHAT: How do you prevent "Cannot set state on unmounted component" errors?
-// THEORY: User navigates away while fetch in-flight. Use cleanup flag to skip setState after unmount.
-//         Check flag before setState inside async callbacks.
+// Prevent setting state on unmounted component (race condition)
 // ─────────────────────────────────────────────
 function UserProfile({ userId }) {
   const [user, setUser] = useState(null);
@@ -122,9 +114,7 @@ function UserProfile({ userId }) {
 
 // ─────────────────────────────────────────────
 // Q5. useEffect — subscription cleanup
-// WHAT: How do you prevent memory leaks from event listeners?
-// THEORY: addEventListener persists until removeEventListener is called. Cleanup MUST remove listener.
-//         Empty deps [] = listener added once, cleanup runs once on unmount.
+// Always clean up subscriptions to avoid memory leaks
 // ─────────────────────────────────────────────
 function WindowSize() {
   const [size, setSize] = useState({ width: window.innerWidth, height: window.innerHeight });
@@ -143,9 +133,6 @@ function WindowSize() {
 
 // ─────────────────────────────────────────────
 // Q6. useEffect — interval with cleanup
-// WHAT: How do you safely use setInterval in useEffect?
-// THEORY: setInterval keeps running after unmount (memory leak). Store ID and clearInterval in cleanup.
-//         Use functional setState: setState(prev => prev+1) for correct incrementing.
 // ─────────────────────────────────────────────
 function Timer() {
   const [seconds, setSeconds] = useState(0);
@@ -163,9 +150,8 @@ function Timer() {
 
 // ─────────────────────────────────────────────
 // Q7. Batch state updates
-// WHAT: How many re-renders when you call setState multiple times?
-// THEORY: React 18: ALL updates auto-batch (sync, setTimeout, Promise, etc.) = 1 re-render.
-//         React 17: only batched in event handlers. Use flushSync() to force immediate update (rare).
+// React 18: ALL state updates are batched (even in async/setTimeout)
+// React 17: only batched in event handlers
 // ─────────────────────────────────────────────
 function BatchingDemo() {
   const [a, setA] = useState(0);
@@ -187,9 +173,8 @@ function BatchingDemo() {
 
 // ─────────────────────────────────────────────
 // Q8. useEffect ordering & cleanup execution order
-// WHAT: In what order do effects and cleanup run in nested components?
-// THEORY: Mount: parent render → child render → child effect → parent effect.
-//         Cleanup: reverse order (child cleanup → parent cleanup). Prevents dependency issues.
+// Parent mounts → Child mounts → Child effect runs → Parent effect runs
+// Child unmounts → Child cleanup → Child effect (if re-run)
 // ─────────────────────────────────────────────
 
 /*
