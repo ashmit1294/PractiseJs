@@ -671,4 +671,397 @@ Next.js 14:
   - Metadata API stable
 */
 
+/*
+Q29: What ORM or database client libraries work best with Next.js?
+
+Best options depend on your data source (SQL vs NoSQL):
+
+SQL Databases:
+  1. Prisma (recommended for most projects)
+     - TypeScript-first ORM with great DX
+     - Prisma Client auto-generates; introspect DB or declarative schema
+     - Data migration built-in
+     - Works with PostgreSQL, MySQL, SQLite, SQL Server, MongoDB
+     - Can be used in Server Components, Server Actions, and API Routes
+     
+     app/api/users/route.ts
+     import { PrismaClient } from '@prisma/client';
+     const prisma = new PrismaClient();
+     export async function GET() {
+       const users = await prisma.user.findMany();
+       return Response.json(users);
+     }
+
+  2. Drizzle ORM (lightweight, type-safe)
+     - Lightweight alternative to Prisma
+     - Lower overhead, good performance
+     - Great TypeScript support
+     
+  3. TypeORM
+     - Full-featured, decorator-based
+     - Support for complex relationships
+     - Repository pattern
+
+NoSQL (MongoDB):
+  1. Mongoose (schema validation on top of MongoDB)
+  2. Prisma (now supports MongoDB natively)
+  3. MongoDB driver (low-level, full control)
+
+Key patterns for Next.js:
+  - Import ORM client at module level (connections are reused across requests)
+  - Use Server Components for auto-fetch via Prisma
+  - Singleton pattern for database connections to avoid exhaustion
+  
+  lib/db.ts (Prisma singleton):
+  import { PrismaClient } from '@prisma/client';
+  const globalForPrisma = global as unknown as { prisma: PrismaClient };
+  export const prisma =
+    globalForPrisma.prisma || new PrismaClient();
+  if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
+*/
+
+/*
+Q30: I'm building a Next.js page where data updates very frequently (every few seconds).
+     What rendering strategy and techniques should I use to make it efficient?
+
+Answer depends on use case:
+
+SCENARIO 1: Live updates needed (Dashboard, Stock prices, Chat)
+  Best: Hybrid approach — SSR initial load + Client-side real-time updates
+  
+  Strategy:
+    1. Use SSR (getServerSideProps or dynamic = 'force-dynamic') for initial state
+    2. Hydrate with latest data on client
+    3. Use WebSocket or polling for live updates
+    4. Consider Vercel Postgres Realtime or other pub/sub service
+  
+  'use client';
+  import { useEffect, useState } from 'react';
+  
+  export default function Dashboard({ initialData }) {
+    const [data, setData] = useState(initialData);
+  
+    useEffect(() => {
+      const ws = new WebSocket('wss://api.example.com/stock-updates');
+      ws.onmessage = (event) => {
+        setData(JSON.parse(event.data));
+      };
+      return () => ws.close();
+    }, []);
+  
+    return <div>{data.price}</div>;
+  }
+
+SCENARIO 2: User-specific or time-sensitive data
+  Best: CSR (Client-Side Rendering) with polling/WebSocket
+  
+  Why: SSR won't help if data becomes stale immediately after rendering.
+  Serve static shell, fetch dynamic data on browser.
+  
+  export const dynamic = 'force-dynamic'; // prevents caching
+  
+  'use client';
+  export default function LiveData() {
+    const [data, setData] = useState(null);
+    useEffect(() => {
+      const interval = setInterval(async () => {
+        const res = await fetch('/api/live-data');
+        setData(await res.json());
+      }, 1000); // fetch every second
+      return () => clearInterval(interval);
+    }, []);
+    return <div>{data}</div>;
+  }
+
+SCENARIO 3: Regular updates but not real-time (~1-10s intervals)
+  Best: ISR + polling fallback
+  
+  export const revalidate = 3; // revalidate every 3 seconds
+  
+  Combines:
+    - SSG/ISR for initial fast page load (cached HTML)
+    - Background revalidation to keep data fresh
+    - Client-side refetch as backup
+  
+  Pros: Fast initial load, fresh data, less server load than SSR every request
+
+SCENARIO 4: Updates tied to user actions (Real-time multiplayer, Collaborative editing)
+  Best: Server Actions + optimistic updates
+  
+  'use client';
+  import { updateScoreAction } from '@/app/actions';
+  
+  export default function Game() {
+    const [score, setScore] = useState(0);
+    
+    const handleScore = async () => {
+      // Optimistic update (show immediately)
+      setScore(s => s + 10);
+      // Send to server
+      const result = await updateScoreAction();
+      // Sync with server
+      setScore(result.score);
+    };
+    
+    return <button onClick={handleScore}>{score}</button>;
+  }
+
+PERFORMANCE TECHNIQUES:
+  1. useTransition() — non-blocking updates (doesn't block UI)
+  2. Suspense boundaries — show loading for specific sections
+  3. Request memoization — avoid duplicate fetches in same request
+  4. Incremental Static Regeneration (ISR) — background revalidation
+  5. Pagination — load data in chunks, not all at once
+  6. WebSocket + Server-Sent Events (SSE) — push instead of pull (more efficient)
+
+RECOMMENDATION:
+  For 7+ years experience → Use SSR + WebSocket for real-time updates.
+  Fallback to ISR + polling for simplicity if WebSocket not available.
+  Always consider cost vs freshness tradeoff.
+*/
+
+/*
+Q31: How is data fetching different in React vs Next.js?
+───────────────────────────────────────────────────────────
+
+REACT (Client-only):
+  All data fetching happens in browser (useEffect, React Query, SWR)
+  
+  // React
+  import { useEffect, useState } from 'react';
+  
+  export default function UsersList() {
+    const [users, setUsers] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    
+    useEffect(() => {
+      fetch('/api/users')
+        .then(r => r.json())
+        .then(data => {
+          setUsers(data);
+          setLoading(false);
+        })
+        .catch(err => {
+          setError(err);
+          setLoading(false);
+        });
+    }, []); // runs AFTER component renders
+    
+    if (loading) return <div>Loading...</div>;
+    if (error) return <div>Error: {error.message}</div>;
+    return <ul>{users.map(u => <li key={u.id}>{u.name}</li>)}</ul>;
+  }
+
+ISSUES with React approach:
+  - Waterfall: render component → download JS → useEffect runs → fetch data
+  - TTFB: user sees blank screen until fetch completes
+  - No SEO: crawlers don't wait for JS to fetch data
+  - N+1 requests: each client makes separate API calls
+  - API exposed: endpoints visible in browser network tab
+
+NEXT.JS (Server-First):
+  Data fetching happens on SERVER (Server Components, Server Actions, API Routes)
+  
+  // Next.js App Router — Server Component (default)
+  export default async function UsersList() {
+    const res = await fetch('https://api.example.com/users', {
+      next: { revalidate: 60 }, // ISR: revalidate every 60s
+    });
+    const users = await res.json();
+    
+    // No state, no useEffect, no loading UI needed
+    return (
+      <ul>
+        {users.map(u => <li key={u.id}>{u.name}</li>)}
+      </ul>
+    );
+  }
+
+ADVANTAGES:
+  1. No waterfall: data fetched BEFORE HTML sent to browser
+  2. TTFB: HTML includes data, fast first paint
+  3. SEO: crawlers receive fully rendered HTML with data
+  4. Secrets safe: API keys never exposed to browser
+  5. Deduplication: multiple fetches of same URL in single render = 1 network request
+  6. Streaming: use Suspense to show parts while others load
+  
+      export default function Page() {
+        return (
+          <>
+            <h1>Dashboard</h1>
+            <Suspense fallback={<p>Loading stats...</p>}>
+              <Stats /> {* this part can fetch independently *}
+            </Suspense>
+          </>
+        );
+      }
+
+COMPARISON TABLE:
+                    React       | Next.js
+  Data fetch timing | Client-side | Server-side (default)
+  Waterfall         | Yes        | No
+  TTFB              | Slow       | Fast
+  SEO               | No         | Yes
+  State needed      | Yes        | No (Server Components)
+  Loading UI        | Manual     | Built-in (Suspense)
+  Request dedup     | Manual     | Automatic
+  Secrets safe      | No         | Yes
+  Caching           | Manual SWR | Declarative + automatic
+
+WHEN TO USE CLIENT-SIDE FETCHING IN NEXT.JS:
+  - Real-time data (stocks, chat messages) → use 'use client' + useEffect + polling/WebSocket
+  - Behind authentication → fetch on client to use session
+  - User preferences → CSR with localStorage
+  - Highly interactive (filters, search) → CSR with React Query / SWR
+*/
+
+/*
+Q32: What are API Routes in Next.js and how do you build RESTful APIs with them?
+
+API Routes (called Route Handlers in App Router) replace the /pages/api/ pattern.
+They allow you to build backend functions without a separate server.
+
+APP ROUTER - Route Handlers (Next.js 13+, recommended):
+  File: app/api/users/route.ts
+  URL: /api/users
+  
+  import { NextRequest, NextResponse } from 'next/server';
+  
+  export async function GET(request: NextRequest) {
+    // GET request handler
+    const users = await db.user.findMany();
+    return NextResponse.json(users);
+  }
+  
+  export async function POST(request: NextRequest) {
+    // POST request handler
+    const body = await request.json();
+    const newUser = await db.user.create({ data: body });
+    return NextResponse.json(newUser, { status: 201 });
+  }
+  
+  export async function PUT(request: NextRequest) {
+    // PUT request handler
+    const body = await request.json();
+    const updated = await db.user.update({ data: body });
+    return NextResponse.json(updated);
+  }
+  
+  export async function DELETE(request: NextRequest) {
+    // DELETE request handler
+    await db.user.delete();
+    return new NextResponse(null, { status: 204 });
+  }
+
+KEY FEATURES:
+  1. Type-safe request/response
+     - request: NextRequest (extends Web API Request)
+     - response: NextResponse (extends Web API Response) 
+  
+  2. Access path parameters via URL
+     File: app/api/users/[id]/route.ts
+     Function signature: export async function GET(req, { params: { id } })
+  
+  3. Query parameters
+     Accessed via new URL(request.url).searchParams
+     
+     app/api/search/route.ts
+     export async function GET(request) {
+       const { searchParams } = new URL(request.url);
+       const query = searchParams.get('q');
+       const results = await search(query);
+       return NextResponse.json(results);
+     }
+  
+  4. Error handling
+     import { NextRequest, NextResponse } from 'next/server';
+     
+     export async function GET(req: NextRequest) {
+       try {
+         const data = await fetchData();
+         return NextResponse.json(data);
+       } catch (err) {
+         return NextResponse.json(
+           { error: err.message },
+           { status: 500 }
+         );
+       }
+     }
+  
+  5. Middleware support
+     Can chain with Middleware for auth, logging, rate-limiting
+     
+     export const middleware = (request: NextRequest) => {
+       const token = request.headers.get('authorization');
+       if (!token) {
+         return new NextResponse('Unauthorized', { status: 401 });
+       }
+       return NextResponse.next();
+     };
+  
+  6. Streaming responses
+     export async function GET(request) {
+       const stream = new ReadableStream({
+         async start(controller) {
+           const data = await db.user.findMany();
+           for (const user of data) {
+             controller.enqueue(JSON.stringify(user) + '\n');
+           }
+           controller.close();
+         },
+       });
+       return new NextResponse(stream);
+     }
+  
+  7. Webhooks / External service calls
+     export async function POST(request) {
+       const event = await request.json();
+       if (event.type === 'user.created') {
+         await sendWelcomeEmail(event.user.email);
+       }
+       return NextResponse.json({ ok: true });
+     }
+
+PAGES ROUTER - API Routes (Legacy, still supported):
+  File: pages/api/users.ts
+  URL: /api/users
+  
+  export default function handler(req, res) {
+    if (req.method === 'GET') {
+      const users = await db.user.findMany();
+      res.status(200).json(users);
+    } else if (req.method === 'POST') {
+      const newUser = await db.user.create({ data: req.body });
+      res.status(201).json(newUser);
+    } else {
+      res.status(405).end(); // Method Not Allowed
+    }
+  }
+
+BEST PRACTICES:
+  1. Keep logic in external functions/services (separate from route handler)
+  2. Use environment variables for secrets (NEVER hardcode)
+  3. Always validate + sanitize input (input validation)
+  4. Return appropriate HTTP status codes (200, 201, 400, 401, 500)
+  5. Use proper error handling (try/catch)
+  6. Add rate limiting for public endpoints
+  7. Document API (OpenAPI/Swagger or similar)
+  8. Use TypeScript for type safety
+  9. Version your API if planning major changes (/api/v1/users)
+  10. Consider using Server Actions for form submissions instead of Route Handlers
+
+WHEN TO USE ROUTE HANDLERS vs SERVER ACTIONS:
+  Route Handlers:
+    - RESTful API design
+    - External clients (mobile apps, third-party services)
+    - Webhooks / incoming requests
+    - Complex querystring/header processing
+  
+  Server Actions:
+    - Form submissions from your own pages
+    - Simple data mutations
+    - Simpler mental model (no HTTP)
+*/
+
 export {};

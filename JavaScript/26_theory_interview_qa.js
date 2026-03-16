@@ -561,6 +561,193 @@ function withLogger(obj) {
   };
 }
 
+/*
+Q17 [ADVANCED]: What are common JavaScript design patterns (Singleton, Factory, Observer, Pub-Sub)?
+──────────────────────────────────────────────────────────────────────────────────────────────────
+A: Design patterns are reusable solutions to common software design problems.
+   Key patterns for JavaScript:
+
+1. SINGLETON: Ensures only ONE instance of a class exists; controls global access point.
+*/
+
+class Database {
+  static instance = null;
+  #connection = null;
+
+  static getInstance() {
+    if (!Database.instance) {
+      Database.instance = new Database();
+    }
+    return Database.instance;
+  }
+
+  connect() {
+    if (!this.#connection) {
+      this.#connection = { /* connected */ };
+    }
+    return this.#connection;
+  }
+}
+
+const db1 = Database.getInstance();
+const db2 = Database.getInstance();
+console.log(db1 === db2); // true — same instance
+
+/*
+2. FACTORY: Creates objects without specifying exact classes; encapsulates object creation logic.
+*/
+
+class Circle {
+  constructor(radius) { this.radius = radius; }
+  getArea() { return Math.PI * this.radius ** 2; }
+}
+
+class Rectangle {
+  constructor(width, height) { this.width = width; this.height = height; }
+  getArea() { return this.width * this.height; }
+}
+
+class ShapeFactory {
+  static createShape(type, ...args) {
+    if (type === 'circle') return new Circle(...args);
+    if (type === 'rectangle') return new Rectangle(...args);
+    throw new Error('Unknown shape');
+  }
+}
+
+const shape = ShapeFactory.createShape('circle', 5);
+console.log(shape.getArea()); // 78.54
+
+/*
+3. OBSERVER / PUB-SUB: Defines one-to-many dependency; when subject changes, all observers notified.
+*/
+
+class EventEmitter {
+  constructor() {
+    this.events = {};
+  }
+
+  on(event, listener) {
+    if (!this.events[event]) this.events[event] = [];
+    this.events[event].push(listener);
+  }
+
+  emit(event, data) {
+    if (this.events[event]) {
+      this.events[event].forEach(listener => listener(data));
+    }
+  }
+
+  off(event, listenerToRemove) {
+    if (this.events[event]) {
+      this.events[event] = this.events[event].filter(listener => listener !== listenerToRemove);
+    }
+  }
+}
+
+const emitter = new EventEmitter();
+const onUserLogin = (user) => console.log(`User ${user} logged in`);
+emitter.on('login', onUserLogin);
+emitter.emit('login', 'Alice');   // "User Alice logged in"
+
+/*
+4. ADAPTER: Converts interface of one class into another clients expect;
+           allows incompatible objects to collaborate.
+*/
+
+class OldAPI {
+  getUser() { return { fullName: 'John Doe' }; }
+}
+
+class NewAPI {
+  getUser() { return { firstName: 'John', lastName: 'Doe' }; }
+}
+
+class UserAdapter {
+  constructor(api) { this.api = api; }
+  getUser() {
+    const user = this.api.getUser();
+    if (user.fullName) {
+      const [firstName, lastName] = user.fullName.split(' ');
+      return { firstName, lastName };
+    }
+    return user;
+  }
+}
+
+const adapter = new UserAdapter(new OldAPI());
+console.log(adapter.getUser()); // { firstName: 'John', lastName: 'Doe' }
+
+/*
+5. DECORATOR: Attaches additional responsibilities to object dynamically;
+            alternative to subclassing for extending functionality.
+*/
+
+function withLogging(fn, name = fn.name) {
+  return function(...args) {
+    console.log(`Calling ${name} with args:`, args);
+    const result = fn(...args);
+    console.log(`${name} returned:`, result);
+    return result;
+  };
+}
+
+function add(a, b) { return a + b; }
+const loggedAdd = withLogging(add);
+loggedAdd(2, 3); // logs: Calling add with args: [2, 3], add returned: 5
+
+/*
+Q18 [ADVANCED]: What are bundling techniques and differ ences between Webpack, Rollup, Esbuild, and Vite?
+─────────────────────────────────────────────────────────────────────────────────────────────────────────
+A: Bundlers combine modules into optimised output files for browsers/Node.
+   Key considerations: bundle size, build speed, dev server, tree-shaking, code splitting, HMR.
+*/
+
+/*
+1. WEBPACK (Most popular, all-in-one):
+   - Entry point → dependency graph → chunking → optimization
+   - Plugins & loaders for everything (CSS, images, fonts, etc.)
+   - Pros: Powerful, versatile, huge ecosystem
+   - Cons: Complex config, slower build times, learning curve
+   - Use case: Large SPAs with complex requirements
+
+2. ROLLUP (ES modules focused, slim):
+   - Designed for libraries (ESM, CJS, UMD outputs)
+   - Excellent tree-shaking (removes unused code)
+   - Simpler config than Webpack
+   - Pros: Small bundle size, clean code structure, excellent for libraries
+   - Cons: Less out-of-the-box, steeper learning for advanced features
+   - Use case: Publishing libraries, frameworks (React, Vue use Rollup)
+
+3. ESBUILD (Rust-based, extremely fast, newer):
+   - Written in Go (now Rust in newer versions) → 10-100x faster than Webpack
+   - Very simple config, zero-config mode
+   - Modern JS only (targets ES2020+)
+   - Pros: Speed, simplicity, modern
+   - Cons: Less mature, fewer plugins, less flexible
+   - Use case: Quick builds, prototyping, libraries targeting modern browsers
+
+4. VITE (Next-gen dev experience, uses Esbuild):
+   - Dev server: ES modules natively (file-on-request), instant HMR
+   - Prod build: Rollup under the hood
+   - Zero-config, framework templates (React, Vue, Svelte, etc.)
+   - Pros: Blazing fast dev experience, simple config, modern defaults
+   - Cons: Requires modern browser support in dev, newer ecosystem
+   - Use case: Modern SPAs, React/Vue/Svelte projects (recommended for new projects)
+
+COMPARISON TABLE:
+  Webpack     | Mature, powerful, lots of plugins, complex, slow dev rebuilds
+  Rollup      | Libraries, tree-shaking, clean, not all-in-one
+  Esbuild     | Blazing fast, simple, newer, less plugins
+  Vite        | Modern dev experience, recommended for new projects, Rollup for prod
+
+KEY CONCEPTS:
+- Tree-shaking: Remove unused export codes (only works with ES modules)
+- Code splitting: Split bundle into chunks (lazy-load routes, vendor chunks)
+- Dead code elimination: Remove unreachable code
+- Minification: Remove comments, shorten variable names, compress
+*/
+
 module.exports = {
   makeCounter,
   Range,
