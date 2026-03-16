@@ -15,6 +15,9 @@ import React, {
 // ─────────────────────────────────────────────
 // Q1. Basic useReducer — Counter
 // useReducer(reducer, initialState) → [state, dispatch]
+// WHAT: When and how should you use useReducer instead of useState?
+// THEORY: useReducer manages state with a pure function reducer that takes state and action; useDispatch(action) triggers state changes; enables complex logic, testing, state transitions, undo/redo
+// Time: O(1)  Space: O(1)
 // ─────────────────────────────────────────────
 const counterReducer = (state, action) => {
   switch (action.type) {
@@ -44,6 +47,9 @@ function CounterWithReducer() {
 // ─────────────────────────────────────────────
 // Q2. Shopping Cart with useReducer
 // Real-world example: add, remove, update quantity, clear
+// WHAT: How do you manage complex related state updates in a shopping cart?
+// THEORY: useReducer handles multiple actions (ADD_ITEM, REMOVE_ITEM, UPDATE_QTY, CLEAR); accumulator pattern updates immutable state; enables undo/redo via action history
+// Time: O(n) for ADD_ITEM/UPDATE_QTY where n=items; O(1) for REMOVE_ITEM/CLEAR  Space: O(n)
 // ─────────────────────────────────────────────
 const cartReducer = (state, action) => {
   switch (action.type) {
@@ -78,6 +84,9 @@ const cartReducer = (state, action) => {
 // ─────────────────────────────────────────────
 // Q3. useContext — basic usage
 // Avoids prop-drilling: pass data to deeply nested components
+// WHAT: How do you avoid prop-drilling and share data across deeply nested components?
+// THEORY: createContext creates context object; use <Provider value={}> to wrap components; useContext(Context) reads value in any nested component; memoize value to prevent unnecessary re-renders
+// Time: O(n) where n=depth  Space: O(1)
 // ─────────────────────────────────────────────
 const ThemeContext = createContext("light");
 
@@ -114,6 +123,9 @@ function ThemedButton() {
 // ─────────────────────────────────────────────
 // Q4. Global State with Context + useReducer
 // Mini Redux implementation using built-in React APIs
+// WHAT: How do you create a global state management system using Context and useReducer?
+// THEORY: Combine createContext + useReducer for global state; separate state/dispatch contexts so dispatch-only components don't re-render on state change; memoize to optimize performance
+// Time: O(1)  Space: O(n) for global state
 // ─────────────────────────────────────────────
 const initialAppState = {
   user: null,
@@ -161,8 +173,10 @@ const useAppDispatch = () => useContext(AppDispatchContext);
 // Q5. Context performance optimization
 // Problem: ALL consumers re-render when context value changes
 // Solution: split context, memoize value, use selectors
+// WHAT: How do you prevent unnecessary re-renders when using Context?
+// THEORY: Split context by update frequency (UserContext, CartContext, ThemeContext); memoize value with useMemo to prevent new object; separate state/dispatch contexts; use React.memo on consumers
+// Time: O(1)  Space: O(n)
 // ─────────────────────────────────────────────
-
 // BAD: single large context — every consumer re-renders on ANY change
 // const AppContext = createContext({ user, cart, theme, notifications });
 
@@ -192,6 +206,9 @@ function OptimizedProvider({ children }) {
 // ─────────────────────────────────────────────
 // Q6. Context with useRef for imperative API
 // (Modal, Toast, Drawer — call programmatically)
+// WHAT: How do you create an imperative API (like calling a function) for components using Context?
+// THEORY: Store state in Context with open/close functions; consumers call useModal().open(content) to trigger; useRef can hold imperative handles for more control; useCallback memoizes handlers
+// Time: O(1)  Space: O(1)
 // ─────────────────────────────────────────────
 const ModalContext = createContext(null);
 

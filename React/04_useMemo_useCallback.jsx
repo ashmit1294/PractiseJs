@@ -15,6 +15,9 @@ import React, {
 // ─────────────────────────────────────────────
 // Q1. useMemo — expensive computation
 // Without useMemo, this re-runs on EVERY parent render
+// WHAT: How do you memoize the result of an expensive computation to avoid recalculation on every render?
+// THEORY: useMemo runs the compute function only when dependencies change; equality checked via deps array; prevents unnecessary filtering/sorting/calculations on parent re-render
+// Time: O(n) on first run and when deps change; O(1) cached  Space: O(n) for memoized result
 // ─────────────────────────────────────────────
 function ExpensiveList({ items, filter }) {
   // Only recomputes when `items` or `filter` changes
@@ -35,8 +38,10 @@ function ExpensiveList({ items, filter }) {
 // ─────────────────────────────────────────────
 // Q2. When NOT to use useMemo
 // Adding useMemo to cheap operations HURTS performance due to overhead
+// WHAT: When should you avoid using useMemo?
+// THEORY: useMemo has overhead (comparison + storage); only worth it for expensive computations (sorting large arrays, complex calculations); trivial operations like a+b should skip memoization
+// Time: O(1)  Space: O(n)
 // ─────────────────────────────────────────────
-
 // BAD — trivial computation, useMemo costs more than it saves
 function BadMemo({ a, b }) {
   const sum = useMemo(() => a + b, [a, b]); // ← unnecessary, just do: a + b
@@ -84,6 +89,9 @@ function Parent() {
 // ─────────────────────────────────────────────
 // Q4. useCallback pitfall — stale closures
 // Always include all values used inside the callback in deps
+// WHAT: How do you avoid stale closures in useCallback dependencies?
+// THEORY: Include all external values used in callback in deps array; use functional updates (setValue(v=>v+1)) to avoid closure; useRef can bypass deps if fresh value needed
+// Time: O(1)  Space: O(1)
 // ─────────────────────────────────────────────
 function StaleClosureFix() {
   const [value, setValue] = useState(0);
@@ -116,6 +124,9 @@ function StaleClosureFix() {
 // ─────────────────────────────────────────────
 // Q5. React.memo — skip re-render when props unchanged
 // Uses shallow equality (Object.is) to compare props
+// WHAT: How do you prevent a component from re-rendering when its props haven't changed?
+// THEORY: Wrap component with React.memo to skip re-render if props unchanged; uses shallow Object.is comparison; optional 2nd arg is custom comparator function for deep comparison
+// Time: O(k) for shallow comparison where k=number of props  Space: O(1)
 // ─────────────────────────────────────────────
 
 // Simple memo
@@ -135,6 +146,9 @@ const DeepMemo = memo(
 // ─────────────────────────────────────────────
 // Q6. useMemo to stabilize object/array references
 // Objects created inline always have new reference → break memo
+// WHAT: How do you prevent inline-created objects/arrays from causing unnecessary child re-renders?
+// THEORY: Objects/arrays created inline get new reference every render; wrap in useMemo with empty/appropriate deps to create stable reference; pass to React.memo children to skip their re-render
+// Time: O(n)  Space: O(n)
 // ─────────────────────────────────────────────
 function ParentWithObject() {
   const [count, setCount] = useState(0);
@@ -156,6 +170,9 @@ function ParentWithObject() {
 // ─────────────────────────────────────────────
 // Q7. Full performance pattern: useCallback + useMemo + memo
 // Data table with sorting and filtering
+// WHAT: How do you combine useCallback, useMemo, and React.memo for optimal data table performance?
+// THEORY: Memoize delete callback with useCallback for stable reference; memoize filtered/sorted rows with useMemo; wrap TableRow with React.memo to skip re-renders when props haven't changed
+// Time: O(n log n) for sort  Space: O(n)
 // ─────────────────────────────────────────────
 const TableRow = memo(function TableRow({ row, onDelete }) {
   return (

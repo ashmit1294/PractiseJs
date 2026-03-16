@@ -15,6 +15,9 @@ import React, { useState, useEffect, useRef } from "react";
 // ─────────────────────────────────────────────
 // Q1. Counter with useState
 // What is the issue with stale closures in setState?
+// WHAT: How do you avoid capturing stale state values in async setState calls?
+// THEORY: Functional setState ((prev) => newState) receives the latest state value instead of closure, preventing stale values; state updates are asynchronous and batched
+// Time: O(1)  Space: O(1)
 // ─────────────────────────────────────────────
 function Counter() {
   const [count, setCount] = useState(0);
@@ -41,6 +44,9 @@ function Counter() {
 // ─────────────────────────────────────────────
 // Q2. Object state — merging pitfall
 // setState REPLACES, not merges, object state
+// WHAT: Why does setState not preserve other properties when updating object state?
+// THEORY: setState replaces the entire state object (not partial merge); use spread operator (...prev) to preserve properties, then override only the changed field
+// Time: O(1)  Space: O(n) where n=object properties
 // ─────────────────────────────────────────────
 function UserForm() {
   const [user, setUser] = useState({ name: "", email: "", age: 0 });
@@ -62,6 +68,9 @@ function UserForm() {
 // ─────────────────────────────────────────────
 // Q3. Lazy initialization of useState
 // Pass a function when initial state is expensive to compute
+// WHAT: When and how should you compute expensive initial state in useState?
+// THEORY: Pass an initializer function to useState not a value; function executes ONLY on mount, not on every render; enables loading from localStorage, complex calculations
+// Time: O(n)  Space: O(n)
 // ─────────────────────────────────────────────
 function ExpensiveInit() {
   // WRONG: computeHeavy() runs on EVERY render
@@ -79,6 +88,9 @@ function ExpensiveInit() {
 // ─────────────────────────────────────────────
 // Q4. useEffect — data fetching with cleanup
 // Prevent setting state on unmounted component (race condition)
+// WHAT: How do you prevent memory leaks when fetching data in a component that may unmount?
+// THEORY: Use a cleanup flag that's set in the cleanup function returned by useEffect; check flag before setState; dependency array includes variables that trigger re-fetch
+// Time: O(n)  Space: O(1)
 // ─────────────────────────────────────────────
 function UserProfile({ userId }) {
   const [user, setUser] = useState(null);
@@ -115,6 +127,9 @@ function UserProfile({ userId }) {
 // ─────────────────────────────────────────────
 // Q5. useEffect — subscription cleanup
 // Always clean up subscriptions to avoid memory leaks
+// WHAT: How do you properly clean up event listeners or subscriptions in useEffect?
+// THEORY: Return a cleanup function from useEffect that removes listeners/subscriptions; runs before re-render if deps change or on unmount; prevents duplicate listeners and memory leaks
+// Time: O(1)  Space: O(1)
 // ─────────────────────────────────────────────
 function WindowSize() {
   const [size, setSize] = useState({ width: window.innerWidth, height: window.innerHeight });
@@ -133,6 +148,10 @@ function WindowSize() {
 
 // ─────────────────────────────────────────────
 // Q6. useEffect — interval with cleanup
+// ─────────────────────────────────────────────
+// WHAT: How do you implement a timer with setInterval in a React component without memory leaks?
+// THEORY: setInterval inside useEffect with cleanup function that calls clearInterval; use functional setState to avoid stale closures; empty deps = mount/unmount only
+// Time: O(1)  Space: O(1)
 // ─────────────────────────────────────────────
 function Timer() {
   const [seconds, setSeconds] = useState(0);

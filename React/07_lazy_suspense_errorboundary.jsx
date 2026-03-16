@@ -11,6 +11,9 @@ import React, { lazy, Suspense, Component, useState, useEffect } from "react";
 
 // ─────────────────────────────────────────────
 // Q1. React.lazy — dynamic import with Suspense
+// WHAT: How do you split a large component into a separate chunk and load it on demand?
+// THEORY: React.lazy wraps dynamic import(() => ...) to code-split; component must have default export; must wrap with Suspense to show fallback UI while loading; enables route-based splitting for faster initial load
+// Time: O(1)  Space: O(1)
 // ─────────────────────────────────────────────
 // The imported module MUST have a default export
 const HeavyChart = lazy(() => import("./HeavyChart")); // deferred bundle
@@ -29,6 +32,9 @@ function Dashboard() {
 // ─────────────────────────────────────────────
 // Q2. Named export with lazy (workaround)
 // React.lazy only supports default exports
+// WHAT: How do you code-split a component that uses a named export?
+// THEORY: Wrap import().then((module) => ({ default: module.NamedExport })) to convert named to default; transform named export inside dynamic import; workaround limitation of React.lazy for named exports
+// Time: O(1)  Space: O(1)
 // ─────────────────────────────────────────────
 const NamedComponent = lazy(() =>
   import("./components").then((module) => ({ default: module.NamedExport }))
@@ -37,6 +43,9 @@ const NamedComponent = lazy(() =>
 // ─────────────────────────────────────────────
 // Q3. Route-based code splitting with React.lazy
 // Each route's component is in its own chunk
+// WHAT: How do you apply code splitting to route pages for faster initial load?
+// THEORY: Lazy load each route component separately; Suspense at router level shows fallback during chunk load; each route gets own bundle; improves first contentful paint and time to interactive
+// Time: O(1)  Space: O(1)
 // ─────────────────────────────────────────────
 const HomePage = lazy(() => import("./pages/Home"));
 const AboutPage = lazy(() => import("./pages/About"));
@@ -72,6 +81,9 @@ function Router() {
 // Q4. Error Boundary — class component required
 // Catches render errors, lifecycle errors, constructor errors
 // Does NOT catch: async errors, event handler errors, SSR errors
+// WHAT: How do you catch React render errors and display a fallback UI?
+// THEORY: Error boundary is class component with getDerivedStateFromError and componentDidCatch; catches errors during render/mounting; doesn't catch async errors or event handlers; must be class component (no hook alternative)
+// Time: O(1)  Space: O(1)
 // ─────────────────────────────────────────────
 class ErrorBoundary extends Component {
   constructor(props) {
@@ -120,6 +132,9 @@ class ErrorBoundary extends Component {
 // ─────────────────────────────────────────────
 // Q5. Combining Error Boundary + Suspense
 // Common pattern: wrap lazy components in both
+// WHAT: How do you handle both loading and error states for lazy-loaded components?
+// THEORY: Wrap lazy component in ErrorBoundary, then Suspense; fallback for loading state, error boundary for load failures; order matters: ErrorBoundary outside catches fetch errors, Suspense inside shows loading UI
+// Time: O(1)  Space: O(1)
 // ─────────────────────────────────────────────
 const LazySettings = lazy(() => import("./pages/Settings"));
 
@@ -140,6 +155,9 @@ function SettingsPage() {
 
 // ─────────────────────────────────────────────
 // Q6. Component that throws — for testing error boundary
+// WHAT: How do you test an error boundary?
+// THEORY: Create component that conditionally throws error based on prop; wrap with error boundary; trigger error by rendering with shouldExplode=true; verify error boundary catches and displays fallback
+// Time: O(1)  Space: O(1)
 // ─────────────────────────────────────────────
 function Bomb({ shouldExplode }) {
   if (shouldExplode) {

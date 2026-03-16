@@ -18,6 +18,9 @@ import React, {
 
 // ─────────────────────────────────────────────
 // Q1. useRef — DOM access
+// WHAT: How do you directly access or manipulate a DOM element in a React component?
+// THEORY: useRef returns a mutable container (.current) that persists across renders without triggering re-render; pass ref to JSX element to attach; don't read/write during rendering
+// Time: O(1)  Space: O(1)
 // ─────────────────────────────────────────────
 function AutoFocusInput() {
   const inputRef = useRef(null);
@@ -42,6 +45,9 @@ function AutoFocusInput() {
 // ─────────────────────────────────────────────
 // Q2. useRef as instance variable — interval timer
 // Changing ref.current does NOT trigger a re-render
+// WHAT: How do you store a mutable value (like a timer ID) that persists between renders but doesn't cause re-renders?
+// THEORY: useRef stores mutable data without triggering renders; useful for timer IDs, previous values, DOM nodes; unlike state, changing ref.current doesn't schedule a re-render
+// Time: O(1)  Space: O(1)
 // ─────────────────────────────────────────────
 function StopwatchWithRef() {
   const [elapsed, setElapsed] = useState(0);
@@ -76,6 +82,9 @@ function StopwatchWithRef() {
 
 // ─────────────────────────────────────────────
 // Q3. useRef — store previous value
+// WHAT: How do you access the previous render's value of a state variable?
+// THEORY: useRef persists value across renders; useEffect updates ref.current AFTER render so reading ref.current before effect runs gives previous value; custom usePrevious hook encapsulates pattern
+// Time: O(1)  Space: O(1)
 // ─────────────────────────────────────────────
 function usePrevious(value) {
   const prevRef = useRef(undefined);
@@ -99,6 +108,9 @@ function Counter() {
 // ─────────────────────────────────────────────
 // Q4. Callback ref — called when ref is attached/detached
 // Useful for measuring DOM elements
+// WHAT: How do you measure a DOM element's dimensions or run code when a ref is attached to the DOM?
+// THEORY: Pass a callback function as ref prop; called with DOM node when attached and null when detached; enables measuring, calculating positions; must memoize callback with useCallback for stability
+// Time: O(1)  Space: O(1)
 // ─────────────────────────────────────────────
 function MeasureBox() {
   const [height, setHeight] = useState(null);
@@ -121,6 +133,9 @@ function MeasureBox() {
 
 // ─────────────────────────────────────────────
 // Q5. forwardRef — expose DOM ref to parent
+// WHAT: How do you allow a parent component to access the underlying DOM node of a child functional component?
+// THEORY: Function component can't receive ref prop by default; wrap with forwardRef to forward ref to internal element; parent can then call methods or access properties on the child's DOM element
+// Time: O(1)  Space: O(1)
 // ─────────────────────────────────────────────
 const FancyInput = forwardRef(function FancyInput({ label, ...props }, ref) {
   return (
@@ -149,6 +164,9 @@ function ParentWithForwardRef() {
 // ─────────────────────────────────────────────
 // Q6. useImperativeHandle — custom imperative API
 // Expose only specific methods to parent, not the full DOM node
+// WHAT: How do you limit what methods/properties a parent can access on a child component's ref?
+// THEORY: useImperativeHandle customizes what's exposed via ref; returns object with only desired methods; prevents parent from accessing all DOM properties; combined with forwardRef and useRef
+// Time: O(1)  Space: O(1)
 // ─────────────────────────────────────────────
 const VideoPlayer = forwardRef(function VideoPlayer({ src }, ref) {
   const videoRef = useRef(null);
@@ -179,6 +197,9 @@ function VideoControls() {
 // ─────────────────────────────────────────────
 // Q7. Scroll to bottom of a chat list
 // Common pattern: useRef for DOM, scroll after each new message
+// WHAT: How do you scroll a container to the bottom when new items are added?
+// THEORY: Create invisible sentinel element at bottom with useRef; use useEffect to call scrollIntoView on sentinel when dependencies change; deps array includes messages array for auto-scroll on new messages
+// Time: O(1)  Space: O(1)
 // ─────────────────────────────────────────────
 function ChatWindow({ messages }) {
   const bottomRef = useRef(null);
@@ -197,6 +218,9 @@ function ChatWindow({ messages }) {
 
 // ─────────────────────────────────────────────
 // Q8. useRef vs useState — when to use which
+// WHAT: When should you use useRef instead of useState, and vice versa?
+// THEORY: useState triggers re-render when updated; useRef doesn't; use setState for values that affect rendering, useRef for internal state (animations, timers, form inputs, counters not displayed)
+// Time: O(1)  Space: O(1)
 // ─────────────────────────────────────────────
 function TrackClickCount() {
   const [renderCountState, setRenderCountState] = useState(0); // triggers render

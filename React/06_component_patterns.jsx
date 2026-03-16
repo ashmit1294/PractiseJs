@@ -15,6 +15,9 @@ import React, { useState, useContext, createContext, useRef, Children, cloneElem
 // Q1. Higher Order Component (HOC)
 // A function that takes a component and returns a new (enhanced) component
 // Use case: cross-cutting concerns — logging, auth, theming, loading
+// WHAT: How do you add behavior or state to existing components without modifying them?
+// THEORY: HOC is a function that takes component and returns enhanced component; enables prop manipulation, state wrapping, rendering control; can stack HOCs but creates wrapper hell; use custom hooks instead
+// Time: O(1)  Space: O(1)
 // ─────────────────────────────────────────────
 
 // withLoading HOC — adds loading spinner logic
@@ -55,6 +58,9 @@ const ProtectedProfile = withAuth(withLoading(UserProfile));
 // Q2. Render Props
 // Share logic by passing a function as a prop (the function renders UI)
 // Use case: mouse position, data fetching, form state
+// WHAT: How do you reuse stateful component logic with a consumer component controlling the render?
+// THEORY: Render prop is a function passed to component that determines what to render; component calls the function with data; enables flexible composition; alternative to HOC, but creates callback hell; custom hooks better
+// Time: O(n)  Space: O(n)
 // ─────────────────────────────────────────────
 
 // MouseTracker with render prop
@@ -93,6 +99,9 @@ function DataFetcher({ url, render }) {
 // Q3. Compound Components
 // Components that share implicit state through context
 // Use case: Tab/TabPanel, Select/Option, Accordion
+// WHAT: How do you create flexible component groups that communicate through implicit context?
+// THEORY: Parent component provides context; children components consume context for shared state; use Children.map and cloneElement to pass props; enables dot notation (Tabs.List, Tabs.Tab); more flexible than props API
+// Time: O(n)  Space: O(n)
 // ─────────────────────────────────────────────
 
 const TabContext = createContext(null);
@@ -154,6 +163,9 @@ Tabs.Panel = TabPanel;
 // Q4. Controlled vs Uncontrolled Components
 // Controlled: React manages the form state (value + onChange)
 // Uncontrolled: DOM manages the state (useRef + defaultValue)
+// WHAT: When should you use controlled vs uncontrolled components?
+// THEORY: Controlled: React state + value + onChange for validation/real-time feedback; Uncontrolled: useRef + defaultValue for simple forms, file inputs, integration with non-React code
+// Time: O(1)  Space: O(1)
 // ─────────────────────────────────────────────
 
 // Controlled input — value from state
@@ -194,6 +206,9 @@ function UncontrolledForm() {
 // Q5. Container / Presentational
 // Container: data-fetching, business logic (no JSX or minimal)
 // Presentational: pure rendering from props
+// WHAT: How should you separate concerns between logic and rendering?
+// THEORY: Container (smart) component handles data/state/effects; Presentational (dumb) component is pure function rendering props; enables reuse, testing, reasoning about code; modern hooks are preferred over this pattern
+// Time: O(n)  Space: O(n)
 // ─────────────────────────────────────────────
 
 // Presentational — only renders props, no side effects
@@ -222,6 +237,9 @@ function UserListContainer() {
 // ─────────────────────────────────────────────
 // Q6. Flexible compound component with cloneElement
 // Pass extra props to children implicitly
+// WHAT: How do you pass automatically derived props to children without explicit prop drilling?
+// THEORY: Use Children.map with cloneElement to inject props into each child; eliminates need for children to accept all props explicitly; enables compact compound component APIs; common in form groups, radio groups
+// Time: O(n)  Space: O(n)
 // ─────────────────────────────────────────────
 function RadioGroup({ name, children }) {
   const [selected, setSelected] = useState(null);

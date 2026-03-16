@@ -18,6 +18,9 @@ import React, {
 // Q1. Portals
 // Render a component outside its parent DOM node
 // Use case: modals, tooltips, dropdowns (to escape overflow:hidden)
+// WHAT: How do you render a component outside its parent's DOM hierarchy?
+// THEORY: createPortal(element, targetDOM) renders component to different DOM node; enables escaping overflow:hidden, stacking contexts; common for modals, tooltips, dropdowns; doesn't affect React component tree
+// Time: O(1)  Space: O(1)
 // ─────────────────────────────────────────────
 function Modal({ isOpen, onClose, children }) {
   if (!isOpen) return null;
@@ -58,6 +61,9 @@ function PortalDemo() {
 // ─────────────────────────────────────────────
 // Q2. Keys & Reconciliation
 // React uses keys to identify which list items changed
+// WHAT: How should you identify list items so React can track them correctly?
+// THEORY: Use stable, unique key (usually id) instead of index; index as key breaks when list is reordered/filtered; key mismatch causes stale state; can use key change to force component reset (unmount/remount)
+// Time: O(1)  Space: O(1)
 // ─────────────────────────────────────────────
 
 // BAD: using index as key — causes issues when list is sorted/filtered
@@ -83,7 +89,9 @@ function UserForm({ userId }) {
 // ─────────────────────────────────────────────
 // Q3. useTransition — defer non-urgent state updates
 // Mark an update as "non-urgent" so React can keep UI responsive
-// ─────────────────────────────────────────────
+// WHAT: How do you prioritize urgent updates (UI inputs) over non-urgent ones (filtering large lists)?
+// THEORY: startTransition wraps non-urgent state updates; keeps input (urgent) responsive while filtering (non-urgent) happens in background; isPending shows loading state; enables responsive search/filter UIs
+// Time: O(n)  Space: O(n)\n// ─────────────────────────────────────────────
 function SearchWithTransition({ allItems }) {
   const [query, setQuery] = useState("");
   const [isPending, startTransition] = useTransition();
@@ -115,6 +123,9 @@ function SearchWithTransition({ allItems }) {
 // ─────────────────────────────────────────────
 // Q4. useDeferredValue — defer an expensive child re-render
 // Like "debouncing" for rendering — keeps old value while new one loads
+// WHAT: How do you defer rendering a child component while keeping input responsive?
+// THEORY: useDeferredValue(value) returns previous value while new value is pending; child renders old value until new value is ready; enables Suspense-style rendering for non-Suspense components; isStale flag shows lag
+// Time: O(1)  Space: O(1)
 // ─────────────────────────────────────────────
 function SearchWithDeferred({ allItems }) {
   const [query, setQuery] = useState("");
@@ -145,6 +156,9 @@ function HeavyList({ filter, items }) {
 // ─────────────────────────────────────────────
 // Q5. State Machine in React
 // Explicit states prevent impossible states bugs
+// WHAT: How do you model async operations (fetch, loading, error) to prevent invalid state combinations?
+// THEORY: Use state machine enum (IDLE, LOADING, SUCCESS, ERROR); only allows valid transitions; prevents bugs like showing loading+error simultaneously; useReducer natural fit for state machines
+// Time: O(1)  Space: O(1)
 // ─────────────────────────────────────────────
 // States: IDLE → LOADING → SUCCESS | ERROR
 const STATE = {
@@ -192,6 +206,9 @@ function FetchButton({ url }) {
 // ─────────────────────────────────────────────
 // Q6. Optimistic UI update
 // Update UI immediately, rollback if server rejects
+// WHAT: How do you update the UI immediately while the API request is in flight?
+// THEORY: Update UI state immediately (optimistic); send request; rollback on failure; provides perceived performance boost; requires storing previous state for rollback; commonly used for toggling, liking, editing
+// Time: O(n)  Space: O(n)
 // ─────────────────────────────────────────────
 function OptimisticTodoList({ initialTodos }) {
   const [todos, setTodos] = useState(initialTodos);
@@ -228,6 +245,9 @@ function OptimisticTodoList({ initialTodos }) {
 // ─────────────────────────────────────────────
 // Q7. Custom useReducer + Immer-style immutability
 // Manually writing immutable updates for nested state
+// WHAT: How do you handle immutable updates to deeply nested state?
+// THEORY: deepUpdate utility navigates path string to nested property; spreads objects on way down; updates final value; manual alternative to Immer library; enables typing, debugging, full control without external dependency
+// Time: O(d) where d=depth  Space: O(d)
 // ─────────────────────────────────────────────
 function deepUpdate(state, path, updater) {
   const keys = path.split(".");

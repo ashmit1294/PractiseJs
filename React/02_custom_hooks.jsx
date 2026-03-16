@@ -11,6 +11,9 @@ import { useState, useEffect, useCallback, useRef, useReducer } from "react";
 
 // ─────────────────────────────────────────────
 // Q1. useFetch — generic data fetching hook
+// WHAT: How do you create a reusable custom hook for data fetching that handles loading, error, and memory leaks?
+// THEORY: Extract useState and useEffect logic into a function starting with 'use'; manage loading, error, data states; use cleanup flag to prevent setState on unmounted component
+// Time: O(n)  Space: O(n)
 // ─────────────────────────────────────────────
 function useFetch(url) {
   const [data, setData] = useState(null);
@@ -44,6 +47,9 @@ function useFetch(url) {
 
 // ─────────────────────────────────────────────
 // Q2. useLocalStorage — persist state in localStorage
+// WHAT: How do you create a hook that syncs React state with browser localStorage?
+// THEORY: Initialize state from localStorage with try-catch; sync updates to localStorage on setValue call; useCallback handles both function and direct value updates
+// Time: O(1)  Space: O(n) for localStorage
 // ─────────────────────────────────────────────
 function useLocalStorage(key, initialValue) {
   const [storedValue, setStoredValue] = useState(() => {
@@ -74,6 +80,9 @@ function useLocalStorage(key, initialValue) {
 // ─────────────────────────────────────────────
 // Q3. useDebounce — debounce a value
 // Different from debouncing a function — debounces the VALUE itself
+// WHAT: How do you delay state updates until a value stops changing for a specified duration?
+// THEORY: useDebounce wraps useState and useEffect; on every value change, clears previous timeout and sets a new one; returns previous value until timeout expires
+// Time: O(1)  Space: O(1)
 // ─────────────────────────────────────────────
 function useDebounce(value, delay) {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -92,6 +101,9 @@ function useDebounce(value, delay) {
 
 // ─────────────────────────────────────────────
 // Q4. usePrevious — track previous value of state/prop
+// WHAT: How do you access the previous render's value of a state or prop?
+// THEORY: useRef persists value across renders without triggering re-render; useEffect runs after render so ref.current always holds previous value; return ref.current before effect updates it
+// Time: O(1)  Space: O(1)
 // ─────────────────────────────────────────────
 function usePrevious(value) {
   const ref = useRef(undefined);
