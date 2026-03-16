@@ -5,13 +5,13 @@
 
 ## Table of Contents
 
-1. [01_core_services_iam.md — What is AWS?](#aws-core-services-iam) ✅ ENRICHED
-2. [02_ec2_vpc.md — EC2 — Elastic Compute Cloud](#aws-ec2-vpc) ✅ ENRICHED
-3. [03_s3_cloudfront.md — S3 — Simple Storage Service](#aws-s3-cloudfront) ✅ ENRICHED
-4. [04_lambda_api_gateway.md — Lambda — Serverless Functions](#aws-lambda-api-gateway) ✅ ENRICHED
-5. [05_rds_dynamodb_cache.md — RDS — Relational Database Service](#aws-rds-dynamodb-cache) ✅ ENRICHED
-6. [06_sqs_sns_eventbridge.md — Why Event-Driven?](#aws-sqs-sns-eventbridge) ✅ ENRICHED
-7. [07_ecs_eks_ecr.md — Container Services — Choosing the Right One](#aws-ecs-eks-ecr) ✅ ENRICHED
+1. [01_core_services_iam.md — What is AWS?](#aws-core-services-iam) 
+2. [02_ec2_vpc.md — EC2 — Elastic Compute Cloud](#aws-ec2-vpc) 
+3. [03_s3_cloudfront.md — S3 — Simple Storage Service](#aws-s3-cloudfront) 
+4. [04_lambda_api_gateway.md — Lambda — Serverless Functions](#aws-lambda-api-gateway) 
+5. [05_rds_dynamodb_cache.md — RDS — Relational Database Service](#aws-rds-dynamodb-cache) 
+6. [06_sqs_sns_eventbridge.md — Why Event-Driven?](#aws-sqs-sns-eventbridge) 
+7. [07_ecs_eks_ecr.md — Container Services — Choosing the Right One](#aws-ecs-eks-ecr) 
 8. [08_cicd_interview_qa.md — CI/CD Concepts](#aws-cicd-interview-qa)
    - [Scenario-Based Questions](#aws-scenarios)
 
