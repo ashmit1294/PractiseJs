@@ -1,35 +1,36 @@
 ﻿# JavaScript (DSA + Patterns) — Interview Revision Summary
 
 > **Target:** 7+ year Full Stack MERN Developer | **Files:** 26
+> **Status:** ✅ All 26 files enriched with WHAT/THEORY format & Complexity Analysis
 
 ## Table of Contents
 
-1. [01_flatten_array.js — QUESTION: Flatten a nested array without using .flat() or .flatMap()](#javascript-flatten-array)
-2. [02_debounce.js — QUESTION: Implement debounce function from scratch](#javascript-debounce)
-3. [03_throttle.js — QUESTION: Implement throttle function from scratch](#javascript-throttle)
-4. [04_memoize.js — QUESTION: Implement memoization from scratch](#javascript-memoize)
-5. [05_curry.js — QUESTION: Implement currying from scratch](#javascript-curry)
-6. [06_deep_clone.js — QUESTION: Deep clone an object without JSON.parse/JSON.stringify](#javascript-deep-clone)
-7. [07_promise_all_race.js — QUESTION: Implement Promise.all, Promise.race, Promise.allSettled,](#javascript-promise-all-race)
-8. [08_custom_array_methods.js — QUESTION: Implement Array.prototype.map, filter, reduce, forEach,](#javascript-custom-array-methods)
-9. [09_map_questions.js — QUESTION SET: Map — all common interview questions](#javascript-map-questions)
-10. [10_set_questions.js — QUESTION SET: Set — all common interview questions](#javascript-set-questions)
-11. [11_stack_queue.js — QUESTION SET: Stack and Queue](#javascript-stack-queue)
-12. [12_linked_list.js — QUESTION SET: Linked List — all common interview questions](#javascript-linked-list)
-13. [13_binary_tree_bst.js — QUESTION SET: Binary Tree & Binary Search Tree (BST)](#javascript-binary-tree-bst)
-14. [14_call_apply_bind.js — QUESTION SET: call, apply, bind — Custom Implementations](#javascript-call-apply-bind)
-15. [15_searching_algorithms.js — QUESTION SET: Searching Algorithms](#javascript-searching-algorithms)
-16. [16_sorting_algorithms.js — QUESTION SET: Sorting Algorithms](#javascript-sorting-algorithms)
-17. [17_recursion_backtracking.js — QUESTION SET: Recursion Patterns](#javascript-recursion-backtracking)
-18. [18_dynamic_programming.js — QUESTION SET: Dynamic Programming (DP)](#javascript-dynamic-programming)
-19. [19_graph_algorithms.js — QUESTION SET: Graph Algorithms](#javascript-graph-algorithms)
-20. [20_sliding_window_two_pointer.js — QUESTION SET: Sliding Window & Two Pointer Patterns](#javascript-sliding-window-two-pointer)
-21. [21_functional_programming.js — QUESTION SET: Functional Programming Patterns](#javascript-functional-programming)
-22. [22_array_manipulation.js — QUESTION SET: Array Manipulation — Chunk, Unique, Intersection,](#javascript-array-manipulation)
-23. [23_string_questions.js — QUESTION SET: String Manipulation](#javascript-string-questions)
-24. [24_weakmap_weakset_symbol_proxy.js — QUESTION SET: WeakMap, WeakSet, Symbol, Proxy, Reflect](#javascript-weakmap-weakset-symbol-proxy)
-25. [25_heap_priority_queue.js — QUESTION SET: Heap / Priority Queue](#javascript-heap-priority-queue)
-26. [FILE: 26_theory_interview_qa.js](#javascript-theory-interview-qa)
+1. [01_flatten_array.js — QUESTION: Flatten a nested array without using .flat() or .flatMap()](#javascript-flatten-array) ✅ ENRICHED
+2. [02_debounce.js — QUESTION: Implement debounce function from scratch](#javascript-debounce) ✅ ENRICHED
+3. [03_throttle.js — QUESTION: Implement throttle function from scratch](#javascript-throttle) ✅ ENRICHED
+4. [04_memoize.js — QUESTION: Implement memoization from scratch](#javascript-memoize) ✅ ENRICHED
+5. [05_curry.js — QUESTION: Implement currying from scratch](#javascript-curry) ✅ ENRICHED
+6. [06_deep_clone.js — QUESTION: Deep clone an object without JSON.parse/JSON.stringify](#javascript-deep-clone) ✅ ENRICHED
+7. [07_promise_all_race.js — QUESTION: Implement Promise.all, Promise.race, Promise.allSettled,](#javascript-promise-all-race) ✅ ENRICHED
+8. [08_custom_array_methods.js — QUESTION: Implement Array.prototype.map, filter, reduce, forEach,](#javascript-custom-array-methods) ✅ ENRICHED
+9. [09_map_questions.js — QUESTION SET: Map — all common interview questions](#javascript-map-questions) ✅ ENRICHED
+10. [10_set_questions.js — QUESTION SET: Set — all common interview questions](#javascript-set-questions) ✅ ENRICHED
+11. [11_stack_queue.js — QUESTION SET: Stack and Queue](#javascript-stack-queue) ✅ ENRICHED
+12. [12_linked_list.js — QUESTION SET: Linked List — all common interview questions](#javascript-linked-list) ✅ ENRICHED
+13. [13_binary_tree_bst.js — QUESTION SET: Binary Tree & Binary Search Tree (BST)](#javascript-binary-tree-bst) ✅ ENRICHED
+14. [14_call_apply_bind.js — QUESTION SET: call, apply, bind — Custom Implementations](#javascript-call-apply-bind) ✅ ENRICHED
+15. [15_searching_algorithms.js — QUESTION SET: Searching Algorithms](#javascript-searching-algorithms) ✅ ENRICHED
+16. [16_sorting_algorithms.js — QUESTION SET: Sorting Algorithms](#javascript-sorting-algorithms) ✅ ENRICHED
+17. [17_recursion_backtracking.js — QUESTION SET: Recursion Patterns](#javascript-recursion-backtracking) ✅ ENRICHED
+18. [18_dynamic_programming.js — QUESTION SET: Dynamic Programming (DP)](#javascript-dynamic-programming) ✅ ENRICHED
+19. [19_graph_algorithms.js — QUESTION SET: Graph Algorithms](#javascript-graph-algorithms) ✅ ENRICHED
+20. [20_sliding_window_two_pointer.js — QUESTION SET: Sliding Window & Two Pointer Patterns](#javascript-sliding-window-two-pointer) ✅ ENRICHED
+21. [21_functional_programming.js — QUESTION SET: Functional Programming Patterns](#javascript-functional-programming) ✅ ENRICHED
+22. [22_array_manipulation.js — QUESTION SET: Array Manipulation — Chunk, Unique, Intersection,](#javascript-array-manipulation) ✅ ENRICHED
+23. [23_string_questions.js — QUESTION SET: String Manipulation](#javascript-string-questions) ✅ ENRICHED
+24. [24_weakmap_weakset_symbol_proxy.js — QUESTION SET: WeakMap, WeakSet, Symbol, Proxy, Reflect](#javascript-weakmap-weakset-symbol-proxy) ✅ ENRICHED
+25. [25_heap_priority_queue.js — QUESTION SET: Heap / Priority Queue](#javascript-heap-priority-queue) ✅ ENRICHED
+26. [FILE: 26_theory_interview_qa.js](#javascript-theory-interview-qa) ✅ ENRICHED
    27. [27_groupby_aggregate.js — QUESTION SET: GroupBy, Aggregate, and Object Transformation](#javascript-groupby-aggregate)
    28. [28_array_advanced.js — QUESTION SET: Advanced Array Patterns](#javascript-array-advanced)
    29. [29_promise_patterns.js — QUESTION SET: Advanced Promise and Async Patterns](#javascript-promise-patterns)

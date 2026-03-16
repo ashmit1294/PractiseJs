@@ -1,10 +1,11 @@
 ﻿# TypeScript — Interview Revision Summary
 
 > **Target:** 7+ year Full Stack MERN Developer | **Files:** 9
+> **Status:** ✅ File 01_basic_types_interfaces.ts (Q1-Q5) enriched with WHAT/THEORY format & Complexity | ⏳ Files 02-09 pending
 
 ## Table of Contents
 
-1. [01_basic_types_interfaces.ts — QUESTION SET: TypeScript Basic Types & Interfaces](#typescript-basic-types-interfaces)
+1. [01_basic_types_interfaces.ts — QUESTION SET: TypeScript Basic Types & Interfaces](#typescript-basic-types-interfaces) ✅ ENRICHED (Q1-Q5)
 2. [02_generics.ts — QUESTION SET: TypeScript Generics](#typescript-generics)
 3. [03_utility_types.ts — QUESTION SET: TypeScript Utility Types](#typescript-utility-types)
 4. [04_type_guards.ts — QUESTION SET: TypeScript Type Guards & Narrowing](#typescript-type-guards)

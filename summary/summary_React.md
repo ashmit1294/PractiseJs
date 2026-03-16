@@ -1,10 +1,11 @@
 ﻿# React — Interview Revision Summary
 
 > **Target:** 7+ year Full Stack MERN Developer | **Files:** 10
+> **Status:** ✅ File 01_useState_useEffect.jsx (Q1-Q5) enriched with WHAT/THEORY format & Complexity | ⏳ Files 02-10 pending
 
 ## Table of Contents
 
-1. [01_useState_useEffect.jsx — QUESTION SET: useState & useEffect — most asked React hooks](#react-usestate-useeffect)
+1. [01_useState_useEffect.jsx — QUESTION SET: useState & useEffect — most asked React hooks](#react-usestate-useeffect) ✅ ENRICHED (Q1-Q5)
 2. [02_custom_hooks.jsx — QUESTION SET: Custom Hooks](#react-custom-hooks)
 3. [03_useReducer_useContext.jsx — QUESTION SET: useReducer & useContext](#react-usereducer-usecontext)
 4. [04_useMemo_useCallback.jsx — QUESTION SET: useMemo & useCallback — React Performance Hooks](#react-usememo-usecallback)

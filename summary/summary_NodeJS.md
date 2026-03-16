@@ -1,6 +1,7 @@
 ﻿# Node.js — Interview Revision Summary
 
 > **Target:** 7+ year Full Stack MERN Developer | **Files:** 11
+> **Status:** ✅ File 10_race_conditions.js (Q1-Q2) enriched with WHAT/THEORY format | ⏳ Files 01-09, 11 pending
 
 ## Table of Contents
 
@@ -13,7 +14,7 @@
 7. [07_file_system.js — QUESTION SET: Node.js File System (fs)](#nodejs-file-system)
 8. [08_error_handling.js — QUESTION SET: Node.js Error Handling](#nodejs-error-handling)
 9. [09_rest_api_patterns.js — QUESTION SET: Node.js REST API Patterns](#nodejs-rest-api-patterns)
-10. [10_race_conditions.js — RACE CONDITIONS IN NODE.JS — WHAT THEY ARE AND HOW TO AVOID THEM](#nodejs-race-conditions)
+10. [10_race_conditions.js — RACE CONDITIONS IN NODE.JS — WHAT THEY ARE AND HOW TO AVOID THEM](#nodejs-race-conditions) ✅ ENRICHED (Q1-Q2)
 11. [FILE: 11_theory_interview_qa.js](#nodejs-theory-interview-qa)
    - [Scenario-Based Questions](#nodejs-scenarios)
 
