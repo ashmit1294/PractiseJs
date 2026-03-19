@@ -30,6 +30,9 @@ A: The Virtual DOM is a lightweight JavaScript object tree mirroring the real DO
 
    Important nuance (React 18+): React uses Fiber architecture — not a single "vDOM tree"
    but a linked list of Fiber nodes that allows pausing, aborting, and replaying work.
+
+// ELI5: Imagine you have a drawing and you want to update it. Instead of erasing and redrawing everything on paper (slow),
+// you keep a quick sketch in your head, compare it to the real drawing, and only update what actually changed. This makes updates super fast.
 */
 
 /*
@@ -43,6 +46,9 @@ A: Two rules:
    Hooks are stored in a simple array (internally a linked list).
    If you conditionally call a hook, the call order changes between renders
    → React reads the wrong hook's state → bugs.
+
+// ELI5: Imagine you have a filing cabinet with drawers. React remembers which drawer is which by counting from the top.
+// If you skip a drawer sometimes (conditionally), React gets confused and grabs the wrong file. So always open the same drawers in the same order.
 */
 // BAD:
 function BadComponent({ isLoggedIn }) {
@@ -72,6 +78,9 @@ A: Controlled: React state is the single source of truth. Every input change upd
 
    Uncontrolled: DOM is the source of truth. You read the value via a ref when needed.
    Simpler for simple forms; harder to validate/transform on every keystroke.
+
+// ELI5: Controlled is like having a puppet master who pulls strings to control every move (React controls input).
+// Uncontrolled is like a puppet that moves on its own and you just watch what it's doing (DOM controls itself, you peek at it later).
 */
 function ControlledForm() {
   const [email, setEmail] = useState('');
@@ -114,6 +123,9 @@ A: React re-renders a component when:
    - useMemo → memoize expensive computed values
    - useCallback → memoize callback references (avoids breaking React.memo on child)
    - useSyncExternalStore → subscribe to external stores efficiently
+
+// ELI5: Re-rendering is like refreshing a web page. We avoid unnecessary refreshes using memo (skip if props same),
+// useMemo (remember expensive math), and useCallback (remember function reference) — kind of like "don't refresh if nothing actually changed."
 */
 const ExpensiveChild = memo(function ExpensiveChild({ value, onUpdate }) {
   console.log('ExpensiveChild rendered');
@@ -153,6 +165,9 @@ A: The cleanup function runs:
 
    React 18 StrictMode double-invokes effects (mount → cleanup → mount) in dev
    to catch missing cleanups.
+
+// ELI5: Cleanup is like unplugging a lamp when you leave a room so it doesn't keep burning. If you set up a WebSocket,
+// you need to close it when the component is done. Otherwise, the old connection keeps running in the background — a leak.
 */
 function WebSocketComponent({ roomId }) {
   useEffect(() => {
@@ -205,6 +220,9 @@ A: Context causes ALL consumers to re-render when the context VALUE changes,
 
    Good for: theme, locale, auth user, feature flags
    Bad for: frequently changing state (e.g., mouse position, scroll position, form fields)
+
+ELI5: Context is like a town bulletin board - when the notice changes, everyone who watches it looks at it.
+If you change the notice 1000 times a second, everyone wastes time checking constantly. Only use it for things that change rarely.
 */
 const ThemeContext = createContext({ theme: 'light' });
 
@@ -260,6 +278,9 @@ A: Before Fiber (React <16): reconciliation was synchronous and RECURSIVE.
 
    Concurrent Mode (React 18 opt-in via createRoot):
    Enables concurrent features: useTransition, useDeferredValue, Suspense for data.
+
+   // ELI5: Imagine you're reading a book but your friend keeps interrupting you. Use Fiber to pause where you are,
+   // handle your friend, then come back to the same page instead of always restarting from chapter 1.
 */
 function SearchResults() {
   const [query, setQuery] = useState('');
@@ -293,6 +314,8 @@ A: React's diffing is O(n) using two heuristics:
 
    The `key` prop is critical: it tells React that an element's identity is stable
    even if it moves in the list.
+   // ELI5: Diffing is like comparing two photos. React marks what's different, updates only those parts, and ignores what's the same.
+   // Without keys, React doesn't know if a list item moved or is a new item, so it guesses wrong and everything breaks.
 */
 function ListExample({ items }) {
   return (
@@ -318,6 +341,8 @@ Q9 [ADVANCED]: useSyncExternalStore — the correct pattern for subscribing to e
 A: React 18 introduced useSyncExternalStore to safely subscribe to external mutable stores
    (Redux, Zustand, browser APIs like window.matchMedia, route).
    Prevents "tearing" — where concurrent mode could render different UI with different store values.
+   // ELI5: useSyncExternalStore is like Redux for the outside world. It makes sure external data stays in sync without React's batching
+   // causing weird situations where different parts of your UI see different data for the same thing.
 */
 // Simple store implementation subscribable with useSyncExternalStore:
 function createStore(initialState) {
@@ -370,6 +395,12 @@ A: React Server Components (Next.js App Router, React 19) fundamentally change t
    - SC can import and render CC
    - CC CANNOT import SC (would try to ship SC logic to browser)
    - But CC CAN receive SC as `children` (prop passing, not import)
+
+   // ELI5: Server Components are like a restaurant's back kitchen (hidden from customers). Client Components are the dining room.
+   // The kitchen can send plates to the dining room, but you can't install a kitchen in the dining room (can't import SC in CC).
+
+// ELI5: Server Components are like a restaurant's back kitchen (hidden from customers). Client Components are the dining room.
+// The kitchen can send plates to the dining room, but you can't install a kitchen in the dining room (can't import SC in CC).
 */
 // async Server Component — fetches data directly, no useEffect, no loading state needed
 // (This would be in a .tsx / .jsx Next.js file with no 'use client'):
@@ -403,6 +434,10 @@ A: React 17: batching only inside React event handlers (onClick, onChange, etc.)
 
    React 18 (createRoot): AUTOMATIC BATCHING everywhere.
    All setState calls, regardless of where they are (async, native events, setTimeout) → batched.
+   // ELI5: Batching is like collecting all your dishes from dinner and washing them all together in one go, instead of washing each plate
+   // as soon as you dirty it. React 18 does this automatically everywhere so renders are faster.
+// ELI5: Batching is like collecting all your dishes from dinner and washing them all together in one go, instead of washing each plate
+// as soon as you dirty it. React 18 does this automatically everywhere so renders are faster.
 */
 function BatchingDemo() {
   const [a, setA] = useState(0);
@@ -435,6 +470,9 @@ A: All three memoize different things. Misuse creates unnecessary overhead.
 
    Key rule: Use memoization ONLY when profiling shows a real performance problem.
    Memoization has a cost (comparison checks, memory for cached values).
+
+   // ELI5: React.memo is like a photo of your friend so you don't have to look at them again if they didn't change.
+   // useMemo is like remembering you already ate, so you don't cook again. useCallback is like remembering where you put your keys.
 */
 
 const RenderCountMemo = memo(function RenderCountMemo({ value }) {
@@ -481,6 +519,9 @@ A: Multiple patterns for composing and sharing logic across components.
    3. Render Props: component accepts function prop that returns JSX
    4. Custom Hooks: extract logic into a hook (modern, preferred approach)
    5. Compound Components: related components work together via shared Context
+
+   // ELI5: These are different ways to package and reuse logic across components.
+   // Container/Presentational is like separating the brain (logic) from the face (UI). HOC is like a decorator you wrap around something.
 */
 
 // Render Props example:\nconst DataProvider = ({ URL, render }) => {\n  const [data, setData] = useState(null);\n  useEffect(() => { \n    fetch(URL).then(r => r.json()).then(setData); \n  }, [URL]);\n  return render(data);\n};\n\n// Usage: <DataProvider URL=\"/api/data\" render={data => <Component data={data} />} />\n\n// Custom Hooks (preferred):\nfunction useDataFetch(url) {\n  const [data, setData] = useState(null);\n  const [loading, setLoading] = useState(false);\n  const [error, setError] = useState(null);\n\n  useEffect(() => {\n    setLoading(true);\n    fetch(url)\n      .then(r => r.json())\n      .then(setData)\n      .catch(setError)\n      .finally(() => setLoading(false));\n  }, [url]);\n\n  return { data, loading, error };\n}\n\nfunction ComponentUsingHook() {\n  const { data, loading, error } = useDataFetch('/api/items');\n  return (\n    <div>\n      {loading && <p>Loading...</p>}\n      {error && <p>Error: {error.message}</p>}\n      {data && <div>{JSON.stringify(data)}</div>}\n    </div>\n  );\n}\n\n/*\nQ18 [INTERMEDIATE]: Axios vs Fetch on top of React Query — layered mental model\n────────────────────────────────────────────────────────────────────────────────\nA: Mental model layers:\n   Bottom: Fetch/Axios (HTTP request layer)\n   Middle: React Query (cache + sync layer)\n   Top: React components (consume data)\n\n   Fetch: browser API, no built-in retry/cache; verbose\n   Axios: third-party, better DX (interceptors, auto JSON; slightly heavier\n   React Query: sits ABOVE both; handles caching, bg refetch, stale-while-revalidate, deduplication\n\n   Use React Query to stop writing useState + useEffect for data fetching\n*/\n\nfunction UserComponent() {\n  // React Query handles caching, background refetch on focus, auto-retry\n  const { data: user, isLoading, error } = useQuery({\n    queryKey: ['user', 1],\n    queryFn: () => fetch('/api/user/1').then(r => r.json()),\n    staleTime: 1000 * 60 * 5,  // data fresh for 5 minutes\n  });\n\n  return isLoading ? 'Loading...' : error ? 'Error!' : <div>{user.name}</div>;\n}\n\n/*\nQ19 [ADVANCED]: How to design a front-end application like Jira for performance and accessibility\n────────────────────────────────────────────────────────────────────────────────────────────────\nA: Large-scale apps need architectural decisions. Challenges: large lists, state management, keyboard nav, a11y.\n\n   Performance:\n   1. Virtualization for long lists (react-window) — render only visible items\n   2. Suspense + lazy loading — split code by route\n   3. Debounce search input — reduce API calls\n   4. Memoization wisely — profile first\n\n   Accessibility:\n   1. Keyboard navigation with roving tabindex\n   2. ARIA labels, semantic HTML\n   3. Focus management in modals\n   4. Color contrast, readable fonts\n*/\n\nimport { FixedSizeList } from 'react-window';\n\nfunction VirtualizedIssueList({ issues }) {\n  return (\n    <FixedSizeList\n      height={600}\n      itemCount={issues.length}\n      itemSize={50}\n      width=\"100%\"\n    >\n      {({ index, style }) => (\n        <div style={style}>\n          {issues[index].title}\n        </div>\n      )}\n    </FixedSizeList>\n  );\n}\n\nfunction AccessibleIssueBoard({ issues }) {\n  const [selectedIndex, setSelectedIndex] = useState(0);\n\n  const handleKeyDown = (e) => {\n    if (e.key === 'ArrowDown') setSelectedIndex(prev => Math.min(prev + 1, issues.length - 1));\n    if (e.key === 'ArrowUp') setSelectedIndex(prev => Math.max(prev - 1, 0));\n  };\n\n  return (\n    <div role=\"listbox\" onKeyDown={handleKeyDown}>\n      {issues.map((issue, index) => (\n        <div\n          key={issue.id}\n          role=\"option\"\n          tabIndex={selectedIndex === index ? 0 : -1}\n          aria-selected={selectedIndex === index}\n        >\n          {issue.title}\n        </div>\n      ))}\n    </div>\n  );\n}\n\n/*\nQ20 [ADVANCED]: How to extend/inherit one class into another using CSS preprocessors (@extend, @mixin, LESS)\n─────────────────────────────────────────────────────────────────────────────────────────────────────────\nA: CSS preprocessors enable class inheritance and style composition:\n\n   @extend: inherit all styles from another class (single inheritance)\n   @mixin: reusable style blocks with optional parameters\n   Both reduce duplication; @extend can cause unexpected specificity issues.\n\n   SCSS example:\n   .button { padding: 10px; border: 1px solid #ccc; }\n   .button-primary { @extend .button; background: blue; }\n\n   Less & Stylus similar syntax\n*/\n\n// ─────────────────────────────────────────────────────────\n// ██ SECTION 4: WEBPACK (React Build Tooling)\n// ─────────────────────────────────────────────────────────

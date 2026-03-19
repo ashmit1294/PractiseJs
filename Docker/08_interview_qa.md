@@ -18,11 +18,13 @@
 **Q2. What are Docker layers and how do they work?**
 > Every `RUN`, `COPY`, and `ADD` instruction creates an immutable layer cached by content hash. Layers are stacked using a union filesystem (OverlayFS). When building, Docker reuses cached layers until a cache-invalidating change is detected. Images are the sum of all layers; containers add a thin writable layer on top (Copy-on-Write). Layers are shared between images — pulling `node:20-alpine` once lets any image using that base reuse it.
 
+> **ELI5:** Layers are like sheets of glass stacked on top of each other. Each sheet is cached and reused. Containers add a wiping cloth on top (Copy-on-Write).
 ---
 
 **Q3. Explain the Docker build context**
 > The build context is the directory (or URL) sent to the Docker daemon at build time. Everything you `COPY` must be in the build context. A large context (e.g., `node_modules`) slows every `docker build`. Use `.dockerignore` to exclude files. The daemon builds the image from the instructions in `Dockerfile` using only what's in the build context.
 
+> **ELI5:** Build context is the suitcase you send to Docker. Don't pack the whole house, just what you need.
 ---
 
 **Q4. What is the difference between CMD and ENTRYPOINT?**
@@ -41,6 +43,7 @@ CMD ["dist/index.js"]       # docker run myapp → node dist/index.js
 **Q5. What is a multi-stage build and why use it?**
 > A Dockerfile with multiple `FROM` statements. Each stage can have different tools. You use `COPY --from=<stage>` to selectively copy artifacts. Benefit: the final image only contains what the app needs to run — no compilers, dev dependencies, or source code. Common result: reducing a Node.js image from 800MB to 150MB.
 
+> **ELI5:** Multi-stage is like building a house, moving out the construction equipment before the new tenants move in.
 ---
 
 ## Networking
@@ -52,16 +55,19 @@ CMD ["dist/index.js"]       # docker run myapp → node dist/index.js
 > - **overlay**: multi-host networking for Docker Swarm / Kubernetes.
 > - **macvlan**: assigns a real MAC address; container appears as physical device on LAN.
 
+> **ELI5:** Bridge is like WiFi (containers on same network). Host is like plugged into the same ethernet (no separation). Overlay is like WiFi across multiple buildings.
 ---
 
 **Q7. What is the difference between EXPOSE and -p / ports:?**
 > `EXPOSE` is metadata only — it documents which port the app listens on but does not publish anything to the host. `-p 8080:3000` (or `ports: "8080:3000"` in compose) actually binds the host port. `-P` publishes all `EXPOSE`d ports to random host ports.
 
+> **ELI5:** EXPOSE is like putting "WiFi password used" on your modem box. Actually using WiFi is like -p binding the port.
 ---
 
 **Q8. How do containers on the same compose network communicate?**
 > Docker Compose creates a shared network. Containers resolve each other by **service name** as a DNS hostname. `api` service can reach `db` service at `postgresql://db:5432`. This works on custom bridge networks; the default bridge network has no DNS resolution.
 
+> **ELI5:** Services in compose are like phones in a company - you can call by name ("call the database") instead of phone number (IP).
 ---
 
 ## Storage
@@ -71,11 +77,13 @@ CMD ["dist/index.js"]       # docker run myapp → node dist/index.js
 > 2. **Bind mounts**: map a host directory into the container. Host path must exist. Best for development (live reload) or reading host configuration.
 > 3. **tmpfs**: in-memory only. Never written to disk. Ideal for sensitive data (session tokens, temp secrets) that must not persist.
 
+> **ELI5:** Named volume is permanent storage. Bind mount is "share with my computer". tmpfs is sticky notes (disappear on restart).
 ---
 
 **Q10. Why use an anonymous volume for node_modules?**
 > During development with a bind mount of your source code, `node_modules` from the host gets mounted over the version the `Dockerfile` installed inside the container. If the host and container OS differ (e.g., macOS + Linux image), native binaries will be incompatible. Declaring an anonymous volume for `/app/node_modules` shadows the bind mount, keeping the container's installed version.
 
+> **ELI5:** Anonymous volume for node_modules is like keeping your laptop's apps separate from your desktop's apps (different OS)
 ---
 
 ## Security
@@ -83,6 +91,7 @@ CMD ["dist/index.js"]       # docker run myapp → node dist/index.js
 **Q11. What are Linux capabilities in Docker?**
 > Linux capabilities split root privileges into fine-grained units (`NET_BIND_SERVICE`, `CHOWN`, `SYS_PTRACE`, etc.). Docker containers run with a reduced set by default. Best practice: `--cap-drop ALL` then `--cap-add` only what's needed. Never use `--privileged` in production — it gives full kernel access.
 
+> **ELI5:** Capabilities are like permission levels - normal user, sudo user, root. Drop to normal, grant only what you need.
 ---
 
 **Q12. How do you prevent secrets from appearing in docker history?**
@@ -90,11 +99,13 @@ CMD ["dist/index.js"]       # docker run myapp → node dist/index.js
 > - Use BuildKit `--mount=type=secret`: files are mounted for that `RUN` only, never stored in any layer.
 > - Use runtime environment variables (`docker run -e`), Docker Secrets (Swarm), or Kubernetes Secrets for runtime secrets.
 
+> **ELI5:** Never put secrets in images (they appear in history forever). Inject at runtime like env variables.
 ---
 
 **Q13. What is a container escape?**
 > A vulnerability allowing code inside a container to gain access to the host OS or other containers. Risk factors: `--privileged`, mounted Docker socket (`/var/run/docker.sock`), running as root, vulnerable kernel. Mitigations: run as non-root user, drop capabilities, read-only filesystem, no-new-privileges, keep kernel/runtime patched.
 
+> **ELI5:** Container escape is a jail break. Prevent it by not giving prisoners admin tools and keeping guards updated.
 ---
 
 ## Operations
@@ -106,16 +117,19 @@ CMD ["dist/index.js"]       # docker run myapp → node dist/index.js
 > - `unless-stopped`: like `always` but respects intentional `docker stop`.
 > Production recommendation: `unless-stopped` for stateless apps; `on-failure` for batch jobs.
 
+> **ELI5:** Restart policy is automatic life support - `always` means always resuscitate, `on-failure` means only if it crashes.
 ---
 
 **Q15. How does a rolling update work in Docker Swarm?**
 > Swarm updates replicas one batch at a time. `--update-parallelism 1` updates one task, waits `--update-delay 10s`, checks health, then continues. If health check fails: `--update-failure-action rollback` automatically reverts. At any point, old replicas are still serving traffic so there is no downtime.
 
+> **ELI5:** Rolling update is like replacing bricks in a wall one at a time without affecting stability (some old bricks still holding it up).
 ---
 
 **Q16. Why must CMD use exec form (array) for signal handling?**
 > Shell form (`CMD node app.js`) spawns `/bin/sh -c node app.js`. The shell is PID 1 and the app is its child. Docker sends SIGTERM to PID 1 (the shell) on `docker stop`; many shells don't forward it, so the app is eventually SIGKILL'd after the 10s timeout — no graceful shutdown. Exec form (`CMD ["node", "app.js"]`) makes the app PID 1 so it receives SIGTERM directly.
 
+> **ELI5:** Shell form is like a middleman (shell) not passing messages. Exec form is direct line (app is PID 1 gets signal direct).
 ---
 
 **Q17. How do you reduce Docker image size?**
@@ -126,16 +140,19 @@ CMD ["dist/index.js"]       # docker run myapp → node dist/index.js
 > 5. Add `.dockerignore` (exclude `node_modules`, `.git`, test files).
 > 6. Use `npm cache clean --force` after install in same layer.
 
+> **ELI5:** Image size = base + layers. Like luggage - less stuff, lighter bag. Multi-stage = pack only essentials in final bag.
 ---
 
 **Q18. What is the difference between docker stop and docker kill?**
 > `docker stop` sends SIGTERM (graceful), then waits 10 seconds (default `--time`), then sends SIGKILL. Allows the app to finish in-flight requests, close DB connections. `docker kill` sends SIGKILL immediately (or any signal with `-s`). Use `docker stop` in production; use `docker kill` only when a container is stuck.
 
+> **ELI5:** Stop is polite ("please shut down cleanly"). Kill is terminator ("shutdown NOW").
 ---
 
 **Q19. What is OOM and how do you prevent it?**
 > OOM (Out Of Memory): when a container exceeds its `--memory` limit, the Linux OOM killer sends SIGKILL (exit code 137) — no graceful shutdown. Prevention: set `--memory-swap` equal to `--memory` (disables swap), set limits appropriate to the workload, monitor with `docker stats`, and set `--memory-reservation` as a soft limit for the scheduler.
 
+> **ELI5:** OOM is container getting too fat. Set a diet limit and monitor weight.
 ---
 
 **Q20. How do you inspect and debug a running container?**
@@ -159,6 +176,7 @@ docker cp <id>:/app/log.txt .     # copy file out of container
 > - `docker build --no-cache` forces full rebuild
 > Best practice: copy `package*.json` and `npm ci` before copying source — source changes don't bust the npm install cache.
 
+> **ELI5:** Cache is like "have I seen this recipe before?" If yes, use old result. If ingredients changed, cook again.
 ---
 
 **Q22. What is the difference between Docker Compose and Docker Swarm?**
@@ -171,11 +189,13 @@ docker cp <id>:/app/log.txt .     # copy file out of container
 > | Use case | Development, single-server | Production multi-node |
 > > Note: For production multi-node orchestration, Kubernetes is now the industry standard over Swarm.
 
+> **ELI5:** Compose is a local restaurant (one kitchen). Swarm is a chain (multiple locations, central HQ). Kubernetes is like a mega-corporation.
 ---
 
 **Q23. How does .dockerignore work?**
 > It follows `.gitignore` syntax and excludes files/directories from the build context sent to the daemon. This speeds up builds (less data sent) and prevents accidentally including secrets (`.env`), test files, or large directories (`node_modules`, `.git`). A missing `.dockerignore` can expose `.env` if it's in the context and you `COPY . .`.
 
+> **ELI5:** .dockerignore is like telling shipping "don't package the garbage bin with my order".
 ---
 
 **Q24. What is docker buildx?**
@@ -186,6 +206,7 @@ docker cp <id>:/app/log.txt .     # copy file out of container
 > - Concurrent multi-stage builds
 > - SSH forwarding (`--mount=type=ssh`)
 
+> **ELI5:** Buildx is the upgraded builder - build for Mac AND Linux in one go, cache smarter.
 ---
 
 **Q25. Dockerfile ARG vs ENV — key differences?**
@@ -197,6 +218,7 @@ docker cp <id>:/app/log.txt .     # copy file out of container
 > | Persists in image | ❌ (after its layer) | ✅ |
 > | Suitable for secrets | ❌ (shows in docker history) | ❌ (shows in inspect) |
 
+> **ELI5:** ARG is "tell me once at build" (visible in history). ENV is "tell me always" (visible at runtime). Neither should have secrets.
 ---
 
 ## GitHub Actions — CI/CD with Docker
@@ -284,7 +306,7 @@ docker cp <id>:/app/log.txt .     # copy file out of container
 > - `docker/build-push-action` — build and push Docker image to registry
 > - `aws-actions/configure-aws-credentials` — authenticate to AWS
 
----
+> **ELI5:** GitHub Actions is like hiring a robot to run your CI/CD checklist. Actions are tools in the robot's toolbox.
 
 **Q27. GitHub Actions + Docker + ECR + ECS end-to-end deployment**
 > ```yaml
@@ -360,6 +382,9 @@ docker cp <id>:/app/log.txt .     # copy file out of container
 > 5. Push to ECR
 > 6. Update ECS service → triggers new deployment
 > 7. Wait until all tasks are healthy (ready)
+
+> **ELI5:** ECR is just a registry (eBay for images). Update ECS service forces new deployment.
+> OIDC is like "I'm GitHub, trust me" (no storing credentials).
 
 ---
 
@@ -446,6 +471,8 @@ docker cp <id>:/app/log.txt .     # copy file out of container
 > - Service names are DNS hostnames: app connects to `db:5432` (not localhost)
 > 
 > **CI Pipeline integration (GitHub Actions):**
+
+> **ELI5:** Docker Compose is like a food court where each vendor (service) has a window, and they all coordinate via shared WiFi (network).
 > ```yaml
 > - name: Run integration tests
 >   run: |

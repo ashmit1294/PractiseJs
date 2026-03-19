@@ -18,6 +18,9 @@ A: Both define object shapes, but they differ in:
    2. Computed / union shapes — ONLY type supports them
    3. extends syntax — interface uses 'extends'; type uses intersection '&'
    4. Error messages — interfaces often give better error messages for object shapes
+
+// ELI5: Interfaces are like contracts (can be extended/merged over time). Types are like blueprints (fixed, can make complex shapes).
+// Use interfaces for class shapes or expanding APIs. Use types for computed/union types.
 */
 
 // Declaration Merging (interface only):
@@ -51,6 +54,9 @@ Q2 [BASIC]: What is the difference between `any`, `unknown`, and `never`?
 A: any    → opt out of type checking entirely. Values are both assignable FROM any and TO any.
    unknown → safe version of any. Unknown values can't be used until you narrow the type.
    never   → the type of values that never exist. Return type of functions that always throw or loop forever.
+
+// ELI5: `any` is like saying "trust me, I know what I'm doing" (dangerous). `unknown` is like "I don't know yet, figure it out".
+// `never` is like a black hole - nothing can enter or exit (impossible state).
 */
 
 function handleAny(val: any) {
@@ -88,7 +94,7 @@ Q3 [BASIC]: What are generics and why are they needed?
 ────────────────────────────────────────────────────────
 A: Generics allow writing reusable, type-safe code that works with multiple types
    without losing type information (unlike using `any`).
-*/
+// ELI5: Generics are like a vending machine that works with any drink size. You specify which size (type), and it gives you back that exact size.*/
 
 // Without generics: forces you to use any or create duplicate functions
 function identityAny(arg: any): any { return arg; }  // loses type info
@@ -131,6 +137,8 @@ Q4 [INTERMEDIATE]: What are conditional types and how do you use `infer`?
 A: Conditional types: T extends U ? X : Y   (like ternary for types)
    infer: declare a type variable within the conditional type to capture a subtype.
    Both are the foundation of TypeScript's built-in utility types.
+
+// ELI5: Conditional types are like "if X, then Y, else Z" for types. The `infer` keyword extracts parts of a type for you.
 */
 
 // Basic conditional type:
@@ -172,6 +180,8 @@ Q5 [INTERMEDIATE]: What are mapped types and how do you use keyof and in?
 A: Mapped types iterate over a union of keys and transform each property.
    keyof T → union of keys of T
    { [K in keyof T]: ... } → iterate over all keys of T
+
+// ELI5: Mapped types are like a factory that takes a template and repeats it for each property. `keyof` gives you the list of properties.
 */
 
 interface Product { id: number; name: string; price: number; active: boolean; }
@@ -205,6 +215,8 @@ Q6 [INTERMEDIATE]: What are Template Literal Types?
 ─────────────────────────────────────────────────────
 A: TypeScript 4.1+ allows constructing string literal types at the type level.
    Extremely powerful for event names, CSS properties, type-safe API routes.
+
+// ELI5: Template literal types are like string templates but for types. You can build type names from parts like "onButtonClick".
 */
 
 // Type-safe event system:
@@ -238,6 +250,8 @@ Q7 [ADVANCED]: What are branded (nominal) types and when do you need them?
 A: TypeScript is STRUCTURALLY typed: two types with the same shape are interchangeable.
    Sometimes you want NOMINAL typing: UserId and ProductId are both numbers but
    should NOT be interchangeable. Branded types solve this.
+
+// ELI5: Branded types are like adding a color sticker to different types of coins. Both are numbers, but red coins can't be used as blue coins.
 */
 
 // Without branding: bug compiles fine
@@ -284,6 +298,8 @@ A: Variance describes how subtype relationships flow through generic types.
    - Return types are COVARIANT (can return more specific type)
    - Parameter types are CONTRAVARIANT (can accept more general type)
    - Array<T> is technically covariant but TypeScript allows unsound mutation
+
+// ELI5: Covariance means a Subclass can replace a Base (return something more specific). Contravariance means Base can replace Subclass (accept something broader).
 */
 class Animal { breathe() {} }
 class Dog extends Animal { bark() {} }
@@ -310,6 +326,8 @@ Q9 [ADVANCED]: How do you use module augmentation and declaration merging in Typ
 A: Module augmentation: add properties to existing types from external libraries.
    Useful for: extending Express Request, adding properties to global Window,
    augmenting 3rd-party library types without modifying them.
+
+// ELI5: Module augmentation is like attaching stickers and adding notes to someone else's book without rewriting it.
 */
 
 // Extending Express Request type (common pattern):
@@ -349,6 +367,8 @@ A: `satisfies` validates that a value conforms to a type WITHOUT widening the va
    - `as Type`    → forces type, loses literal inference, unsafe (can assert wrong type)
    - `: Type`     → widens type, loses literals
    - `satisfies Type` → validates against Type, but KEEPS narrowed/literal type
+
+// ELI5: `as` is like lying (dangerous). `:` is like rounding (loses detail). `satisfies` is like checking without changing (best).
 */
 
 type Routes = Record<string, { path: string; method: 'GET' | 'POST' | 'PUT' | 'DELETE' }>;

@@ -24,6 +24,9 @@ A: GraphQL is a query language for APIs + a runtime for executing those queries.
       GraphQL: one request for all three.
    3. Versioning: REST needs /v1 /v2; GraphQL evolves schema with @deprecated directive.
    4. Type system: GraphQL schema is strongly typed; REST needs OpenAPI separately.
+
+// ELI5: GraphQL is like ordering from a restaurant menu (specify exactly what you want).
+// REST is like a set menu (you get the whole plate even if you only want the pasta).
 */
 // REST vs GraphQL query shape:
 
@@ -88,7 +91,7 @@ Q3 [BASIC]: What is the difference between Query, Mutation, and Subscription?
 A: Query      → read data. Resolvers run in PARALLEL (safe because reads don't conflict).
    Mutation   → write data. Resolvers run SERIALLY (top-level mutations, in order).
    Subscription → real-time data stream over WebSocket. Resolves return AsyncIterator.
-*/
+// ELI5: Query is like asking questions (can ask multiple at once). Mutations are like giving orders (must do one at a time, in order).*/
 // Schema example:
 const typeDefs = `#graphql
   type Query {
@@ -143,6 +146,9 @@ A: N+1 problem: fetching a list of N items, then making 1 additional DB query PE
       same event loop tick (via process.nextTick batch window)
    2. Calls your batch function ONCE with all collected keys
    3. Caches results so duplicate keys get the same promise
+
+// ELI5: N+1 is like asking for your friend's phone number, hanging up, then calling their mom to ask again for each friend.
+// DataLoader batches these queries - you ask for ALL friends' phone numbers in one go.
 */
 const DataLoader = require('dataloader');
 
@@ -281,6 +287,8 @@ A: Federation allows splitting a single GraphQL API across MULTIPLE services (su
    - Router (Apollo Router/Gateway): receives client query, plans how to split it across subgraphs,
      merges results, returns unified response
    - Supergraph schema: composed from all subgraph schemas
+
+// ELI5: Federation is like a chain of franchises - each location (subgraph) handles its own products but the company HQ (router) ties them together.
 */
 // Subgraph 1: Users service
 const userSubgraph = `#graphql
@@ -357,6 +365,9 @@ Q9 [ADVANCED]: How do you implement cursor-based pagination in GraphQL (Relay sp
 A: Relay Connection spec is the GraphQL standard for pagination.
    Avoids offset pagination's issues (non-deterministic under mutations).
    Uses cursors (opaque, usually base64-encoded position) instead of page numbers.
+
+// ELI5: Cursor-based pagination is like a bookmark in a book (take screenshot of where you are). Offset pagination is like "go to page 5"
+// (user adds a new book = page numbers change but bookmark still points to the same spot).
 */
 const relayPaginationSchema = `#graphql
   type Query {
@@ -430,6 +441,8 @@ A: GraphQL has PARTIAL SUCCESS: a request can return BOTH data AND errors simult
    1. Field errors: resolver throws → that field becomes null, error added to 'errors' array
       → other fields in the response still resolve normally
    2. Request-level errors: schema validation fails, parse error → entire data is null
+
+// ELI5: Partial success is like a restaurant where some dishes are ready and some are still cooking - you get what's ready plus status of what failed.
 */
 // Partial success example response:
 const partialSuccessResponse = {

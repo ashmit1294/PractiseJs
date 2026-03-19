@@ -24,6 +24,9 @@ A: Pages Router (pages/): React 17 mental model. getServerSideProps / getStaticP
    Key mental model shift:
    - Pages Router: "server functions + client component"
    - App Router:   "server tree (default) with client islands embedded"
+
+// ELI5: Pages Router is like sending a movie script to an actor who performs it in front of the camera (browser gets HTML then JS).
+// App Router is like the server is the stage and actors are already performing (HTML by default, with interactive bits in JS).
 */
 
 // Pages Router — getServerSideProps pattern:
@@ -63,6 +66,9 @@ A: Next.js App Router has 4 distinct caches that interact with each other:
    4. Router Cache (client-side, in browser memory)
       → Prefetched pages and navigated routes stored in browser memory
       → Cleared on page refresh or soft navigation expiry
+
+// ELI5: Next.js has a 4-layer cake of caching. Request memoization is the top layer (skip duplicates in one req).
+// Data cache is preserving leftovers in the fridge for later. Full route is the pre-made frozen meal. Router cache is the memory of what you visited.
 */
 
 // Controlling Data Cache behavior:
@@ -97,6 +103,9 @@ A: Server Actions: async functions marked 'use server' that run on the server bu
 
    API Routes: explicit HTTP endpoints (/pages/api/* or /app/api/*/route.ts).
    You manage request/response manually. More flexible for webhooks, external clients.
+
+// ELI5: Server Actions are like "send this data to the server and get a result back" - invisible magic.
+// API Routes are like building your own REST API endpoints - visible, documented, external-friendly.
 */
 
 // Server Action — simple form mutation:
@@ -147,6 +156,9 @@ A: Traditional SSR: server must render the ENTIRE page before sending any HTML.
    1. Suspense boundaries: content inside <Suspense> streams when ready
    2. loading.tsx: shown immediately, replaced when segment finishes
    3. error.tsx: error boundaries per segment
+
+// ELI5: Streaming is like ordering food - the kitchen sends out appetizers first (header), then main course (content), then dessert (footer).
+// Instead of waiting for everything, the customer starts eating immediately.
 */
 
 // app/posts/page.tsx — streaming with Suspense:
@@ -183,6 +195,9 @@ A: Middleware runs BEFORE the cache and BEFORE routing — at the Edge, on EVERY
    matching the config.matcher pattern. It can rewrite, redirect, modify headers, or
    short-circuit the request.
    Runs in Edge Runtime (V8 isolates) — cannot use Node.js APIs.
+
+// ELI5: Middleware is like a security guard at the door who checks every request before it enters the building.
+// It can let people in, redirect them, or add a stamp to their hand (headers).
 */
 
 // middleware.ts (must be at root next to app/):
@@ -229,6 +244,9 @@ A: ISR = pre-render static pages at build time, then re-generate them in the bac
 
    On-demand ISR: purge the cache IMMEDIATELY when data changes (CMS webhook, etc.)
    without waiting for the time-based interval.
+
+// ELI5: ISR is like having a newspaper that's mostly pre-printed but you update important sections when news breaks.
+// On-demand ISR means you reprint that section immediately when something big happens, not at a fixed time.
 */
 
 // app/api/revalidate/route.ts — webhook from CMS:
@@ -279,6 +297,9 @@ A: RSC Payload: a special binary format (React's wire format) that represents th
 
    This means: navigating between pages does NOT unmount Client Component state
    as long as they appear in both routes.
+
+// ELI5: RSC Payload is like a recipe that the browser follows to build the UI. Server Components are invisible (recipe only),
+// Client Components are visible (recipe goes to the browser to execute).
 */
 
 // Illustrates the "donut pattern" — passing Server Components through Client Components:
@@ -307,6 +328,9 @@ A: Parallel Routes: render multiple pages simultaneously in the same layout.
 
    Intercepting Routes: render a route in a "modal" context while keeping the
    background layout. Used for: photo/post modals (Instagram-style), quick look.
+
+// ELI5: Parallel routes are like having multiple screens at once (main content + sidebar doing its own thing independently).
+// Intercepting routes are like popping up a modal on top without changing the background.
 */
 
 // app/dashboard/layout.tsx — Parallel Routes:
@@ -340,6 +364,8 @@ Q9 [ADVANCED]: How do you safely implement authentication with Server Actions?
 A: Server Actions are publicly exposed HTTP endpoints (even if not written as API routes).
    Next.js generates a unique ID for each action, which is an HTTP POST endpoint.
    CRITICAL: always validate auth inside the action — never trust client-sent data for authorization.
+
+// ELI5: Server Actions need security guards inside them checking ID at the door. Never assume the client sent you valid data.
 */
 
 // lib/auth.ts — reusable server-side session getter:
@@ -395,6 +421,9 @@ A: next/image is NOT just an <img> wrapper. It:
    4. Lazy loads by default (Intersection Observer / native loading="lazy")
    5. Prevents layout shift via aspect ratio reservation (width + height props)
    6. Caches resized images on server disk (or CDN with cache headers)
+
+// ELI5: next/image is like a smart photo cropper and compressor service. It saves time by only sending exactly the size needed,
+// in the best format for that browser, and remembering what it already compressed.
 */
 
 // Configuration in next.config.js for external image sources:

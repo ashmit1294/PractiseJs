@@ -27,6 +27,9 @@ A: The event loop is a C loop (in libuv) that continuously checks the call stack
    Between EVERY phase: process.nextTick callbacks drain completely
    Between EVERY phase: Promise microtasks drain completely
    nextTick runs BEFORE Promises within the same "between phases" window.
+
+// ELI5: The event loop is like a restaurant manager checking different stations in order: timers, then I/O events,
+// then immediate callbacks. Between each station check, they handle all urgent notes (nextTick) and pending orders (Promises).
 */
 // Demonstrates phase ordering:
 setTimeout(() => console.log('1. setTimeout'), 0);
@@ -57,6 +60,9 @@ A: Non-blocking I/O is achieved via the OS (epoll on Linux, kqueue on macOS, IOC
    Analogy: A chef (JS thread) takes orders (requests), puts food in the oven (I/O),
    and doesn't stand there watching — they take more orders instead.
    A kitchen helper (libuv thread) monitors the oven and notifies the chef.
+
+// ELI5: Node is like a chef with multiple arms who can start cooking one dish and move to the next without waiting for the first to finish.
+// The oven (OS) handles the actual cooking in the background while the chef preps other dishes.
 */
 const { readFile } = require('fs');
 
@@ -78,6 +84,9 @@ A: Streams process data in CHUNKS rather than loading everything into memory.
 
    Types: Readable, Writable, Duplex (both), Transform (duplex + modify data)
    All streams inherit from EventEmitter.
+
+// ELI5: Streams are like a water pipe - you don't fill up a bucket all at once, you let water flow through.
+// Instead of loading a 1GB file into memory (bucket overflows), you process it in chunks (steady water flow).
 */
 const { createReadStream, createWriteStream } = require('fs');
 const { createGzip } = require('zlib');
@@ -108,6 +117,9 @@ A: AsyncLocalStorage provides a context that propagates automatically through
    async operations (Promises, callbacks, timers, streams) within a single async call tree.
    Like thread-local storage but for async operations.
    Use: request-scoped context (requestId, userId, logger) without passing it everywhere.
+
+// ELI5: AsyncLocalStorage is like a backpack that follows you through your entire adventure.
+// Any function you call down the line can open the backpack and check what's inside without you having to pass it to every function.
 */
 const { AsyncLocalStorage } = require('async_hooks');
 
@@ -153,7 +165,8 @@ A: Node.js is single-threaded, so it can only use ONE CPU core by default.
       → Session data must be stored in Redis/DB, not process memory
    2. Harder to debug (multiple processes)
    3. Each worker runs full server startup → more memory usage
-*/
+// ELI5: Clustering is like opening multiple checkout lanes in a store instead of one. Each lane is a separate worker.
+// The main manager directs customers to each lane, but each lane can't share its clipboard with other lanes.*/
 const cluster = require('cluster');
 const os = require('os');
 const http = require('http');
@@ -185,6 +198,9 @@ A: Backpressure occurs when the PRODUCER (Readable) generates data faster than t
 
    Node's stream API communicates backpressure via boolean returns and 'drain' events.
    pipeline() / pipe() handle backpressure automatically — always prefer them.
+
+// ELI5: Backpressure is like a traffic jam - a slow lane (writable) causes a backup in the fast lane (readable).
+// You tell the fast lane to slow down until the jam clears.
 */
 const { Readable, Writable } = require('stream');
 
@@ -216,6 +232,9 @@ A: require() caches modules by their RESOLVED FILENAME.
    - Singleton pattern is automatic with CJS modules
    - Mutation of exports is shared across all requirers
    - Circular dependencies are possible but return incomplete exports
+
+// ELI5: When you require a module, Node caches it like a photocopy machine remembering paper size settings.
+// Every time you ask for the same paper size again, it uses the old setting instead of reconfiguring.
 */
 // db.js:
 // let connection = null;
@@ -242,6 +261,9 @@ A: Symptoms: heap growing over time, eventual OOM / process restart.
    2. Generate heap snapshots at different times
    3. Compare snapshots to find retained objects
    4. Find what is holding references (retention path)
+
+// ELI5: Memory leaks are like leaving your fridge on at a storage locker and forgetting about it.
+// You check photos of when it was packed vs now to see what's still in there that shouldn't be.
 */
 const v8 = require('v8');
 const { writeFileSync } = require('fs');
@@ -287,6 +309,9 @@ Q9 [ADVANCED]: How does Node.js handle uncaught exceptions and unhandled promise
 A: Unhandled errors crash the process — but you WANT that in production (predictable state).
    The goal is to: log the error, flush any pending I/O, then exit gracefully.
    Never swallow errors silently.
+
+// ELI5: Uncaught exceptions are like a fire alarm - you can't ignore it. Log it, run out of the building (exit cleanly), and don't come back.
+// Continuing after an uncaught exception is like staying in a burning building hoping it's okay.
 */
 
 // PROCESS-LEVEL error handling (last resort — not a substitute for proper error handling)
@@ -361,6 +386,9 @@ A: Options from simplest to most powerful:
    2. setImmediate chunking (cooperative multitasking)
    3. worker_threads (true parallel V8 execution within same process)
    4. child_process.fork() (separate process entirely)
+
+// ELI5: setImmediate chunking is like a juggler taking a breath between catching balls.
+// Worker threads are like hiring a real assistant to do work in parallel. Child process is hiring a completely separate person.
 */
 const { Worker, isMainThread, parentPort, workerData } = require('worker_threads');
 
@@ -407,6 +435,9 @@ A: HTTP/1.1 keep-alive: reuse TCP connections for multiple requests (avoid 3-way
    Node's http.globalAgent manages a connection pool per host:port.
    Default maxSockets: Infinity (can overwhelm target server).
    Always configure agent for outbound connections.
+
+// ELI5: HTTP keep-alive is like having a standing appointment with a restaurant instead of calling ahead each time.
+// Connection pooling is like managing multiple standing appointments so you don't overwhelm the restaurant.
 */
 const http = require('http');
 const https = require('https');

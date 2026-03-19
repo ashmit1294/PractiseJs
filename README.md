@@ -7,6 +7,22 @@ TypeScript to React, Node.js, Docker, Kubernetes, Azure, AWS, Next.js, GraphQL, 
 and Web Security. Every section contains working code examples, edge cases, complexity
 analysis, and direct interview question-and-answer material.
 
+---
+
+## ⭐ NEW: MASTER CONSOLIDATED INTERVIEW Q&A FILE
+
+**📁 [MASTER_INTERVIEW_QA.md](MASTER_INTERVIEW_QA.md)** — Complete consolidated reference with all interview questions from 8 technologies
+
+- ✅ **150+ Interview Questions** organized by technology
+- ✅ **ELI5 Explanations** added to ALL questions for beginner accessibility
+- ✅ **Table of Contents** with quick navigation links
+- ✅ **Code Examples** and working implementations included
+- ✅ **Perfect for:** Quick reference, interview prep, teaching concepts
+
+**Tech covered:** JavaScript (19) → React (20) → Next.js (10) → Node.js (13) → MongoDB (9) → Docker (28) → AWS (20+) → Azure (20+)
+
+---
+
 ## 📋 Master Interview Questions Collection
 
 All 28 interview questions organized by technology domain with flow diagrams:
