@@ -3997,3 +3997,98 @@ console.log('Total errors:', errorCount);
 - For latency: use `worker_threads` within a single process to offload the CPU work while responding to other requests immediately.
 - Consider moving the CPU work to a dedicated microservice or a background job queue.
 - Profile first — the bottleneck may be DB queries, not CPU, in which case connection pool tuning and query optimisation will help more.
+
+---
+
+## From MASTER_INTERVIEW_QA.md — Additional Q&As
+
+---
+
+### Q24 [ADVANCED]: GraphQL structure for a complex app + Node.js backend integration
+
+**A:**
+
+**Core structure:**
+```
+Schema (SDL)  →  Resolvers  →  Data Sources (DB / REST / gRPC / Redis)
+```
+
+**Apollo Server 4 + Express setup:**
+```javascript
+// typeDefs: define schema in SDL
+// resolvers: map each field to its data source
+// context: inject auth + DataLoaders per request
+app.use('/graphql', expressMiddleware(server, {
+  context: async ({ req }) => ({
+    user: verifyJWT(req.headers.authorization),
+    dataSources: {
+      usersDB: new UsersDataSource(db),
+      ordersLoader: new DataLoader(batchLoadOrders),  // solves N+1
+    },
+  }),
+}));
+```
+
+**Key patterns:**
+| Concern | Solution |
+|---|---|
+| Authentication | JWT in `context`, throw `GraphQLError` in resolvers |
+| Authorization | `ctx.user.role` check in resolver or `@auth` directive |
+| N+1 problem | `DataLoader` batches DB calls per request |
+| Real-time | `graphql-ws` + WebSocket for subscriptions |
+| Microservices | Apollo Federation — unified graph across multiple services |
+
+**When to use GraphQL over REST:**
+- Multiple clients (web, mobile) with different data needs
+- Complex nested relationships (user → orders → items → products)
+- BFF (Backend-for-Frontend) pattern aggregating microservices
+
+---
+
+### Q25 [ADVANCED]: Azure AD based authentication with RBAC
+
+**A:**
+
+**Flow:**
+```
+User → MSAL loginPopup → Azure AD issues access token
+     → Attach Bearer token to API → Backend validates JWT via JWKS
+     → Extract roles claim → requireRole() middleware → Allow/Deny
+```
+
+**Frontend (MSAL React):**
+```javascript
+const result = await instance.acquireTokenSilent({
+  scopes: ['api://your-api-id/access_as_user'],
+  account: accounts[0],
+});
+// attach: Authorization: `Bearer ${result.accessToken}`
+```
+
+**Backend JWT validation:**
+```javascript
+jwt.verify(token, getSigningKey, {
+  audience: 'api://your-api-id',
+  issuer: `https://sts.windows.net/${TENANT_ID}/`,
+  algorithms: ['RS256'],
+}, (err, decoded) => { req.user = decoded; next(); });
+```
+
+**RBAC middleware:**
+```javascript
+function requireRole(...roles) {
+  return (req, res, next) => {
+    const hasRole = roles.some(r => (req.user.roles || []).includes(r));
+    if (!hasRole) return res.status(403).json({ error: 'Forbidden' });
+    next();
+  };
+}
+// Usage:
+app.get('/api/reports', verifyAzureToken, requireRole('Admin', 'Analyst'), getReports);
+```
+
+**Best practices:**
+- Validate JWT via JWKS endpoint (not a secret string) — handles key rotation
+- Check `aud` + `iss` claims
+- Store access tokens in memory, not localStorage (prevents XSS theft)
+- App Roles defined in Azure AD App Registration manifest

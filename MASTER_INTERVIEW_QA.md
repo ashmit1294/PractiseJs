@@ -7,13 +7,14 @@ A comprehensive consolidated collection of interview questions and answers for e
 ## Table of Contents
 
 - [JavaScript (24+ Questions)](#javascript)
-- [React (27+ Questions)](#react)
+- [React (30+ Questions)](#react)
 - [Next.js (11 Questions)](#nextjs)
-- [Node.js (23+ Questions)](#nodejs)
-- [MongoDB (10+ Scenarios)](#mongodb)
+- [Node.js (25+ Questions)](#nodejs)
+- [MongoDB (11+ Scenarios)](#mongodb)
 - [Docker (28 Questions)](#docker)
 - [AWS (20+ Questions)](#aws)
 - [Azure (20+ Questions)](#azure)
+- [System Design & Architecture (2 Questions)](#system-design--architecture)
 
 ---
 
@@ -1413,6 +1414,202 @@ FIX:
 - [ ] Preconnect to CDN / font origins
 - [ ] Remove unused JavaScript and CSS
 - [ ] Reserve layout space for dynamic content
+
+---
+
+### Q28 [ADVANCED]: What is Isomorphic React (Universal Rendering)?
+
+**A:** Isomorphic React means the **same React component code** runs on BOTH the server AND the browser — the server renders HTML first, the browser hydrates it into an interactive app.
+
+**ELI5:** Imagine a restaurant where the kitchen (server) pre-cooks a meal for you. You receive a fully plated dish (HTML) instantly. Then your table's mini-kitchen (browser) "finishes" it — adding sauces, warming it up — making it fully interactive. Same recipe (components), two kitchens.
+
+**The flow:**
+```
+1. Request → Node.js server calls ReactDOMServer.renderToString(<App />)
+2. Server sends complete HTML → browser shows content immediately (FCP ↑)
+3. Browser downloads React bundle
+4. React "hydrates" — attaches event listeners to existing DOM (no re-render)
+5. App is now fully interactive
+```
+
+**Why it matters:**
+| Benefit | Detail |
+|---|---|
+| SEO | Search crawlers see full HTML, not a blank `<div id="root">` |
+| FCP / LCP | User sees content before JS loads |
+| Performance on slow devices | Less work in the browser |
+| Accessible | Content visible even with JS disabled |
+
+**React APIs for SSR:**
+```javascript
+// Server (Node.js)
+import { renderToString } from 'react-dom/server';
+const html = renderToString(<App />);
+res.send(`<html><body><div id="root">${html}</div></body></html>`);
+
+// Client (hydration)
+import { hydrateRoot } from 'react-dom/client';
+hidrateRoot(document.getElementById('root'), <App />);
+```
+
+**Modern equivalent — Next.js handles this automatically:**
+- `export default function Page()` in App Router = Server Component = server-rendered
+- `'use client'` = hydrated on the client
+- No manual `renderToString` needed
+
+**SPA vs Isomorphic:**
+| | SPA (client-only) | Isomorphic |
+|---|---|---|
+| Initial HTML | Empty `<div>` | Full rendered HTML |
+| SEO | Poor | Excellent |
+| FCP | Slow (wait for JS) | Fast |
+| Complexity | Low | Medium |
+
+---
+
+### Q29 [ADVANCED]: How do you apply Clean Architecture and SOLID principles in React components?
+
+**A:**
+
+**ELI5:** Clean Architecture is like a well-organised building. Business rules (domain logic) live in the core. Use cases surround them. The UI and APIs are the outer shell. The core NEVER depends on the outside layers — only outside depends on core.
+
+**SOLID in React:**
+| Principle | React Application |
+|---|---|
+| **S** — Single Responsibility | Each component does ONE thing. `UserCard` renders, `useUserData` fetches. Don't mix fetch + render + validation in one component |
+| **O** — Open/Closed | Extend behaviour with props/composition without modifying the component. Add variants via props, not code changes |
+| **L** — Liskov Substitution | A `<PrimaryButton>` can substitute wherever `<Button>` is expected — same contract |
+| **I** — Interface Segregation | Split large prop interfaces. A `<Table>` shouldn't require sorting props it doesn't use. Create `<SortableTable>` separately |
+| **D** — Dependency Inversion | Components depend on abstractions (hooks/interfaces), not concrete implementations. Pass `onFetch` as prop, not `axios.get()` hardcoded |
+
+**Clean Architecture layers in React:**
+```
+UI Layer          (React components — render only)
+  ↓ calls
+Application Layer (custom hooks: useCreateOrder, useAuth)
+  ↓ calls
+Domain Layer      (pure business logic: validateOrder, calculateDiscount — no React)
+  ↓ calls
+Infrastructure    (API clients, localStorage, analytics)
+```
+
+**Practical example:**
+```jsx
+// ❌ BAD — mixed responsibilities
+function OrderPage() {
+  const [order, setOrder] = useState(null);
+  useEffect(() => {
+    fetch('/api/order/1').then(r => r.json()).then(setOrder);
+  }, []);
+  return <div>{order?.total > 100 ? 'FREE SHIPPING' : 'PAY SHIPPING'}</div>;
+}
+
+// ✅ GOOD — each layer separate
+// Domain: pure logic (no React)
+const isFreeShipping = (total) => total > 100;
+
+// Infrastructure: API
+const fetchOrder = (id) => fetch(`/api/order/${id}`).then(r => r.json());
+
+// Application: custom hook
+function useOrder(id) {
+  const [order, setOrder] = useState(null);
+  useEffect(() => { fetchOrder(id).then(setOrder); }, [id]);
+  return order;
+}
+
+// UI: just renders
+function OrderPage({ id }) {
+  const order = useOrder(id);
+  if (!order) return null;
+  return <div>{isFreeShipping(order.total) ? 'FREE SHIPPING' : 'PAY SHIPPING'}</div>;
+}
+```
+
+**Key takeaways:**
+- Data fetching → custom hooks (application layer)
+- Business logic → plain JS functions with no React imports (domain layer, easily unit-tested)
+- UI components only receive data and render
+- Test each layer independently: pure functions need no mocking
+
+---
+
+### Q30 [ADVANCED]: How do you optimize data fetching in React using GraphQL to ensure minimal performance overhead?
+
+**A:**
+
+**ELI5:** Without GraphQL, you call 5 APIs and get 100 fields each time you only need 10. With GraphQL, you write exactly what you want and the server sends exactly that — one trip, right amount of data.
+
+**Problems GraphQL solves:**
+| Problem | REST | GraphQL |
+|---|---|---|
+| Over-fetching | Full user object always returned | Request only `name, email` |
+| Under-fetching | 3 round-trips for user+orders+items | One nested query |
+| N+1 API calls | Multiple requests for list items | `DataLoader` batches DB calls |
+| Type safety | OpenAPI optional | Schema is the source of truth |
+
+**React optimization techniques:**
+
+**1. Precise queries — request only needed fields**
+```graphql
+# BAD — over-fetching
+query { user { id name email address orders { ... } } }
+
+# GOOD
+query GetUserCard($id: ID!) {
+  user(id: $id) { id name avatar }
+}
+```
+
+**2. Apollo Client — cache normalisation + fetch policies**
+```jsx
+import { useQuery, gql } from '@apollo/client';
+
+const GET_POSTS = gql`
+  query GetPosts($limit: Int!) {
+    posts(limit: $limit) { id title author { name } }
+  }
+`;
+
+function PostList() {
+  const { data, loading } = useQuery(GET_POSTS, {
+    variables: { limit: 20 },
+    fetchPolicy: 'cache-first',  // serve from cache if fresh
+  });
+  if (loading) return <Skeleton />;
+  return data.posts.map(p => <PostCard key={p.id} post={p} />);
+}
+```
+
+**3. Fragments for co-located data needs**
+```graphql
+fragment PostCardFields on Post { id title author { name } }
+fragment PostDetailFields on Post { ...PostCardFields body createdAt }
+```
+
+**4. Lazy queries for on-demand data**
+```jsx
+const [loadUser, { data }] = useLazyQuery(GET_USER);
+<button onClick={() => loadUser({ variables: { id } })}>Load Profile</button>
+```
+
+**5. Cursor-based pagination (preferred over offset)**
+```graphql
+query GetFeed($cursor: String, $limit: Int) {
+  feed(after: $cursor, first: $limit) {
+    edges { node { id title } }
+    pageInfo { hasNextPage endCursor }
+  }
+}
+```
+
+**Performance checklist:**
+- ✅ `cache-first` for rarely-changing data (product catalog)
+- ✅ `network-only` for critical accuracy (cart, checkout)
+- ✅ `@defer` directive for non-critical query parts
+- ✅ Persisted queries (hash → query string) to reduce payload size
+- ✅ `DataLoader` on the server to batch N+1 DB calls
+- ✅ Depth/complexity limits on server (prevent malicious deep queries)
 
 ---
 
@@ -3180,6 +3377,216 @@ res.status(500).json({ error: "Internal server error" });
 
 ---
 
+### Q24 [ADVANCED]: Explain the structure of GraphQL for a complex application and how you would integrate it with a Node.js backend?
+
+**A:**
+
+**ELI5:** GraphQL is like a restaurant menu. The menu (schema) lists everything available. You write exactly what you want to eat (query). The chef (resolver) goes to the right kitchen (database/microservice) and returns exactly that. One waiter trip, perfect order.
+
+**Core GraphQL structure:**
+```
+Schema (SDL)          Resolvers               Data Sources
+─────────────         ─────────────────       ─────────────────
+type Query {     →    Query: {           →    MongoDB / PostgreSQL
+  user(id:ID!):User     user: async(_,       REST microservices
+}                         {id}, ctx) =>      Redis cache
+type User {               ctx.db             gRPC services
+  id: ID!                 .findById(id)
+  orders:[Order]      }
+}
+```
+
+**Complete Node.js + Apollo Server 4 setup:**
+```javascript
+// schema.js
+import { gql } from 'graphql-tag';
+export const typeDefs = gql`
+  type Query {
+    user(id: ID!): User
+    products(category: String, limit: Int): [Product!]!
+  }
+  type Mutation {
+    createOrder(input: OrderInput!): Order!
+  }
+  type User {
+    id: ID!
+    name: String!
+    orders: [Order!]!
+  }
+  type Order  { id: ID!  total: Float! status: String! }
+  type Product { id: ID! name: String! price: Float! }
+  input OrderInput { productIds: [ID!]! }
+`;
+
+// resolvers.js
+export const resolvers = {
+  Query: {
+    user: async (_, { id }, { dataSources }) =>
+      dataSources.usersDB.findById(id),
+    products: async (_, { category, limit }, { dataSources }) =>
+      dataSources.productsDB.find({ category, limit }),
+  },
+  Mutation: {
+    createOrder: async (_, { input }, { dataSources, user }) => {
+      if (!user) throw new GraphQLError('Not authenticated', { extensions: { code: 'UNAUTHENTICATED' } });
+      return dataSources.ordersDB.create({ ...input, userId: user.id });
+    },
+  },
+  User: {
+    orders: async (parent, _, { dataSources }) =>
+      dataSources.ordersLoader.load(parent.id),  // DataLoader solves N+1
+  },
+};
+
+// server.js
+import { ApolloServer } from '@apollo/server';
+import { expressMiddleware } from '@apollo/server/express4';
+import DataLoader from 'dataloader';
+
+const server = new ApolloServer({ typeDefs, resolvers });
+await server.start();
+
+app.use('/graphql', expressMiddleware(server, {
+  context: async ({ req }) => ({
+    user: verifyJWT(req.headers.authorization),
+    dataSources: {
+      usersDB: new UsersDataSource(db),
+      ordersLoader: new DataLoader(batchLoadOrders),  // solves N+1
+    },
+  }),
+}));
+```
+
+**Key integration patterns:**
+| Topic | Pattern |
+|---|---|
+| Authentication | JWT verified in `context`, throw `GraphQLError` in resolvers |
+| Authorization | Check `ctx.user.role` in resolver (or `@auth` schema directive) |
+| N+1 prevention | DataLoader batches DB calls per request lifecycle |
+| Caching | Apollo response cache + Redis for field-level caching |
+| Error handling | `GraphQLError` with `extensions: { code }` for typed errors |
+| Schema federation | Apollo Federation — multiple microservices, one unified graph |
+| Subscriptions | `graphql-ws` + WebSocket transport for real-time events |
+
+**When to choose GraphQL over REST:**
+- Multiple clients (web, mobile, TV) with different data needs
+- Complex related data (user → orders → items → products)
+- Rapid UI iteration without backend contract changes
+- Microservices that need a unified API layer (BFF pattern)
+
+---
+
+### Q25 [ADVANCED]: Explain your authentication mechanism — how did you implement Azure AD based auth with RBAC?
+
+**A:**
+
+**ELI5:** Azure AD is like an enterprise security guard. When you arrive at the office (app), the guard calls corporate HR (Azure AD) to verify who you are. Once verified, the guard checks your employee badge (token with roles) to see which doors (features) you're allowed to enter — that's RBAC (Role-Based Access Control).
+
+**Flow:**
+```
+User → App → Azure AD login → ID/Access token returned
+           → Backend validates JWT → extracts roles claim
+           → Allow/Deny based on role
+```
+
+**Frontend — MSAL React:**
+```javascript
+import { useMsal, MsalProvider } from '@azure/msal-react';
+import { PublicClientApplication } from '@azure/msal-browser';
+
+const msalInstance = new PublicClientApplication({
+  auth: {
+    clientId: process.env.REACT_APP_CLIENT_ID,
+    authority: `https://login.microsoftonline.com/${process.env.REACT_APP_TENANT_ID}`,
+    redirectUri: window.location.origin,
+  },
+});
+
+function LoginButton() {
+  const { instance } = useMsal();
+  return (
+    <button onClick={() => instance.loginPopup({
+      scopes: ['api://your-api-id/access_as_user']
+    })}>
+      Sign in with Microsoft
+    </button>
+  );
+}
+
+// Attach bearer token to API calls
+function useApiCall() {
+  const { instance, accounts } = useMsal();
+  return async (url) => {
+    const result = await instance.acquireTokenSilent({
+      scopes: ['api://your-api-id/access_as_user'],
+      account: accounts[0],
+    });
+    return fetch(url, { headers: { Authorization: `Bearer ${result.accessToken}` } });
+  };
+}
+```
+
+**Backend — JWT validation + RBAC (Node.js/Express):**
+```javascript
+import jwt from 'jsonwebtoken';
+import jwksRsa from 'jwks-rsa';
+
+const jwksClient = jwksRsa({
+  jwksUri: `https://login.microsoftonline.com/${TENANT_ID}/discovery/v2.0/keys`
+});
+
+function getKey(header, callback) {
+  jwksClient.getSigningKey(header.kid, (err, key) =>
+    callback(err, key?.getPublicKey())
+  );
+}
+
+function verifyAzureToken(req, res, next) {
+  const token = req.headers.authorization?.replace('Bearer ', '');
+  if (!token) return res.status(401).json({ error: 'No token' });
+  jwt.verify(token, getKey, {
+    audience: 'api://your-api-id',
+    issuer: `https://sts.windows.net/${TENANT_ID}/`,
+    algorithms: ['RS256'],
+  }, (err, decoded) => {
+    if (err) return res.status(401).json({ error: 'Invalid token' });
+    req.user = decoded;   // { oid, name, email, roles: ['Admin','Editor'] }
+    next();
+  });
+}
+
+// RBAC middleware — reads App Roles claim from token
+function requireRole(...roles) {
+  return (req, res, next) => {
+    const userRoles = req.user.roles || [];
+    const hasRole = roles.some(r => userRoles.includes(r));
+    if (!hasRole) return res.status(403).json({ error: 'Insufficient permissions' });
+    next();
+  };
+}
+
+// Usage
+app.get('/api/reports', verifyAzureToken, requireRole('Admin', 'Analyst'), getReports);
+app.delete('/api/users/:id', verifyAzureToken, requireRole('Admin'), deleteUser);
+```
+
+**Azure AD App Registration setup:**
+1. Register app → Azure portal → App Registrations
+2. Define App Roles in manifest: `{ "allowedMemberTypes": ["User"], "value": "Admin" }`
+3. Assign roles to users/groups → Enterprise Applications → App Roles
+4. Expose an API (set Application ID URI: `api://your-api-id`)
+5. Add API permission in frontend app registration
+
+**Security best practices:**
+- ✅ Validate JWT signature via JWKS endpoint (public key rotation handled automatically)
+- ✅ Check `aud` (audience) matches your API's client ID
+- ✅ Check `iss` (issuer) matches your tenant
+- ✅ Extract roles from `roles` claim — set in Azure AD App Roles, not user profile
+- ✅ Use `acquireTokenSilent` with fallback to interactive for refresh
+- ✅ Store access tokens in memory (not localStorage) to prevent XSS theft
+
+---
+
 ## MongoDB
 
 **Category:** NoSQL Database | **Questions:** 10+ Scenarios | **Level:** Intermediate → Advanced
@@ -3531,11 +3938,71 @@ db.collection.find(query).explain("executionStats")   // see COLLSCAN vs IXSCAN
 
 ---
 
-## Docker
+### Q11 [ADVANCED]: Why are relational databases better than NoSQL? What are the advantages of MongoDB/NoSQL over RDBMS? What are the disadvantages of both?
 
-**Category:** Containerization | **Questions:** 28 | **Level:** Basic → Advanced
+**A:**
 
-Docker revolutionized application deployment by containerizing workloads. These questions cover fundamentals, networking, storage, security, CI/CD integration, and production best practices.
+**ELI5:** A relational database (RDBMS) is like an Excel spreadsheet — every row fits the same columns, and you link sheets with IDs (JOINs). MongoDB is like a folder of documents — each document can have different fields, and you evolve the shape over time. Both are excellent tools. Which to use depends on your data shape and access patterns.
+
+**RDBMS advantages:**
+| Advantage | Why it matters |
+|---|---|
+| ACID transactions | Bank transfers: debit one account, credit another — atomically |
+| Strict schema | Data integrity guaranteed at DB level — no half-written records |
+| Complex JOINs | Reporting dashboards with multi-table queries |
+| SQL standard | Universal, decades of tooling, every developer knows it |
+| Normalisation | DRY data — no duplication, referential integrity via foreign keys |
+| Mature ecosystem | PostgreSQL, MySQL: battle-tested, extensive tooling |
+
+**MongoDB / NoSQL advantages:**
+| Advantage | Why it matters |
+|---|---|
+| Flexible schema | Evolve document shape without migrations |
+| Document model | Store nested/related data in one document — no JOIN at read time |
+| Horizontal scaling | Sharding distributes data across nodes — scales to petabytes |
+| High write throughput | Optimised for large-scale inserts (events, logs, IoT) |
+| Geo-distributed | Multi-region active-active replication (Atlas Global Clusters) |
+| Speed at scale | No JOIN = predictable O(1) read by `_id` |
+
+**Disadvantages of RDBMS:**
+| Disadvantage | Detail |
+|---|---|
+| Vertical scaling limit | Scaling UP (more CPU/RAM) not OUT — expensive ceiling |
+| Schema rigidity | `ALTER TABLE` on 1 billion rows is painful |
+| ORM impedance mismatch | Object graphs don't map cleanly to tables |
+| Poor for unstructured data | Storing JSON blobs loses all relational benefits |
+
+**Disadvantages of MongoDB / NoSQL:**
+| Disadvantage | Detail |
+|---|---|
+| Multi-document transactions | ACID across multiple collections requires distributed transactions — slower |
+| Data duplication | Denormalisation means same data in multiple places — inconsistency risk |
+| No native JOIN | Application-level joins or `$lookup` — complex for reporting queries |
+| Schema flexibility = footgun | No enforcement means inconsistent documents creep in over time |
+| Query complexity | Aggregation pipeline is powerful but verbose compared to SQL |
+
+**Decision matrix:**
+```
+RDBMS (PostgreSQL, MySQL)          MongoDB (NoSQL)
+─────────────────────────          ───────────────────────
+✅ Financial systems                ✅ Product catalogs (varied attributes)
+✅ ERP / CRM                        ✅ Real-time analytics / time-series
+✅ Complex reporting (multi-JOIN)    ✅ Content management (variable structure)
+✅ Strong consistency required       ✅ Event logging / audit trails
+✅ Regulatory compliance (ACID)      ✅ User-generated content
+✅ Well-defined, stable schema       ✅ Rapidly evolving data shapes
+```
+
+**Hybrid approach (common in production):**
+```
+PostgreSQL → core business data (orders, payments, users)
+MongoDB    → product catalog, sessions, activity logs
+Redis      → caching, rate-limiting, real-time pub/sub
+S3         → files, media, exports
+```
+
+---
+
 
 ### Q1 [FUNDAMENTALS]: What is Docker and how does it differ from a virtual machine?
 
@@ -3661,6 +4128,62 @@ GitHub Actions is GitHub's built-in CI/CD platform. Workflow runs triggered by e
 
 ---
 
+### Q: What strategies do you employ to improve system resilience on AWS?
+
+**A:**
+
+**ELI5:** Resilience means your system keeps working even when things break. AWS gives you building blocks — redundancy (multiple copies in multiple places), circuit breakers (stop cascading failures), graceful degradation (do less but keep running), and observability (know when something breaks before your users do).
+
+**Core resilience strategies:**
+
+**1. Multi-AZ / Multi-Region — eliminate single points of failure**
+- Deploy across ≥2 Availability Zones for all compute + databases
+- ALB routes traffic across healthy instances automatically
+- RDS Multi-AZ: automatic failover in ~60 seconds
+- DynamoDB Global Tables: active-active multi-region
+- Route53 health checks with failover routing policy
+
+**2. Auto-scaling**
+- EC2 Auto Scaling Groups: scale out on CPU/request metrics
+- ECS Service Auto Scaling: scale tasks based on ALB request count
+- DynamoDB On-Demand: auto-scales read/write capacity
+
+**3. Circuit breaker + graceful degradation**
+- API Gateway: throttling limits prevent overload
+- ALB deregistration delay: drains connections from unhealthy targets
+- Lambda reserved concurrency: prevents resource exhaustion cascade
+- CloudFront fallback: serve cached/static response when origin fails
+
+**4. Async resilience with queues**
+- SQS Dead Letter Queue: capture failed messages for later replay
+- SNS + SQS fan-out: decouple producers from consumers
+- EventBridge retry policies on failed event delivery
+
+**5. Observability — know before users do**
+- CloudWatch metrics + alarms on error rate, latency, saturation
+- X-Ray distributed tracing → spot slow downstream services
+- CloudWatch Logs Insights: query logs at scale
+- SNS alerting on alarm state changes → PagerDuty/Slack
+
+**Disaster Recovery tiers:**
+| Strategy | RTO | RPO | Cost |
+|---|---|---|---|
+| Backup & Restore | Hours | Hours | $ |
+| Pilot Light (minimal standby) | Minutes | Minutes | $$ |
+| Warm Standby | Seconds | Seconds | $$$ |
+| Active-Active Multi-Region | <1s | ~0 | $$$$ |
+
+**Practical resilience checklist:**
+- ✅ Multi-AZ for every stateful component (RDS, ElastiCache, ECS)
+- ✅ S3 versioning + lifecycle policies for data durability
+- ✅ Retry with exponential backoff + jitter on all service calls
+- ✅ Idempotent APIs — safe to retry on network failures
+- ✅ Chaos engineering — AWS Fault Injection Simulator GameDays
+- ✅ Health check endpoint `/health` for every service
+- ✅ Blue-green or canary deploys — roll back in seconds
+
+---
+
 ## Azure
 
 **Category:** Cloud Computing Platform | **Questions:** 20+ | **Level:** Intermediate → Advanced
@@ -3741,10 +4264,187 @@ Use deployment slots: deploy new to staging slot (blue=prod, green=staging). Run
 
 ---
 
-## Quick Reference: Technology Choosing Matrix
+## System Design & Architecture
 
-| Use Case | Best Technology | Why |
+**Category:** System Design | **Questions:** 2 | **Level:** Advanced
+
+---
+
+### Q1 [ADVANCED]: How would you design a distributed system to serve millions of users simultaneously — including cache, DB, APIs, load balancing, Redis, and flash sale concurrency (1 item, 1000 concurrent buyers)?
+
+**A:**
+
+**ELI5:** Imagine a concert ticket sale. One last ticket. 1000 people click "Buy" at exactly the same second. Without a smart system, 1000 people might all "successfully" buy the same ticket (overselling). Your job is to design a system where exactly 1 person wins, others get a fast "sold out" message, and the whole thing handles millions of people browsing at the same time.
+
+**High-Level Architecture:**
+```
+Users (millions)
+    │
+    ↓
+CDN (CloudFront) ← Static assets, cached product pages
+    │
+    ↓
+Load Balancer (ALB) ← Distributes traffic, health checks
+    ├── API Server 1 (Node.js)
+    ├── API Server 2 (Node.js)
+    └── API Server N (Node.js)  ← Stateless, horizontal scale
+    │
+    ↓
+Redis Cluster ← Rate limiting, sessions, inventory cache, distributed locks
+    │
+    ↓
+Message Queue (SQS / RabbitMQ) ← Decouple order processing
+    │
+    ↓
+Order Worker ← Processes orders from queue
+    │
+    ↓
+Primary DB (PostgreSQL / Aurora) ← Source of truth
+    └── Read Replicas ← Handle read-heavy product browsing
+```
+
+**1. CDN layer — absorb 80% of traffic**
+- Cache product listing pages at the edge
+- Cache images, CSS, JS bundles
+- Only dynamic requests (add to cart, checkout) hit origin servers
+
+**2. Load balancer — distribute + health check**
+- ALB Layer 7: routes `/api/*` to API servers
+- Stateless APIs (sessions in Redis, not server memory)
+- Health check `/health` every 15s, removes unhealthy targets
+
+**3. API Servers — rate limiting per user**
+```javascript
+const rateLimit = require('express-rate-limit');
+app.use('/api/flash-sale', rateLimit({
+  windowMs: 60_000, max: 10,  // 10 requests/min per IP
+  store: new RedisStore({ client: redis }),  // distributed counter
+}));
+```
+
+**4. Flash Sale Concurrency — the critical part**
+
+**Problem:** 1000 requests arrive at T=0. Without protection, stock goes negative.
+
+**Solution A: Redis atomic DECR (fastest — for single-item sale)**
+```javascript
+async function purchaseItem(userId, itemId) {
+  // DECR is atomic in Redis — no two requests can decrement simultaneously
+  const remaining = await redis.decr(`stock:${itemId}`);
+
+  if (remaining < 0) {
+    await redis.incr(`stock:${itemId}`);  // rollback
+    return { success: false, message: 'Sold out' };
+  }
+
+  // Push to queue — don't write to DB synchronously under load
+  await sqs.sendMessage({
+    QueueUrl: ORDER_QUEUE_URL,
+    MessageBody: JSON.stringify({ userId, itemId, ts: Date.now() }),
+  });
+  return { success: true, message: 'Order processing' };
+}
+```
+
+**Solution B: Redis Distributed Lock (for multi-step operations)**
+```javascript
+async function purchaseWithLock(userId, itemId) {
+  const lockKey = `lock:item:${itemId}`;
+  const lockToken = crypto.randomUUID();
+
+  const acquired = await redis.set(lockKey, lockToken, 'NX', 'PX', 3000);
+  if (!acquired) return { success: false, message: 'Try again' };
+
+  try {
+    const stock = parseInt(await redis.get(`stock:${itemId}`));
+    if (stock <= 0) return { success: false, message: 'Sold out' };
+    await redis.decr(`stock:${itemId}`);
+    await db.orders.insert({ userId, itemId });
+    return { success: true };
+  } finally {
+    // Release only if we own the lock (Lua script = atomic check-and-delete)
+    await redis.eval(
+      `if redis.call('get',KEYS[1])==ARGV[1] then return redis.call('del',KEYS[1]) else return 0 end`,
+      1, lockKey, lockToken
+    );
+  }
+}
+```
+
+**Solution C: DB atomic update (most reliable source of truth)**
+```sql
+-- PostgreSQL — prevents negative stock at db level
+UPDATE items SET stock = stock - 1
+WHERE id = $1 AND stock > 0
+RETURNING id, stock;
+-- 0 rows updated = sold out
+```
+
+**5. Queue-based order processing — protect the DB**
+```
+Buy request → Redis DECR (fast, <1ms) → Enqueue order → Return 200 immediately
+                                         ↓
+                        Worker processes from queue → Write to PostgreSQL
+```
+Benefits: API responds instantly, DB protected from write storms, failed orders retried automatically.
+
+**6. Read scalability**
+- Read replicas for product browsing (millions of reads)
+- Redis cache for product details (`TTL 5min`)
+- Only write operations hit the primary DB
+
+**Failure scenarios + handling:**
+| Scenario | Handling |
+|---|---|
+| API server dies | ALB detects health check failure → routes to remaining servers |
+| Redis crashes | Redis Cluster/Sentinel auto-failover; DB as fallback |
+| Queue backup | SQS DLQ captures failed orders; alert on DLQ depth |
+| DB overload | Read replicas + write queue + circuit breaker |
+
+---
+
+### Q2 [ADVANCED]: What architectural decision did you make that impacted both frontend and backend layers?
+
+**A:**
+
+This is a **behavioural** question. Use STAR format (Situation, Task, Action, Result).
+
+**Example strong answer:**
+
+**Situation:** We had a React SPA with a REST backend. The frontend was making 8–12 separate API calls on every page load — each component fetching its own data independently.
+
+**Task:** P95 page load was 4.2 seconds. Target was under 1.5 seconds without rewriting everything.
+
+**Action — the architectural decision:** Shifted from REST + client-side orchestration to **GraphQL with a BFF (Backend-for-Frontend) layer**:
+
+1. **Frontend:** Each component had `useEffect + fetch` → replaced with co-located GraphQL fragments. Root query fetched everything in one network round-trip.
+
+2. **Backend:** Introduced Apollo Server as a BFF layer between React and 6 microservices. Implemented DataLoader to batch N+1 calls across user, order, and product services.
+
+3. **Caching:** Added Redis caching in GraphQL resolvers for user sessions and product catalog (TTL 2 min).
+
+4. **Auth:** JWT validation moved to Apollo Server `context` — executed once per request, not in each microservice.
+
+**Result:**
+- API calls per page load: 12 → 1
+- P95 page load: 4.2s → 1.1s
+- DB calls reduced ~60% (DataLoader deduplication)
+- Frontend teams could iterate UI without backend deploys
+
+**Impact on both layers:**
+| Layer | Change | Impact |
 |---|---|---|
+| Frontend | GraphQL fragments co-located with components | No over-fetching; type safety end-to-end |
+| Backend | BFF aggregation + DataLoader | DB calls reduced 60%; single auth check |
+| Infrastructure | Redis resolver caching | CDN-like performance for repeated data |
+
+**Alternative examples:**
+- Feature flag system (LaunchDarkly → custom) — impacted FE (conditional renders) and BE (API kill switches)
+- Migrated REST → event-driven (Kafka) — FE uses WebSocket for real-time; BE services decoupled
+- Micro-frontends via Module Federation — FE teams deploy independently; shared auth/analytics BE contract
+
+---
+
 | Interactive web UI | React | Component-based, large ecosystem, performance |
 | Full-stack web app | Next.js | Server Components, built-in routing, caching, SSR |
 | Backend API | Node.js | Event-driven, non-blocking I/O, JavaScript everywhere |
@@ -3776,7 +4476,7 @@ Use deployment slots: deploy new to staging slot (blue=prod, green=staging). Run
 ---
 
 **Last Updated:** March 2026
-**Coverage:** JavaScript, React, Next.js, Node.js, MongoDB, Docker, AWS, Azure
+**Coverage:** JavaScript, React, Next.js, Node.js, MongoDB, Docker, AWS, Azure, System Design
 
 > **New questions added (March 2026):** JS: Object join with Map, Deep merge, Debounce+Throttle React component, CAP Theorem | React: HMR, Diffing deep dive, Security checklist, WCAG A/AA/AAA, Lighthouse performance | Node.js: Web Workers vs Worker Threads, Race condition prevention, IRCTC 1000-user system design | Node.js cross-cutting: Socket.io polling types, Redis distributed lock, Backend performance checklist, Script local-vs-prod debugging, CI/CD pipeline (AWS + Azure), GitHub Actions syntax, Node.js/Express security checklist | MongoDB: Aggregation pipelines + $facet, Indexing advantages/disadvantages
 

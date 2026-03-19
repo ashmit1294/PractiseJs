@@ -3454,3 +3454,185 @@ function App() {
 - Result: Dashboard code is only downloaded when the route is visited.
 - Go further: use **dynamic `import()`** inside the component for heavy sub-sections (charts, data tables).
 - Monitor bundle composition with `webpack-bundle-analyzer` or Vite's rollup-plugin-visualizer.
+
+---
+
+## From MASTER_INTERVIEW_QA.md — Additional Q&As
+
+---
+
+### Q12 [INTERMEDIATE]: React.memo, useMemo, and useCallback — differences?
+
+**A:**
+| API | What it memoizes | Re-runs when |
+|---|---|---|
+| `React.memo` | Entire component render | Props change (shallow compare) |
+| `useMemo` | Result of an expensive computation | Dependency array changes |
+| `useCallback` | Function reference | Dependency array changes |
+
+- `React.memo` wraps a component: `export default React.memo(MyComponent)`
+- `useMemo` caches a value: `const result = useMemo(() => heavyCalc(data), [data])`
+- `useCallback` caches a function: `const fn = useCallback(() => doThing(id), [id])
+- **Rule:** Profile first — premature memoization adds complexity without benefit
+- `useCallback` is mainly useful when passing callbacks to `React.memo`-wrapped children
+
+---
+
+### Q13 [INTERMEDIATE]: Design patterns in React
+
+**A:**
+| Pattern | When to use |
+|---|---|
+| **HOC** (Higher-Order Component) | Cross-cutting concerns: auth guard, analytics, logging |
+| **Render Props** | Share stateful logic; pass render function as prop |
+| **Custom Hooks** | Preferred today — extract stateful logic into reusable `useXxx` functions |
+| **Compound Components** | Related components share implicit state (Tabs, Select, Accordion) |
+| **Context + Reducer** | Complex local state tree; predictable reducer transitions |
+| **Container/Presenter** | Separate data-fetching (container) from UI (presenter) |
+
+---
+
+### Q14 [INTERMEDIATE]: What are the advantages of Axios and Fetch with React Query? What is the difference between them?
+
+**A:** Mental model: Fetch/Axios sits at the HTTP layer; React Query sits above as a cache-and-sync layer.
+
+| | Fetch | Axios |
+|---|---|---|
+| Built-in | Yes (browser) | No (npm install) |
+| Auto JSON parse | No (need `.json()`) | Yes |
+| Request interceptors | No | Yes |
+| Retry / timeout | Manual | Built-in |
+
+**React Query advantages (regardless of Fetch/Axios):**
+- Automatic caching, background refetch, stale-while-revalidate
+- Request deduplication — identical queries share one fetch
+- Automatic loading/error states
+- Optimistic updates and mutation management
+
+**Axios + React Query = best DX:** Axios handles interceptors (auth headers, error normalisation); React Query handles caching and re-fetch logic.
+
+---
+
+### Q15 [ADVANCED]: How to design a front-end application like Jira for performance and accessibility
+
+**A:** Large-scale apps need deliberate architectural decisions.
+
+**Performance:**
+- Virtualise long lists (react-window / react-virtual) — render only visible rows
+- Suspense + lazy loading — code-split at route level
+- Debounce search input — reduce API calls
+- React.memo + useCallback — profile first, memoize second
+- Optimistic UI — update state before API confirms (faster perceived response)
+
+**Accessibility:**
+- Keyboard navigation with roving `tabindex` for lists and menus
+- ARIA labels on interactive elements, semantic HTML (`<button>`, `<nav>`, `<main>`)
+- Focus management in modals (`focus-trap`)
+- Color contrast ratio ≥ 4.5:1 (WCAG AA), readable fonts, scalable text
+
+---
+
+### Q20 [ADVANCED]: How to extend/inherit styles using CSS preprocessors
+
+**A:**
+```scss
+// SASS — @extend: share full rule set
+.btn { padding: 8px 16px; border-radius: 4px; }
+.btn-primary { @extend .btn; background: blue; color: white; }
+
+// SASS — @mixin: parameterised reusable block
+@mixin flex-center($direction: row) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: $direction;
+}
+.card { @include flex-center(column); }
+
+// LESS — extend
+.base { font-size: 14px; }
+.child { &:extend(.base); color: red; }
+```
+
+**@extend vs @mixin:**
+| | @extend | @mixin |
+|---|---|---|
+| Parameters | No | Yes |
+| Output | Shared selector | Duplicated CSS |
+| Best for | Identical rules | Parameterised patterns |
+
+---
+
+### Q21 [BASIC]: What are Lambda functions (arrow functions) in React — usage, pitfalls, and performance?
+
+**A:** Lambda = arrow function = anonymous inline function.
+
+```jsx
+// Inline lambda — creates NEW function reference every render
+<button onClick={() => handleClick(id)}>Delete</button>
+
+// Named function — stable reference, no new allocation
+const handleDelete = useCallback(() => handleClick(id), [id]);
+<button onClick={handleDelete}>Delete</button>
+```
+
+**When inline lambdas hurt:** When passed to `React.memo`-wrapped children — new reference on every render breaks memoization.
+**Fix:** `useCallback` to stabilise the reference.
+**When inline lambdas are fine:** Native DOM elements (`<button>`, `<div>`) — no memoization to break.
+
+---
+
+### Q28 [ADVANCED]: What is Isomorphic React (Universal Rendering)?
+
+**A:** Same React component code runs on BOTH server and browser.
+- Server: `renderToString(<App />)` → sends complete HTML → fast FCP, SEO-friendly
+- Browser: `hydrateRoot(rootEl, <App />)` → attaches events to existing DOM
+
+**Benefits:** SEO (crawlers see HTML), fast FCP/LCP, content visible without JS
+
+**Modern equivalent:** Next.js App Router handles this automatically — Server Components render on server, `'use client'` components hydrate in browser.
+
+**vs SPA:** SPA sends empty `<div id="root">` → browser builds everything → bad SEO, slow FCP.
+
+---
+
+### Q29 [ADVANCED]: Clean Architecture and SOLID principles in React
+
+**A:**
+
+**SOLID in React:**
+- **S** — Single Responsibility: one component = one job. `UserCard` renders; `useUserData` fetches
+- **O** — Open/Closed: extend via props/composition, not modifying the component
+- **L** — Liskov: `<PrimaryButton>` can substitute wherever `<Button>` is expected
+- **I** — Interface Segregation: split large prop objects; don't force unused props
+- **D** — Dependency Inversion: depend on abstractions (hooks/interfaces), pass `onFetch` as prop, not `axios.get()` hardcoded
+
+**Clean Architecture layers:**
+```
+UI Layer      → React components (render only)
+Application   → Custom hooks (useCreateOrder, useAuth)
+Domain        → Pure JS functions (validateOrder — no React imports)
+Infrastructure → API clients, localStorage, analytics
+```
+Key: Domain layer has zero React dependencies → pure unit-testable functions.
+
+---
+
+### Q30 [ADVANCED]: Optimize data fetching in React with GraphQL
+
+**A:**
+- Request only needed fields (avoids over-fetching)
+- `cache-first` for stable data; `network-only` for critical accuracy (cart/checkout)
+- Co-located fragments — each component declares exactly what it needs
+- `useLazyQuery` for on-demand data
+- Cursor-based pagination over offset
+- `DataLoader` on the server to batch N+1 DB calls
+- Persisted queries (hash → query string) to reduce payload
+- Server-side: depth/complexity limits prevent abuse
+
+```jsx
+const { data } = useQuery(GET_POSTS, {
+  variables: { limit: 20 },
+  fetchPolicy: 'cache-first',
+});
+```

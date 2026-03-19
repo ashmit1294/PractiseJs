@@ -298,3 +298,54 @@ session.commitTransaction();
 - ❌ Strong ACID requirements
 - ❌ Small dataset fitting in SQL
 - ❌ Team experienced only with SQL
+
+---
+
+## From MASTER_INTERVIEW_QA.md — Additional Q&As
+
+---
+
+### Q11 [ADVANCED]: RDBMS vs NoSQL — advantages and disadvantages of both
+
+**RDBMS advantages:**
+| Advantage | Why it matters |
+|---|---|
+| ACID transactions | Bank transfers: debit + credit atomically |
+| Strict schema | Data integrity at DB level |
+| Complex JOINs | Multi-table reporting dashboards |
+| SQL standard | Universal, decades of tooling |
+| Normalisation | DRY data, referential integrity |
+
+**MongoDB / NoSQL advantages:**
+| Advantage | Why it matters |
+|---|---|
+| Flexible schema | Evolve documents without migrations |
+| Document model | Nested data in one document — no JOIN at read time |
+| Horizontal scaling | Sharding to petabytes |
+| High write throughput | Events, logs, IoT |
+| Geo-distributed | Atlas Global Clusters active-active replication |
+
+**Disadvantages of RDBMS:**
+- Vertical scaling ceiling (scaling UP not OUT)
+- `ALTER TABLE` on billions of rows is painful
+- ORM impedance mismatch (objects ≠ tables)
+- Poor fit for unstructured/variable data
+
+**Disadvantages of NoSQL (MongoDB):**
+- Multi-document transactions are slower
+- Data duplication — denormalisation risk
+- No native JOIN (`$lookup` is verbose)
+- No schema = inconsistent documents over time
+
+**Decision matrix:**
+```
+RDBMS: financial, ERP, complex reporting, stable schema, ACID required
+MongoDB: product catalog, events/logs, real-time analytics, evolving schema
+```
+
+**Hybrid (common in production):**
+```
+PostgreSQL → orders, payments, users
+MongoDB    → catalog, sessions, activity logs
+Redis      → cache, rate-limiting, pub/sub
+```

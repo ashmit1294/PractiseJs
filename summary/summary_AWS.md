@@ -2662,3 +2662,50 @@ async function handler(event) {
 6. **Savings Plans / Reserved Instances**: for stable workloads, commit for 1–3 years for up to 72% savings.
 7. **Spot Instances** for batch/stateless workloads — up to 90% cheaper.
 8. Set up **AWS Budgets** alerts at 80%/100% of expected spend.
+
+---
+
+## From MASTER_INTERVIEW_QA.md — Additional Q&As
+
+---
+
+### Q: What strategies do you employ to improve system resilience on AWS?
+
+**A:** Resilience = keep working when things break.
+
+**Core strategies:**
+
+1. **Multi-AZ / Multi-Region** — eliminate single points of failure
+   - ALB distributes across healthy instances automatically
+   - RDS Multi-AZ: automatic failover ~60s
+   - DynamoDB Global Tables: active-active multi-region
+
+2. **Auto-scaling**
+   - EC2 ASG: scale on CPU/request metrics
+   - ECS Service Auto Scaling on ALB request count
+   - DynamoDB On-Demand: auto-scales capacity
+
+3. **Circuit breaker + graceful degradation**
+   - API Gateway throttling + WAF
+   - CloudFront origin fallback (serve cached static when origin fails)
+   - Lambda reserved concurrency prevents cascade failures
+
+4. **Async resilience** — SQS DLQ for failed messages; EventBridge retry
+
+5. **Observability** — CloudWatch alarms, X-Ray tracing, SNS alerting to PagerDuty/Slack
+
+**Disaster Recovery tiers:**
+| Strategy | RTO | RPO | Cost |
+|---|---|---|---|
+| Backup & Restore | Hours | Hours | $ |
+| Pilot Light | Minutes | Minutes | $$ |
+| Warm Standby | Seconds | Seconds | $$$ |
+| Active-Active | <1s | ~0 | $$$$ |
+
+**Checklist:**
+- ✅ Multi-AZ for every stateful component
+- ✅ Retry with exponential backoff + jitter
+- ✅ Idempotent APIs — safe to retry
+- ✅ Blue-green or canary deploys — roll back in seconds
+- ✅ AWS Fault Injection Simulator for chaos engineering
+- ✅ Route53 health checks + failover routing policy
