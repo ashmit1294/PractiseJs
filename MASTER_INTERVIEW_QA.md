@@ -7,7 +7,7 @@ A comprehensive consolidated collection of interview questions and answers for e
 ## Table of Contents
 
 - [JavaScript (24+ Questions)](#javascript)
-- [React (25+ Questions)](#react)
+- [React (27+ Questions)](#react)
 - [Next.js (11 Questions)](#nextjs)
 - [Node.js (23+ Questions)](#nodejs)
 - [MongoDB (10+ Scenarios)](#mongodb)
@@ -641,7 +641,7 @@ PostgreSQL (sync replication) → PC/EC: CP during partition, consistent during 
 
 ## React
 
-**Category:** Component Framework & State Management | **Questions:** 25+ | **Level:** Basic → Advanced
+**Category:** Component Framework & State Management | **Questions:** 27+ | **Level:** Basic → Advanced
 
 React revolutionized front-end development with components and hooks. These questions cover core concepts, performance optimization, advanced patterns, and architectural decisions.
 
@@ -899,7 +899,120 @@ The `key` prop is critical: it tells React that an element's identity is stable 
 
 ---
 
-### Q21 [ADVANCED]: How does Hot Module Replacement (HMR) work in React?
+### Q21 [BASIC]: What are Lambda Functions (arrow functions) in React — usage, pitfalls, and performance?
+
+**A:** In React, "lambda function" refers to using an **arrow function directly inline in JSX** as an event handler (or callback). While extremely common and readable, they have specific performance implications worth understanding.
+
+**ELI5:** An arrow function in JSX is like writing a new sticky note every time you render the component. Every render creates a fresh sticky note even if the instructions are identical. React's reconciler sees a new function reference every time and treats it as a change — which can waste work in child components that rely on stable references.
+
+**Basic usage:**
+```jsx
+// Lambda / arrow function used inline in JSX
+function Button() {
+  return (
+    <button onClick={() => console.log("clicked")}>
+      Click me
+    </button>
+  );
+}
+```
+
+**Three ways to define event handlers — comparison:**
+```jsx
+import { useCallback, useState } from "react";
+
+function ParentComponent() {
+  const [count, setCount] = useState(0);
+
+  // ❌ Method 1: Inline lambda — new function reference every render
+  // Fine for simple cases, but breaks memoization on children
+  const handleInline = () => setCount(c => c + 1);
+
+  // ✅ Method 2: Defined outside JSX (still new ref per render, but cleaner)
+  function handleNamed() {
+    setCount(c => c + 1);
+  }
+
+  // ✅ Method 3: useCallback — stable reference across renders
+  const handleMemoized = useCallback(() => {
+    setCount(c => c + 1);
+  }, []); // empty deps → same function reference forever
+
+  return (
+    <div>
+      {/* Inline lambda — creates new fn every render */}
+      <ChildA onClick={() => setCount(c => c + 1)} />     {/* ❌ re-renders ChildA every time */}
+
+      {/* Stable via useCallback */}
+      <ChildA onClick={handleMemoized} />                  {/* ✅ ChildA only re-renders when fn changes */}
+    </div>
+  );
+}
+
+// Child only re-renders when its props actually change
+const ChildA = React.memo(({ onClick }) => {
+  console.log("ChildA rendered");
+  return <button onClick={onClick}>Up</button>;
+});
+```
+
+**When does it actually matter?**
+```
+Inline lambda is fine when:
+  ✅ The child is NOT wrapped in React.memo
+  ✅ The component renders infrequently
+  ✅ Simple UI elements (plain <button>, <input>)
+  ✅ It closes over loop variables in a list:
+     items.map(item => <li key={item.id} onClick={() => select(item.id)}>{item.name}</li>)
+     (passing item.id without useCallback is correct here)
+
+Use useCallback when:
+  ✅ The child IS wrapped in React.memo (otherwise memo is useless)
+  ✅ The function is a useEffect dependency
+  ✅ The function is passed to a context consumer used by many children
+  ✅ The function is passed to a child that renders a long list/virtualized list
+```
+
+**Lambda in class components (older pattern):**
+```jsx
+// Class component — same pitfall
+class MyList extends React.Component {
+  // ❌ Inline lambda in render — creates new fn every render
+  render() {
+    return this.props.items.map(item =>
+      <Item key={item.id} onClick={() => this.handleClick(item.id)} />
+    );
+  }
+
+  // ✅ Arrow class field — bound once on construction
+  handleClick = (id) => {
+    console.log("clicked", id);
+  };
+
+  // But you still face a new lambda per item in the map above.
+  // Solution: pass the id as a data attribute and read from event.currentTarget.dataset
+  renderOptimised() {
+    return this.props.items.map(item =>
+      <Item key={item.id} data-id={item.id} onClick={this.handleClick} />
+    );
+  }
+}
+```
+
+**Common interview pitfalls:**
+| Scenario | Issue | Fix |
+|---|---|---|
+| `onClick={() => doSomething()}` on a `React.memo` child | Creates new ref → memo skipped | `useCallback` |
+| `useEffect([handler])` with inline lambda as dep | Effect fires every render | `useCallback` for the handler |
+| `<form onSubmit={e => { e.preventDefault(); ... }}>` | Fine — form itself doesn't memo | Keep inline |
+| `items.map(x => <Row onClick={() => del(x.id)} />)` | Each item gets new fn per render | Acceptable if Row isn't memo'd; use `useCallback` + `data-id` pattern if perf-critical |
+
+**Interview summary:**
+> "Lambda / arrow functions in JSX are convenient but create a new function reference on every render. This is fine for most cases, but when paired with `React.memo` or as `useEffect` deps, you need `useCallback` to stabilise the reference. The golden rule: memoize the callback **only if the child is memoised** — otherwise it's premature optimisation."
+
+---
+
+### Q23 [ADVANCED]: How does Hot Module Replacement (HMR) work in React?
 
 **A:** HMR lets the browser receive updated modules **without a full page reload**, preserving application state.
 
@@ -950,7 +1063,7 @@ The `key` prop is critical: it tells React that an element's identity is stable 
 
 ---
 
-### Q22 [ADVANCED]: How does diffing (Reconciliation) work in React — deep dive?
+### Q24 [ADVANCED]: How does diffing (Reconciliation) work in React — deep dive?
 
 **A:** React's diffing produces the minimum set of DOM mutations needed to go from the old UI to the new one.
 
@@ -1027,7 +1140,7 @@ items.map(item => <Item key={item.id} name={item.name} />)
 
 ---
 
-### Q23 [ADVANCED]: What security parameters should you implement in a React / Next.js app?
+### Q25 [ADVANCED]: What security parameters should you implement in a React / Next.js app?
 
 **A:** Frontend security is often overlooked but critical. Think in layers: **what you render, how you fetch, what you store, how you authenticate**.
 
@@ -1129,7 +1242,7 @@ const securityHeaders = [
 
 ---
 
-### Q24 [INTERMEDIATE]: What are WCAG standards (A, AA, AAA) — what must a frontend developer keep in mind?
+### Q26 [INTERMEDIATE]: What are WCAG standards (A, AA, AAA) — what must a frontend developer keep in mind?
 
 **A:** WCAG (Web Content Accessibility Guidelines) defines how to make web content accessible to people with disabilities. Published by W3C. Current version: **WCAG 2.2**.
 
@@ -1218,7 +1331,7 @@ ROBUST — Content works with assistive technology
 
 ---
 
-### Q25 [ADVANCED]: How do you identify that your frontend app is slow / non-performant, and what do you do?
+### Q27 [ADVANCED]: How do you identify that your frontend app is slow / non-performant, and what do you do?
 
 **A:** Performance diagnosis has two phases: **measuring** (find what's slow) then **fixing** (targeted improvements). Never optimise without measuring first.
 
