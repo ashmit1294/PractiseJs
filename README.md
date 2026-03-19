@@ -1,15 +1,86 @@
 # Full Stack MERN Developer — Interview Revision Reference
 
-**Level:** 7+ Years Full Stack (MERN)  |  **Topics:** 12  |  **Last Updated:** March 17, 2026
+**Level:** 7+ Years Full Stack (MERN)  |  **Topics:** 12  |  **Last Updated:** March 19, 2026
 
 A single consolidated reference covering everything from JavaScript fundamentals and
 TypeScript to React, Node.js, Docker, Kubernetes, Azure, AWS, Next.js, GraphQL, MongoDB,
 and Web Security. Every section contains working code examples, edge cases, complexity
 analysis, and direct interview question-and-answer material.
 
+## 📋 Master Interview Questions Collection
+
+All 28 interview questions organized by technology domain with flow diagrams:
+
+| # | Technology | Questions | File | Interview Q&A |
+|---|-----------|-----------|------|---|
+| 1 | **JavaScript** | Q1-Q19 (var/let/const, closures, prototypes, V8 optimization, memory leaks, design patterns, bundlers, IIFE) | [JavaScript/26_theory_interview_qa.js](JavaScript/26_theory_interview_qa.js) | **19 Q&A** |
+| 2 | **React** | Q1-Q20 (vDOM, rules of hooks, controlled components, memoization, design patterns, Jira design, webpack) | [React/10_theory_interview_qa.jsx](React/10_theory_interview_qa.jsx) | **20 Q&A** |
+| 3 | **Next.js** | Q1-Q15 (App Router, caching layers, Server Actions, SSR, hydration, streaming, Turbopack, SWC, bundle analysis) | [NextJS/09_theory_interview_qa.tsx](NextJS/09_theory_interview_qa.tsx) | **15 Q&A** |
+| 4 | **Node.js** | Q1-Q13 (event loop, non-blocking I/O, streams, AsyncLocalStorage, clustering, backpressure, memory leaks, buffers) | [NodeJS/11_theory_interview_qa.js](NodeJS/11_theory_interview_qa.js) | **13 Q&A** |
+| 5 | **MongoDB** | 9 Scenarios (e-commerce orders, real-time dashboard, sharding, denormalization, transactions, aggregation) | [MongoDB/09_interview_qa_scenarios.md](MongoDB/09_interview_qa_scenarios.md) | **8 Detailed Scenarios** |
+| 6 | **Docker** | Q1-Q28 (Dockerfile, layers, networking, storage, security, operations, GitHub Actions, ECR/ECS, Compose) | [Docker/08_interview_qa.md](Docker/08_interview_qa.md) | **28 Q&A + Flow Diagrams** |
+| 7 | **AWS** | CI/CD Pipelines, Resilience Strategies, CodeBuild, CodePipeline, Blue-Green Deployment, Multi-Region | [AWS/08_cicd_interview_qa.md](AWS/08_cicd_interview_qa.md) | **Comprehensive DevOps** |
+| 8 | **Azure** | Entra ID Authentication, RBAC, App Service, Key Vault, Azure DevOps Pipelines, Deployments | [Azure/08_interview_qa.md](Azure/08_interview_qa.md) | **Identity & DevOps** |
+| 9 | **TypeScript** | Q1-Q11 (generics, utility types, type guards, decorators, full-stack type safety with tRPC) | [TypeScript/09_theory_interview_qa.ts](TypeScript/09_theory_interview_qa.ts) | **11 Q&A** |
+| 10 | **GraphQL** | Q1-Q12 (schema design, resolvers, N+1 problem with DataLoaders, mutations, optimization patterns) | [GraphQL/09_theory_interview_qa.js](GraphQL/09_theory_interview_qa.js) | **12 Q&A** |
+
+🎯 **Get Started:** 
+- Start with **JavaScript** for fundamentals
+- Move to **React/Next.js** for frontend depth
+- Continue with **Node.js** for backend
+- Then **MongoDB** for data modeling
+- Finish with **Docker, AWS, Azure** for DevOps/Cloud
+
 ---
 
-## Overview
+## 🎓 Interview Q&A by Technology (Alphabetical Order)
+
+### JavaScript → React/Next.js → Node.js → MongoDB → Docker → AWS → Azure
+
+**Recommended learning order** (19 → 20 → 15 → 13 → 9 → 28 → 8 questions):
+
+1. **[JavaScript - 19 Questions](JavaScript/26_theory_interview_qa.js)**
+   - var/let/const, hoisting, prototype chain, closures, `this`, microtask/macrotask queue, generators, Proxy/Reflect, TDZ, WeakMap, V8 optimization, memory leaks, CommonJS vs ESM, tail call optimization, Symbols, Promise utilities, design patterns, bundling (Webpack/Rollup/Esbuild/Vite), IIFE
+
+2. **[React - 20 Questions](React/10_theory_interview_qa.jsx)**
+   - Virtual DOM, rules of hooks, controlled/uncontrolled components, re-rendering prevention (memo/useMemo/useCallback), useEffect cleanup, Context API pitfalls, Fiber architecture, reconciliation/diffing, useSyncExternalStore, Server Components vs Client Components, batching React 18, React.memo patterns, design patterns (HOC/Render Props/Custom Hooks/Compound Components), Axios vs Fetch with React Query, Jira-scale app design (virtualization, a11y), CSS preprocessors, Webpack, lazy/Suspense, code splitting
+
+3. **[Next.js - 15 Questions](NextJS/09_theory_interview_qa.tsx)**
+   - Pages Router vs App Router, 4 caching layers (request memoization, data cache, full route cache, router cache), Server Actions, streaming SSR, Middleware, on-demand ISR/revalidation, RSC Payload, parallel routes, intercepting routes, secure Server Actions authentication, Image Optimization, Isomorphic React (SSR/hydration), webpack customization, Turbopack incremental computation, SWC compiler, bundle analysis
+
+4. **[Node.js - 13 Questions](NodeJS/11_theory_interview_qa.js)**
+   - Event loop phases (timers, pending I/O, poll, check, close callbacks with nextTick/Promise draining), non-blocking I/O via OS and libuv thread pool, streams (Readable/Writable/Transform/Duplex), AsyncLocalStorage context, clustering for multi-core, backpressure handling in streams with .pipe(), module caching singleton pattern, memory leak diagnosis, uncaught exceptions/unhandled rejections, child_process (spawn/exec/fork), CPU-intensive tasks (setImmediate chunking/worker_threads), HTTP keep-alive and connection pooling, Buffers and streams deep dive
+
+5. **[MongoDB - 9 Scenarios](MongoDB/09_interview_qa_scenarios.md)**
+   - E-commerce order system (data modeling, transactions, atomic operations, inventory management), real-time dashboard with time-series bucketing for scale, hot shard problem and solutions (hashing, compound keys), eventual consistency with denormalization, multi-tenant SaaS schema design, all common Q&A patterns with code examples
+
+6. **[Docker - 28 Questions (with Flow Diagrams)](Docker/08_interview_qa.md)**
+   - Fundamentals: containers vs VMs, layers/caching, build context, CMD vs ENTRYPOINT, multi-stage builds
+   - Networking: drivers (bridge/host/overlay), EXPOSE vs -p, DNS resolution
+   - Storage: named volumes, bind mounts, tmpfs, node_modules shadowing
+   - Security: Linux capabilities, secret handling, container escape
+   - Operations: restart policies, rolling updates, signal handling, OOM prevention, debugging
+   - GitHub Actions: workflows, jobs, steps, secrets, environment variables, execution flow diagram
+   - ECR/ECS: build → push → deploy pipeline, end-to-end flow diagram
+   - Docker Compose: service dependencies, healthchecks, volumes, networking flow diagram
+
+7. **[AWS - 28+ Questions (Comprehensive)](AWS/08_cicd_interview_qa.md)**
+   - CI/CD architecture: CodeBuild (buildspec.yml), CodePipeline orchestration, CodeDeploy strategies
+   - GitHub Actions alternative pipeline
+   - Resilience strategies (10 patterns): HA across AZs, DR with backups, circuit breakers, auto-scaling, caching, async queues, monitoring, graceful degradation, rate limiting, multi-region
+   - Complete pipeline design for first-time applications with best practices
+
+8. **[Azure - 8+ Questions](Azure/08_interview_qa.md)**
+   - Core: subscriptions, resource groups, IaaS/PaaS/SaaS
+   - Entra ID: authentication, Conditional Access, PIM, JWT token validation
+   - Entra ID + Azure Functions: middleware-based authentication with role-based authorization (RBAC) with C# code examples
+   - Azure SQL, PostgreSQL, Cosmos DB comparisons
+   - Azure DevOps Pipelines, blue-green deployments, cost optimization
+   - Best practices: Managed Identity, Key Vault integration, secrets management
+
+---
+
+## Overview (Full Table)
 
 | # | Topic | Covers | Files |
 |---|-------|--------|-------|
