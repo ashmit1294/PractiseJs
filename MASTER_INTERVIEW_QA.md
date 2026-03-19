@@ -6,11 +6,11 @@ A comprehensive consolidated collection of interview questions and answers for e
 
 ## Table of Contents
 
-- [JavaScript (19+ Questions)](#javascript)
-- [React (20+ Questions)](#react)
+- [JavaScript (24+ Questions)](#javascript)
+- [React (25+ Questions)](#react)
 - [Next.js (10 Questions)](#nextjs)
-- [Node.js (13 Questions)](#nodejs)
-- [MongoDB (8+ Scenarios)](#mongodb)
+- [Node.js (23+ Questions)](#nodejs)
+- [MongoDB (10+ Scenarios)](#mongodb)
 - [Docker (28 Questions)](#docker)
 - [AWS (20+ Questions)](#aws)
 - [Azure (20+ Questions)](#azure)
@@ -19,7 +19,7 @@ A comprehensive consolidated collection of interview questions and answers for e
 
 ## JavaScript
 
-**Category:** Core Language Theory | **Questions:** 19+ | **Level:** Basic → Advanced
+**Category:** Core Language Theory | **Questions:** 24+ | **Level:** Basic → Advanced
 
 JavaScript is the foundation of all modern web development. These questions cover scoping, hoisting, closures, prototypes, async patterns, optimization, and design patterns essential for 7+ years of experience.
 
@@ -314,9 +314,334 @@ Use WeakMap when: attaching metadata to objects without preventing GC (DOM node 
 
 ---
 
+### Q21 [INTERMEDIATE]: You have two objects — one with movie IDs and names, another with movie names and ratings. How do you display movie ID, name and rating together?
+
+**A:** Classic "join two data collections on a shared key" problem. In MongoDB you'd use `$lookup`; in JavaScript you use a Map for O(1) lookups instead of a nested loop (O(n²)).
+
+**ELI5:** Imagine you have two lists pinned on a wall. List A says "ID 1 = Inception, ID 2 = Interstellar". List B says "Inception = 9.3, Interstellar = 8.6". You scan List A left-to-right and look each film name up on List B in one fast step using a Map (like an index card box), not by reading List B from top to bottom every time.
+
+```javascript
+// Data — could also come from two API calls
+const moviesById = [
+  { id: 1, name: "Inception" },
+  { id: 2, name: "Interstellar" },
+  { id: 3, name: "Tenet" },
+];
+
+const movieRatings = [
+  { name: "Inception",     rating: 9.3 },
+  { name: "Interstellar",  rating: 8.6 },
+  { name: "Tenet",         rating: 7.4 },
+];
+
+// Step 1: Build a Map from movieRatings for O(1) name → rating lookup
+const ratingMap = new Map(movieRatings.map(({ name, rating }) => [name, rating]));
+// Map { "Inception" → 9.3, "Interstellar" → 8.6, "Tenet" → 7.4 }
+
+// Step 2: Merge — one linear pass
+const result = moviesById.map(({ id, name }) => ({
+  id,
+  name,
+  rating: ratingMap.get(name) ?? "N/A",   // graceful fallback
+}));
+
+console.log(result);
+// [
+//   { id: 1, name: "Inception",    rating: 9.3 },
+//   { id: 2, name: "Interstellar", rating: 8.6 },
+//   { id: 3, name: "Tenet",        rating: 7.4 },
+// ]
+```
+
+**Why Map instead of `find()`?**
+- `Array.find()` inside `Array.map()` = O(n²) — slow for 10 000+ movies
+- `Map.get()` = O(1) — fast regardless of dataset size
+- Always pre-index the lookup side into a Map when joining
+
+**Interviewer follow-up — what if names don't match exactly (casing)?**
+```javascript
+// Normalise both sides to lowercase before building the map
+const ratingMap = new Map(
+  movieRatings.map(({ name, rating }) => [name.toLowerCase(), rating])
+);
+const result = moviesById.map(({ id, name }) => ({
+  id,
+  name,
+  rating: ratingMap.get(name.toLowerCase()) ?? "N/A",
+}));
+```
+
+---
+
+### Q22 [ADVANCED]: Deep-merge two objects of different types — explain thoroughly.
+
+**A:** A shallow merge (`Object.assign` / spread `{...a, ...b}`) only copies top-level keys. If both objects have the same nested key, the second one fully overwrites the first. Deep merge **recursively** merges nested objects while preserving keys unique to each side.
+
+**ELI5:** Shallow merge is like packing two suitcases — the second suitcase replaces the first. Deep merge is like packing each drawer inside the suitcase individually — you merge what's inside each drawer instead of throwing the whole drawer away.
+
+**Edge cases to handle:**
+| Case | Rule |
+|---|---|
+| Both values are plain objects | Recurse |
+| Both values are arrays | Depends on strategy: concat / overwrite / merge by index |
+| One is object, other is primitive | Second wins (overwrite) |
+| null / undefined | Treat null as "no value" — fallback to other side |
+| Dates, RegExp, class instances | Copy by reference (don't try to merge internals) |
+| Circular references | Guard with a WeakSet |
+
+```javascript
+/**
+ * Deep merge — second object wins for primitives,
+ * both objects merged recursively.
+ * Arrays: concatenated (change strategy as needed).
+ */
+function isPlainObject(val) {
+  return val !== null && typeof val === "object" && !Array.isArray(val)
+    && Object.getPrototypeOf(val) === Object.prototype;
+}
+
+function deepMerge(target, source, seen = new WeakSet()) {
+  // Guard against circular refs
+  if (seen.has(source)) return target;
+  if (isPlainObject(source)) seen.add(source);
+
+  // Both plain objects → recurse
+  if (isPlainObject(target) && isPlainObject(source)) {
+    const output = { ...target };
+    for (const key of Object.keys(source)) {
+      output[key] = deepMerge(target[key], source[key], seen);
+    }
+    return output;
+  }
+
+  // Both arrays → concatenate (alter to overwrite if preferred)
+  if (Array.isArray(target) && Array.isArray(source)) {
+    return [...target, ...source];
+  }
+
+  // Primitives / mixed types → source wins
+  return source !== undefined ? source : target;
+}
+
+// ── Example ──────────────────────────────────────────────
+const movieMeta = {
+  id: 101,
+  title: "Inception",
+  credits: { director: "Christopher Nolan", starring: ["DiCaprio"] },
+  tags: ["sci-fi"],
+};
+
+const movieStats = {
+  rating: 9.3,
+  views: 5_000_000,
+  credits: { producer: "Emma Thomas", starring: ["Cillian Murphy"] }, // overlapping key
+  tags: ["thriller"],
+};
+
+const merged = deepMerge(movieMeta, movieStats);
+console.log(merged);
+/*
+{
+  id: 101,
+  title: "Inception",
+  rating: 9.3,
+  views: 5000000,
+  credits: {
+    director: "Christopher Nolan",
+    producer: "Emma Thomas",                // from movieStats
+    starring: ["DiCaprio", "Cillian Murphy"] // arrays concatenated
+  },
+  tags: ["sci-fi", "thriller"]
+}
+*/
+```
+
+**Production alternative:** Use [lodash `_.merge`](https://lodash.com/docs/#merge) which handles these edge cases and is battle-tested.
+
+---
+
+### Q23 [INTERMEDIATE]: Write a React component demonstrating both debouncing AND throttling — where each applies.
+
+**A:** Use the **same search input** to illustrate both:
+- **Debounce** the API call (fire only after the user *stops* typing 500ms)
+- **Throttle** the "save draft" call (fire at most once every 1 second *while* typing)
+
+**ELI5:**
+- **Debounce** = a lazy secretary who only files paperwork when you stop handing them more for 30 seconds.
+- **Throttle** = a bouncer letting one person in every 10 seconds no matter how many are in the queue.
+
+```jsx
+import { useState, useEffect, useRef, useCallback } from "react";
+
+// ── Debounce hook ────────────────────────────────────────────────────────────
+function useDebounce(value, delay) {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedValue(value), delay);
+    return () => clearTimeout(timer);   // cleanup: reset timer on new keystroke
+  }, [value, delay]);
+  return debouncedValue;
+}
+
+// ── Throttle hook ────────────────────────────────────────────────────────────
+function useThrottle(fn, limit) {
+  const lastCall = useRef(0);
+  return useCallback((...args) => {
+    const now = Date.now();
+    if (now - lastCall.current >= limit) {
+      lastCall.current = now;
+      fn(...args);
+    }
+  }, [fn, limit]);
+}
+
+// ── Component ────────────────────────────────────────────────────────────────
+export default function SearchWithDraft() {
+  const [query, setQuery]     = useState("");
+  const [results, setResults] = useState([]);
+  const [draftLog, setDraftLog] = useState([]);
+
+  // 1️⃣  Debounce: search API fires only after 500ms of inactivity
+  const debouncedQuery = useDebounce(query, 500);
+
+  useEffect(() => {
+    if (!debouncedQuery.trim()) { setResults([]); return; }
+    // Simulate API call
+    console.log("🔍 Searching for:", debouncedQuery);
+    setResults([`Result for "${debouncedQuery}" …`]);
+  }, [debouncedQuery]);
+
+  // 2️⃣  Throttle: draft saved at most once per second while typing
+  const saveDraft = useCallback((text) => {
+    const time = new Date().toLocaleTimeString();
+    console.log("💾 Draft saved at", time);
+    setDraftLog(prev => [...prev.slice(-4), `Saved at ${time}`]);
+  }, []);
+
+  const throttledSaveDraft = useThrottle(saveDraft, 1000);
+
+  function handleChange(e) {
+    const val = e.target.value;
+    setQuery(val);
+    throttledSaveDraft(val);   // throttle: fires at most 1×/sec
+  }
+
+  return (
+    <div style={{ padding: 20 }}>
+      <input
+        value={query}
+        onChange={handleChange}
+        placeholder="Type to search…"
+        style={{ width: 300, padding: 8 }}
+      />
+
+      <section>
+        <h4>Search Results (debounced 500ms)</h4>
+        {results.map((r, i) => <p key={i}>{r}</p>)}
+      </section>
+
+      <section>
+        <h4>Draft Saves (throttled 1s)</h4>
+        {draftLog.map((log, i) => <p key={i}>{log}</p>)}
+      </section>
+    </div>
+  );
+}
+```
+
+**When to use which:**
+| Scenario | Pattern | Reason |
+|---|---|---|
+| Search-as-you-type API | **Debounce** | Don't call until user pauses |
+| Window resize / scroll handler | **Throttle** | Keep UI responsive, limit rate |
+| Button click (prevent double submit) | **Debounce** | Wait for final intent |
+| Game / animation loop input | **Throttle** | Cap rate to frame budget |
+| Autosave draft | **Throttle** | Periodic saves, not every keystroke |
+| Form validation on blur | **Debounce** | Validate after typing stops |
+
+---
+
+### Q24 [ADVANCED]: What is CAP Theorem? Which database is better when — explain in detail.
+
+**A:** CAP Theorem states that in a **distributed system**, when a network partition (P) occurs, you can provide at most **two** of three guarantees: **Consistency (C)**, **Availability (A)**, or **Partition Tolerance (P)**.
+
+Since network partitions are **unavoidable** in distributed systems, the real choice is **CP vs AP** (P is always required).
+
+**ELI5:** Imagine 3 bank branches connected by phone lines. If the phone line between any two branches cuts (network partition), you must choose:
+- **CP (be consistent):** "Lock all branches until line is restored — no transactions until we're sure all branches agree." (Safe but unavailable)
+- **AP (stay available):** "Let each branch keep operating and accepting transactions — reconcile differences when line is restored." (Available but may have conflicts)
+
+**The three guarantees:**
+
+| Guarantee | Meaning |
+|---|---|
+| **C — Consistency** | Every read sees the most recent write (strong consistency — all nodes agree) |
+| **A — Availability** | Every request receives a response (not necessarily the latest data) |
+| **P — Partition Tolerance** | System continues operating even when network partitions occur |
+
+**CP vs AP — Real Database Examples:**
+
+```
+CP Databases (Consistency + Partition Tolerance):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  MongoDB (w: "majority")  → strong consistency, may reject writes during partition
+  PostgreSQL (with replication)
+  HBase, Zookeeper, etcd
+  Redis (in cluster mode with strong settings)
+
+  ✅ Use when: financial data, inventory, user auth, anything where stale data = wrong
+  ❌ Trade-off: becomes unavailable during partition
+
+AP Databases (Availability + Partition Tolerance):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Cassandra, CouchDB, DynamoDB (default)
+  MongoDB (w: 1 — eventual consistency)
+  Amazon S3
+
+  ✅ Use when: social feeds, product catalogs, analytics, DNS, shopping carts
+  ❌ Trade-off: may serve stale data after a partition
+
+CA (no partition tolerance) — only in single node / non-distributed:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Single-node MySQL, PostgreSQL (no replication)
+  Not realistic in production distributed systems
+```
+
+**Choosing the right database — decision matrix:**
+
+| Use Case | Recommended DB | CAP Type | Why |
+|---|---|---|---|
+| Banking / payments | PostgreSQL, MongoDB (majority write) | CP | Stale data = financial loss |
+| Real-time inventory (IRCTC ticket slots) | Redis + PostgreSQL | CP | Overselling is a hard error |
+| User auth / sessions | Redis, PostgreSQL | CP | Stale auth = security issue |
+| Social media feeds / likes | Cassandra, DynamoDB | AP | Slightly stale count is OK |
+| Product catalog / search | Elasticsearch, DynamoDB | AP | Slightly stale content is fine |
+| Analytics / event logs | Cassandra, ClickHouse | AP | Availability > perfect counts |
+| Shopping cart (can merge later) | DynamoDB, CouchDB | AP | Users keep adding without blocks |
+| Real-time chat messages | MongoDB, Cassandra | AP | High write throughput needed |
+| Config / coordination (k8s, etc.) | etcd, Zookeeper | CP | Distributed coordinate must agree |
+
+**PACELC extension (more realistic model):**
+
+CAP only discusses partition scenarios. PACELC extends it:
+- Even without partitions, there is a trade-off between **Latency (L)** and **Consistency (C)**
+- Strong consistency requires synchronous replication → higher latency
+- Eventual consistency allows async replication → lower latency
+
+```
+MongoDB → PA/EC: AP during partition, Eventual Consistency during normal ops
+DynamoDB → PA/EL: AP during partition, lower latency (eventual) during normal ops
+PostgreSQL (sync replication) → PC/EC: CP during partition, consistent during normal ops
+```
+
+**Interview summary answer:**
+> "CAP says distributed systems can't have both consistency and availability during a partition. Since partitions happen in real networks, I choose between CP (consistent but might become unavailable — banking, inventory) and AP (always available but may serve stale — social feeds, analytics). The right choice depends entirely on whether stale data causes a business-critical error."
+
+---
+
 ## React
 
-**Category:** Component Framework & State Management | **Questions:** 20+ | **Level:** Basic → Advanced
+**Category:** Component Framework & State Management | **Questions:** 25+ | **Level:** Basic → Advanced
 
 React revolutionized front-end development with components and hooks. These questions cover core concepts, performance optimization, advanced patterns, and architectural decisions.
 
@@ -574,6 +899,410 @@ The `key` prop is critical: it tells React that an element's identity is stable 
 
 ---
 
+### Q21 [ADVANCED]: How does Hot Module Replacement (HMR) work in React?
+
+**A:** HMR lets the browser receive updated modules **without a full page reload**, preserving application state.
+
+**ELI5:** Imagine editing a LEGO model. HMR is like swapping out one brick without knocking down the whole model. A full reload is like destroying the model and rebuilding from scratch.
+
+**How it works step by step:**
+
+```
+1. You save a file (e.g. Button.jsx)
+   │
+2. Webpack / Vite detects the change via a filesystem watcher
+   │
+3. The bundler recompiles ONLY the changed module + its dependents
+   │
+4. The dev server pushes the new module code over a WebSocket
+   connection to the browser
+   │
+5. The HMR runtime in the browser receives the update
+   │
+6. React Fast Refresh (Facebook's HMR integration) re-evaluates
+   the module and patches the running component tree:
+   ┌──────────────────────────────────────────────────┐
+   │ If only render logic changed → re-render in place │
+   │ (state PRESERVED)                                 │
+   │ If hooks changed (count/order) → full remount     │
+   │ (state RESET for that component)                  │
+   └──────────────────────────────────────────────────┘
+   │
+7. Browser shows update — no page reload, no state lost
+```
+
+**React Fast Refresh vs old react-hot-loader:**
+| | react-hot-loader (old) | React Fast Refresh (current) |
+|---|---|---|
+| Built into React | No (third-party) | Yes (official, React 16.9+) |
+| Hook support | Partial | Full |
+| Reliability | Buggy on complex apps | Robust |
+| Used by | Legacy Webpack setups | Vite, CRA, Next.js |
+
+**Key files involved (Vite + React example):**
+- `@vitejs/plugin-react` injects Fast Refresh transform into every component module
+- Every component must export **only** React components from that file for HMR to work — mixing non-component exports forces a full reload
+
+**When HMR falls back to full reload:**
+1. Changes to global CSS (can't hot-patch, must recalculate)
+2. Changes to non-React modules (config files, plain JS utilities used in many places)
+3. Component file exports both a component and arbitrary JS — Fast Refresh gives up
+
+---
+
+### Q22 [ADVANCED]: How does diffing (Reconciliation) work in React — deep dive?
+
+**A:** React's diffing produces the minimum set of DOM mutations needed to go from the old UI to the new one.
+
+**ELI5:** Think of two versions of a Word document. Instead of reprinting the whole document, a smart diff tool finds only the changed lines and patches them. React does this for the DOM.
+
+**The three heuristics (O(n) algorithm):**
+
+```
+Heuristic 1 — Element type changed
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Old: <div>…</div>
+New: <span>…</span>
+→ Tear down entire old subtree (unmount, cleanup, destroy DOM)
+→ Mount new subtree from scratch
+→ All child component state is DESTROYED
+
+Why: React assumes different types = entirely different UI.
+
+──────────────────────────────────────────────────────────────
+
+Heuristic 2 — Same element type, different props
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Old: <input type="text" className="old" />
+New: <input type="text" className="new" />
+→ Keep the same DOM node, update only changed attributes
+→ Component state is PRESERVED
+
+──────────────────────────────────────────────────────────────
+
+Heuristic 3 — Lists: key prop drives identity
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Without key (bad):
+  Old: [A, B, C]
+  New: [X, A, B, C]   ← X prepended
+  → React compares position 0→0, 1→1… mutates A→X, B→A, C→B, mounts C
+  → 3 mutations + 1 mount = expensive + state lost
+
+With key (correct):
+  Old: [{key:A}, {key:B}, {key:C}]
+  New: [{key:X}, {key:A}, {key:B}, {key:C}]
+  → React sees A, B, C are the SAME nodes by key, just repositioned
+  → Only X is created; A/B/C are moved in DOM
+  → 1 mount, 3 moves = efficient + state PRESERVED
+```
+
+**Fiber reconciler internals (React 16+):**
+
+```
+Single render produces a Fiber tree (doubly-linked list):
+  Each Fiber node = one component / DOM element
+  Contains: type, key, props, stateNode, child, sibling, return
+
+Work loop processes one Fiber at a time (interruptible):
+  beginWork  → diff props, schedule child fibers
+  completeWork → collect DOM mutations into "effect list"
+  commitWork → flush all mutations in a single synchronous pass
+```
+
+**Why keys must NOT be array indexes for dynamic lists:**
+```jsx
+// ❌ WRONG — using index as key
+items.map((item, i) => <Item key={i} name={item.name} />)
+// If item 0 is deleted, everything shifts → React re-renders EVERY item
+
+// ✅ CORRECT — stable unique ID
+items.map(item => <Item key={item.id} name={item.name} />)
+// Only the deleted item unmounts; siblings are untouched
+```
+
+**React 18 Concurrent Mode adds:**
+- **Priority lanes:** High-priority updates (user input) can interrupt low-priority renders (data fetching)
+- **useTransition:** marks a state update as "non-urgent" — diffing starts but can be paused
+- **useDeferredValue:** like debouncing at the React tree level
+
+---
+
+### Q23 [ADVANCED]: What security parameters should you implement in a React / Next.js app?
+
+**A:** Frontend security is often overlooked but critical. Think in layers: **what you render, how you fetch, what you store, how you authenticate**.
+
+**ELI5:** Securing a React app is like building a house with locks on every door, not just the front. XSS is someone injecting poisonous graffiti on your walls. CSRF is someone forging your signature on a document. You stop both with the right locks and checks.
+
+**1. Prevent XSS (Cross-Site Scripting)**
+```jsx
+// ❌ Never use dangerouslySetInnerHTML with user input
+<div dangerouslySetInnerHTML={{ __html: userInput }} />
+
+// ✅ React escapes text by default — use plain JSX
+<div>{userInput}</div>
+
+// ✅ If you MUST render HTML (rich text editor output), sanitise first
+import DOMPurify from "dompurify";
+<div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(richTextHTML) }} />
+```
+
+**2. Content Security Policy (CSP)**
+```
+// In Next.js: set via next.config.js headers or middleware
+// Prevents inline scripts, restricts where scripts can load FROM
+Content-Security-Policy: default-src 'self'; script-src 'self'; object-src 'none';
+```
+
+**3. Protect Auth tokens — where to store them**
+| Storage | XSS Risk | CSRF Risk | Recommendation |
+|---|---|---|---|
+| localStorage | HIGH (accessible from JS) | Low | ❌ Never store tokens here |
+| sessionStorage | HIGH | Low | ❌ Same problem |
+| Memory (React state) | Low | Low | ✅ Short-lived, cleared on refresh |
+| HttpOnly Cookie | None (JS can't read) | Med (need SameSite) | ✅ Best for auth tokens |
+
+```
+// Ideal cookie settings for auth token
+Set-Cookie: token=…; HttpOnly; Secure; SameSite=Strict; Path=/
+```
+
+**4. CSRF Protection (for cookie-based auth)**
+```
+// Use SameSite=Strict on cookies — blocks cross-site requests
+// For APIs using cookies: validate CSRF token in header (double submit cookie)
+// Next.js Server Actions: use CSRF token from getServerSideProps or middleware
+```
+
+**5. Environment variables — never expose secrets in client bundle**
+```
+// ❌ WRONG — exposed to browser bundle
+NEXT_PUBLIC_DB_PASSWORD=secret
+
+// ✅ CORRECT — server only (no NEXT_PUBLIC_ prefix)
+DB_PASSWORD=secret  → accessible only in Server Components / API Routes
+
+// ✅ Client-safe (only public keys)
+NEXT_PUBLIC_STRIPE_KEY=pk_live_...
+```
+
+**6. Dependency security**
+```bash
+npm audit          # check for known vulnerabilities
+npm audit fix      # auto-fix compatible versions
+# Use Dependabot or Snyk for continuous monitoring in CI/CD
+```
+
+**7. Secure API calls**
+```jsx
+// Always validate responses — don't trust shape of data from APIs
+// Use Zod / Yup to validate API responses before using
+const data = UserSchema.parse(await res.json());
+
+// Never use eval() or Function() on server responses
+```
+
+**8. Next.js specific**
+- Server Actions: always re-validate auth inside the action (never trust client)
+- Middleware: apply auth checks before page render
+- `next.config.js`: enable `headers()` for security headers (X-Frame-Options, X-Content-Type-Options, HSTS)
+
+```javascript
+// next.config.js — security headers
+const securityHeaders = [
+  { key: "X-Frame-Options",          value: "DENY" },
+  { key: "X-Content-Type-Options",   value: "nosniff" },
+  { key: "Referrer-Policy",          value: "strict-origin-when-cross-origin" },
+  { key: "Permissions-Policy",        value: "camera=(), microphone=()" },
+  { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" },
+];
+```
+
+**Quick security checklist:**
+- [ ] No `dangerouslySetInnerHTML` without DOMPurify
+- [ ] CSP header set
+- [ ] Auth tokens in HttpOnly cookies, not localStorage
+- [ ] SameSite=Strict on cookies
+- [ ] No secrets in NEXT_PUBLIC_ env vars
+- [ ] `npm audit` in CI pipeline
+- [ ] Security headers in next.config.js
+- [ ] Server Actions validate auth internally
+
+---
+
+### Q24 [INTERMEDIATE]: What are WCAG standards (A, AA, AAA) — what must a frontend developer keep in mind?
+
+**A:** WCAG (Web Content Accessibility Guidelines) defines how to make web content accessible to people with disabilities. Published by W3C. Current version: **WCAG 2.2**.
+
+**ELI5:** Imagine your app must work for someone who is blind (using a screen reader), someone who can't use a mouse (only keyboard), someone with colour blindness, and someone with slow cognitive processing. WCAG gives you specific checkboxes to make sure none of these users are locked out.
+
+**The three conformance levels:**
+
+| Level | Meaning | Who needs it | Examples |
+|---|---|---|---|
+| **A** (minimum) | Removes the biggest blockers | All public websites | Alt text, keyboard access, no seizure-inducing flashes |
+| **AA** (standard) | Industry-standard accessibility | Government sites, enterprise, most apps | 4.5:1 contrast ratio, captions for video, reflow on 320px |
+| **AAA** (enhanced) | Maximum accessibility | Specialised accessibility-first sites | 7:1 contrast, sign language, no time limits anywhere |
+
+**Most important rules to remember for interviews (POUR principles):**
+
+```
+PERCEIVABLE — Users can perceive the content
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ Alt text on all meaningful images (A)
+   <img src="chart.png" alt="Sales grew 30% in Q3" />
+   
+✅ Captions/audio descriptions for video (A for prerecorded, AA for live)
+✅ Colour contrast: 4.5:1 for normal text, 3:1 for large text (AA)
+   Use tool: webaim.org/resources/contrastchecker
+✅ Don't use colour alone to convey meaning — add icon or text (A)
+✅ Text can be resized 200% without losing content (AA)
+
+OPERABLE — Users can operate the UI
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ All functionality via keyboard (no mouse required) (A)
+   Tab to every interactive element, Enter/Space to activate
+✅ Visible focus indicator (AA) — never remove :focus outline
+✅ Skip navigation link (bypass block) (A)
+✅ No keyboard traps (A)
+✅ No flashing content > 3 times/second (A) — can trigger seizures
+✅ Enough time to interact (no 2-second auto timeouts) (A)
+
+UNDERSTANDABLE — Users can understand the content
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ Set <html lang="en"> (A) — screen readers need this for pronunciation
+✅ Error messages must identify the field and suggest a fix (AA)
+✅ Consistent navigation across pages (AA)
+✅ Labels associated with all form inputs (A)
+   <label htmlFor="email">Email</label> <input id="email" />
+   OR use aria-label / aria-labelledby
+
+ROBUST — Content works with assistive technology
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ Valid HTML (no broken tags, correct nesting) (A)
+✅ ARIA roles only where semantic HTML can't do the job (A)
+✅ Name, Role, Value for all UI components (A)
+```
+
+**Practical ARIA patterns for React:**
+```jsx
+// Modal — must trap focus and announce role
+<div role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <h2 id="modal-title">Confirm deletion</h2>
+  …
+</div>
+
+// Loading state
+<button aria-busy={isLoading} aria-label={isLoading ? "Saving…" : "Save"}>
+  {isLoading ? <Spinner /> : "Save"}
+</button>
+
+// Icon-only button — must have label
+<button aria-label="Close dialog">
+  <XIcon aria-hidden="true" />
+</button>
+
+// Live region — for dynamic content like search results count
+<p aria-live="polite" aria-atomic="true">
+  {resultCount} results found
+</p>
+```
+
+**Testing tools:**
+- **axe DevTools** (browser extension) — automated A/AA audit
+- **Lighthouse** (Chrome DevTools → Accessibility score)
+- **Screen reader test:** NVDA (Windows), VoiceOver (Mac/iOS), TalkBack (Android)
+- **Keyboard test:** unplug the mouse and try to use the app completely
+
+**Interview summary:**
+> "A is the minimum — if you fail these, large groups of users can't use your app at all. AA is the industry standard — required by law in many countries (ADA, EU EAA). AAA is aspirational. I always aim for AA: semantic HTML first, ARIA only when needed, keyboard-navigable, 4.5:1 colour contrast, accessible form labels and error messages."
+
+---
+
+### Q25 [ADVANCED]: How do you identify that your frontend app is slow / non-performant, and what do you do?
+
+**A:** Performance diagnosis has two phases: **measuring** (find what's slow) then **fixing** (targeted improvements). Never optimise without measuring first.
+
+**ELI5:** Before fixing a car that won't go fast, you put it on a diagnostic machine to see which part is broken. You don't replace the engine if the tyres are flat. Same logic for frontend performance.
+
+**Phase 1 — Measure: Tools and Metrics**
+
+```
+Core Web Vitals (Google's user-centric metrics):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  LCP (Largest Contentful Paint)   → loading    → aim for < 2.5s
+  FID / INP (Interaction to Next Paint) → interactivity → aim for < 200ms
+  CLS (Cumulative Layout Shift)    → visual stability → aim for < 0.1
+
+Other important metrics:
+  TTFB (Time to First Byte)        → server response speed  < 800ms
+  FCP (First Contentful Paint)     → first pixel shown       < 1.8s
+  TBT (Total Blocking Time)        → JS blocking main thread < 200ms
+```
+
+**Where to check:**
+1. **Lighthouse (Chrome DevTools → Lighthouse tab):** Runs full audit, gives score 0-100 for Performance, Accessibility, SEO, Best Practices. Run in Incognito to avoid extension noise.
+2. **Chrome DevTools → Performance tab:** Record a session, see flame chart — identify long tasks (>50ms = blocking), layout thrash, paint storms
+3. **Chrome DevTools → Network tab:** Waterfall chart — identify render-blocking resources, large bundles, slow API calls
+4. **Web Vitals extension / `web-vitals` npm package:** measure real user metrics in production
+5. **Google PageSpeed Insights / Search Console:** field data from real users (CrUX dataset)
+
+**Phase 2 — Fix: Targeted improvements**
+
+```
+PROBLEM: Large JavaScript bundle (high TBT / slow TTI)
+FIX:
+  ✅ Code splitting: React.lazy + dynamic import() per route
+  ✅ Tree shaking: use ES modules, avoid barrel imports (index.ts nightmare)
+  ✅ Bundle analysis: webpack-bundle-analyzer / Vite rollup-plugin-visualizer
+  ✅ Move big libraries to server (e.g., marked, moment → only needed server-side)
+
+PROBLEM: Slow LCP (hero image or heading takes too long)
+FIX:
+  ✅ Preload LCP image: <link rel="preload" as="image" href="hero.webp" />
+  ✅ Use modern image formats: WebP / AVIF (30-50% smaller than JPEG)
+  ✅ Next.js <Image> component: lazy, WebP, responsive srcset auto-generated
+  ✅ CDN for static assets (CloudFront / Vercel Edge)
+
+PROBLEM: High CLS (layout jumps)
+FIX:
+  ✅ Reserve space for images and ads: width + height attributes / aspect-ratio CSS
+  ✅ Don't inject content above existing content dynamically
+  ✅ Use font-display: swap + preload fonts to avoid FOIT
+
+PROBLEM: Many render-blocking resources
+FIX:
+  ✅ Defer non-critical CSS (critical CSS inline, rest async)
+  ✅ async / defer on <script> tags
+  ✅ Remove unused CSS (PurgeCSS for Tailwind, CSS Modules scope by default)
+
+PROBLEM: Slow API / data-fetching waterfall
+FIX:
+  ✅ Parallel fetches: Promise.all instead of sequential awaits
+  ✅ Prefetch on hover/focus (React Query prefetchQuery)
+  ✅ Stale-while-revalidate caching
+  ✅ Move data fetching to Server Components (Next.js) — zero client JS overhead
+
+PROBLEM: Expensive renders / slow interactions (high INP)
+FIX:
+  ✅ Profile with React DevTools Profiler — find which component re-renders excessively
+  ✅ React.memo + useCallback + useMemo (profile first, memoize second)
+  ✅ Virtualize long lists: react-window / react-virtual
+  ✅ Avoid anonymous functions in render — they break memoization
+  ✅ useTransition for non-urgent state updates
+```
+
+**Lighthouse score improvement checklist:**
+- [ ] Compress images (WebP/AVIF, correct sizing)
+- [ ] Enable gzip/Brotli compression on server
+- [ ] Code-split at route level
+- [ ] Remove render-blocking scripts
+- [ ] Set cache headers on static assets (`Cache-Control: max-age=31536000, immutable`)
+- [ ] Preconnect to CDN / font origins
+- [ ] Remove unused JavaScript and CSS
+- [ ] Reserve layout space for dynamic content
+
+---
+
 ## Next.js
 
 **Category:** Full-Stack React Framework | **Questions:** 10 | **Level:** Basic → Advanced
@@ -705,7 +1434,7 @@ During NAVIGATION (soft nav — not full page reload):
 
 ## Node.js
 
-**Category:** JavaScript Runtime & Backend | **Questions:** 13 | **Level:** Basic → Advanced
+**Category:** JavaScript Runtime & Backend | **Questions:** 23+ | **Level:** Basic → Advanced
 
 Node.js enables JavaScript on the server side. These questions cover the event loop, streams, clustering, security, and production best practices.
 
@@ -873,9 +1602,1204 @@ process.on('uncaughtException', (err, origin) => {
 
 ---
 
+### Q14 [ADVANCED]: How are Web Workers (browser) and Worker Threads (Node.js) different?
+
+**A:** Both let you run JavaScript in parallel to the main thread, but they live in completely different environments and have different trade-offs.
+
+**ELI5:** Both are "hiring an assistant" for heavy work. But Web Workers are assistants for your browser store (they can look at the shop window/DOM), while Worker Threads are assistants for your Node.js server factory (they share tools but are in a separate room). The key difference: they work in different buildings entirely.
+
+| | **Web Workers (Browser)** | **Worker Threads (Node.js)** |
+|---|---|---|
+| **Environment** | Browser | Node.js |
+| **DOM access** | ❌ No DOM access | ❌ N/A (no DOM) |
+| **Memory model** | Isolated (separate heap, must message-pass) | Shared memory capable (`SharedArrayBuffer`) |
+| **Communication** | `postMessage()` / `onmessage` | `postMessage()` OR shared memory |
+| **SharedArrayBuffer** | ✅ (requires COOP/COEP headers) | ✅ First-class support |
+| **Parallelism** | True parallel OS threads | True parallel V8 isolates |
+| **Use case** | CPU-heavy client-side: image processing, canvas rendering, compression | CPU-heavy server-side: crypto, ML inference, image resize |
+| **Termination** | `worker.terminate()` | `worker.terminate()` |
+| **Available since** | 2009 (HTML5) | Node.js 10.5 (stable 12) |
+
+**Web Worker example (browser):**
+```javascript
+// main.js
+const worker = new Worker("heavy-task.js");
+worker.postMessage({ numbers: [1, 2, 3, 4, 5] });
+worker.onmessage = (e) => console.log("Result:", e.data.sum);
+
+// heavy-task.js (runs in separate thread — no window, no DOM)
+self.onmessage = function (e) {
+  const sum = e.data.numbers.reduce((a, b) => a + b, 0);
+  self.postMessage({ sum });
+};
+```
+
+**Worker Thread example (Node.js):**
+```javascript
+// main.js
+const { Worker, isMainThread, parentPort, workerData } = require("worker_threads");
+
+if (isMainThread) {
+  const worker = new Worker(__filename, { workerData: { n: 40 } });
+  worker.on("message", (result) => console.log("Fibonacci:", result));
+} else {
+  // This block runs in the worker thread
+  function fib(n) { return n <= 1 ? n : fib(n - 1) + fib(n - 2); }
+  parentPort.postMessage(fib(workerData.n));
+}
+```
+
+**SharedArrayBuffer in Node.js (zero-copy communication):**
+```javascript
+// Useful for high-throughput scenarios — avoid serialisation overhead
+const sharedBuffer = new SharedArrayBuffer(4);
+const shared = new Int32Array(sharedBuffer);
+Atomics.store(shared, 0, 42);  // atomic write — thread-safe
+```
+
+**When to use which:**
+- **Web Worker:** parallelise a CPU-heavy calculation in the browser without freezing the UI (video encoding, PDF generation, large sort/filter)
+- **Worker Thread:** handle CPU-intensive work in Node without blocking the event loop (image resize, bcrypt hashing, large JSON parsing)
+- **Don't use either:** for I/O-bound work — Node's async I/O and libuv thread pool already handle that efficiently
+
+---
+
+### Q15 [ADVANCED]: How are race conditions handled / avoided in Node.js?
+
+**A:** Race conditions happen when two operations depend on shared state and their interleaved execution produces wrong results. Node's single-threaded event loop **prevents most** race conditions — but async operations that hit **shared external state** (database, Redis, file) can still race.
+
+**ELI5:** Two waiters each check "is table 5 free?" and both see "yes" at the same moment — then seat two parties at the same table. Node's single thread means only one JS operation runs at a time, but the database is shared — both waiters (requests) can check before either has committed the booking.
+
+**Classic race condition in Node.js:**
+```javascript
+// ❌ RACE CONDITION — two concurrent requests can both pass the "if enough stock" check
+async function purchaseItem(userId, itemId) {
+  const item = await db.findOne({ _id: itemId });
+  if (item.stock > 0) {             // ← both requests can see stock=1 here
+    await db.updateOne(
+      { _id: itemId },
+      { $inc: { stock: -1 } }       // ← both decrement: stock goes -1
+    );
+    await createOrder(userId, itemId);
+  }
+}
+```
+
+**Solution 1 — Atomic database operations (best for most cases):**
+```javascript
+// ✅ MongoDB findOneAndUpdate with condition — atomic, server-side check
+const result = await db.collection("items").findOneAndUpdate(
+  { _id: itemId, stock: { $gt: 0 } },  // only update if stock > 0
+  { $inc: { stock: -1 } },
+  { returnDocument: "after" }
+);
+
+if (!result.value) throw new Error("Out of stock");
+await createOrder(userId, itemId);
+// Only ONE request can win the atomic update — guaranteed by MongoDB
+```
+
+**Solution 2 — Redis distributed lock (for cross-service / multi-instance scenarios):**
+```javascript
+// ✅ Acquire lock before critical section
+const lockKey = `lock:item:${itemId}`;
+const lockAcquired = await redis.set(lockKey, "1", "NX", "PX", 3000); // NX=only if not exists, 3s TTL
+
+if (!lockAcquired) throw new Error("Item is being processed — try again");
+
+try {
+  // critical section — only ONE process is here at a time
+  const item = await db.findOne({ _id: itemId });
+  if (item.stock <= 0) throw new Error("Out of stock");
+  await db.updateOne({ _id: itemId }, { $inc: { stock: -1 } });
+  await createOrder(userId, itemId);
+} finally {
+  await redis.del(lockKey);  // always release
+}
+```
+
+**Solution 3 — Database transactions (PostgreSQL / MongoDB multi-document):**
+```javascript
+// ✅ MongoDB multi-document transaction
+const session = await mongoose.startSession();
+session.startTransaction();
+try {
+  const item = await Item.findOneAndUpdate(
+    { _id: itemId, stock: { $gt: 0 } },
+    { $inc: { stock: -1 } },
+    { session, new: true }
+  );
+  if (!item) throw new Error("Out of stock");
+  await Order.create([{ userId, itemId }], { session });
+  await session.commitTransaction();
+} catch (err) {
+  await session.abortTransaction();
+  throw err;
+} finally {
+  session.endSession();
+}
+```
+
+**Solution 4 — Event queue / job queue (async serialisation):**
+```javascript
+// ✅ Use Bull/BullMQ — purchases go into a queue, processed one at a time
+purchaseQueue.process(async (job) => {
+  const { userId, itemId } = job.data;
+  // now sequential — no concurrency within this processor
+  const item = await Item.findOne({ _id: itemId });
+  if (item.stock <= 0) throw new Error("Out of stock");
+  await Item.updateOne({ _id: itemId }, { $inc: { stock: -1 } });
+  await Order.create({ userId, itemId });
+});
+```
+
+**Summary — which technique for which scenario:**
+| Scenario | Solution |
+|---|---|
+| Single DB operation | Atomic DB operator (`$inc`, UPDATE WHERE stock > 0) |
+| Multi-step critical section (single service) | Redis distributed lock |
+| Multi-document DB integrity | DB transaction |
+| Cross-service orchestration | Message queue / event bus |
+| High throughput, serialise purchase | Job queue (BullMQ) |
+
+---
+
+### Q16 [ADVANCED]: 1000 passengers booking a single IRCTC ticket — system design and preventing double-booking.
+
+**A:** This is a classic **high-concurrency resource contention** problem. The core challenge: 1 seat, N buyers, need exactly 1 winner — and the system must handle massive concurrent load without crashing.
+
+**ELI5:** Think of 1000 people all trying to grab the last cookie at the same millisecond. You need one person to get it, 999 to get a polite "sorry, it's gone". The trick is making the "grab" action atomic — only one hand can physically take the cookie.
+
+**Full architecture:**
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  1000 Concurrent Users via Browser / App                │
+└──────────────────────┬──────────────────────────────────┘
+                       │ HTTPS requests
+┌──────────────────────▼──────────────────────────────────┐
+│  CDN / Load Balancer (AWS ALB / Azure Front Door)        │
+│  Rate limiting: max 50 req/s per IP (nginx rate_limit)  │
+└──────────────────────┬──────────────────────────────────┘
+                       │
+┌──────────────────────▼──────────────────────────────────┐
+│  API Layer (Node.js / Express — multiple instances)      │
+│  Stateless: auth checked via JWT in every request        │
+└───────────┬──────────────────────┬──────────────────────┘
+            │                      │
+┌───────────▼──────┐    ┌──────────▼────────────────────┐
+│  Redis Cache     │    │  Message Queue (BullMQ/SQS)    │
+│  - Seat lock     │    │  - booking-requests queue      │
+│  - Seat status   │    │  - processed sequentially      │
+└──────────────────┘    └──────────┬────────────────────┘
+                                   │
+                        ┌──────────▼────────────────────┐
+                        │  Worker Process (single consumer│
+                        │  per seat — or DB atomic op)   │
+                        └──────────┬────────────────────┘
+                                   │
+                        ┌──────────▼────────────────────┐
+                        │  PostgreSQL / MongoDB           │
+                        │  - seat table with status=HELD/│
+                        │    BOOKED (row-level lock)      │
+                        └───────────────────────────────┘
+```
+
+**Step-by-step flow:**
+
+```
+1. User initiates booking
+   → API checks seat status in Redis (L1 cache, < 1ms)
+   → If already BOOKED in cache → instant 409 (fast reject — no DB hit)
+   → If AVAILABLE → proceed
+
+2. "Soft lock" the seat in Redis (pessimistic locking)
+   redis.SET lock:seat:A12 userId NX PX 300000   // 5 min TTL, only if not exists
+   → If lock acquired → user is in "selection phase"
+   → If lock NOT acquired → return "seat is being held by another user"
+
+3. Payment initiation (within 5 min lock window)
+   → Show payment page to the lock holder
+
+4. Payment complete → confirm booking
+   → Publish "confirm-booking" event to queue (BullMQ/SQS)
+   → Queue processes ONE booking at a time
+
+5. Worker processes booking atomically
+   → BEGIN TRANSACTION
+   → SELECT FOR UPDATE on seat row (database-level row lock)
+   → Verify status = AVAILABLE (double-check)
+   → UPDATE seat SET status = 'BOOKED', user_id = userId
+   → INSERT INTO bookings (...)
+   → COMMIT
+   → Release Redis lock
+   
+6. 999 others
+   → Hit Redis check → see BOOKED → get "no seats available" immediately
+   → No DB load for them
+```
+
+**The atomic database operation (most critical part):**
+```sql
+-- PostgreSQL — row-level lock + atomic update in one statement
+UPDATE seats
+SET status = 'BOOKED', booked_by = $1, booked_at = NOW()
+WHERE seat_id = $2
+  AND status = 'AVAILABLE'           -- only update if still free
+RETURNING *;                          -- returns null if already booked
+
+-- If 0 rows returned → seat was taken → return 409
+```
+
+```javascript
+// MongoDB equivalent — findOneAndUpdate is atomic
+const result = await Seat.findOneAndUpdate(
+  { seatId: "A12", status: "AVAILABLE" },
+  { $set: { status: "BOOKED", bookedBy: userId, bookedAt: new Date() } },
+  { new: true }
+);
+if (!result) throw new AppError(409, "Seat no longer available");
+```
+
+**Handling the 1000 concurrent requests — layers of protection:**
+
+| Layer | Technique | Effect |
+|---|---|---|
+| Rate limiting | nginx / ALB throttle 50 req/IP/sec | Rejects bots, scraping |
+| Queue / waiting room | Virtual queue (positions users) | Drains traffic to manageable rate |
+| Redis cache check | Check seat status in cache before DB | 999 rejections in < 1ms, no DB hit |
+| Redis lock (NX) | Atomic set-if-not-exists | Only 1 user enters select flow |
+| DB atomic update | UPDATE WHERE status='AVAILABLE' | DB-level last resort guarantee |
+| Idempotency key | Unique key per booking attempt | Prevents double-click duplicate charges |
+
+**Waiting room pattern (IRCTC-style virtual queue):**
+```
+User → Waiting Room queue (Redis LPUSH) → given a position number
+Background worker pops 10 users/second → forwards them to actual booking flow
+Users see: "You are #347 in queue. Estimated wait: 34 seconds."
+```
+
+**What happens to payment if seat is taken after payment starts:**
+- Keep payment window shorter than seat lock TTL (5 min)
+- If payment fails or times out → auto-release Redis lock (TTL expires)
+- If payment succeeds but DB update fails → trigger refund (saga pattern)
+
+---
+
+### Q17 [INTERMEDIATE]: What are the types of polling in Socket.io? Which is better and for whom? What is the easiest way to implement?
+
+**A:** Socket.io is a library that abstracts real-time communication. It starts with a transport and upgrades as the environment supports.
+
+**ELI5:** Think of two people communicating across a river. Polling is "I'll shout every 5 seconds to see if you replied". Long-polling is "I'll keep my mouth open waiting, and you shout as soon as you have something". WebSocket is "we build a bridge and talk continuously without shouting".
+
+**The 3 transports in Socket.io (in upgrade order):**
+
+```
+1. HTTP Short Polling (deprecated, legacy)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Client: "Any new data?" → Server: "No" → Close connection
+  Client: (500ms later) "Any new data?" → Server: "Yes! Here it is" → Close
+  
+  Problem: High latency, wastes HTTP overhead on every request
+  Socket.io no longer uses this as default
+
+2. HTTP Long Polling (Socket.io fallback)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Client: "Any new data?" → Connection STAYS OPEN
+  Server: Holds response until data is ready (or timeout ~30s)
+  Server sends data → Client immediately makes new long-poll request
+  
+  Pros: Works everywhere (proxies, firewalls, IE8+)
+  Cons: Higher latency than WS, 2 TCP connections, HTTP overhead per message
+
+3. WebSocket (Socket.io preferred transport)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Client ↔ Server: Single persistent TCP connection, full-duplex
+  Either side can push at any time
+  Minimal overhead (2 bytes header vs HTTP headers)
+  
+  Pros: Lowest latency, lowest overhead, true real-time
+  Cons: Some old proxies/firewalls block WS upgrades (Socket.io falls back to long-poll)
+```
+
+**How Socket.io selects transport (upgrade mechanism):**
+```
+Connection start: always begins with HTTP Long Polling (universally supported)
+     ↓
+If server + client both support WebSocket AND environment allows upgrade:
+Socket.io upgrade handshake
+     ↓
+Switch to WebSocket
+Long-poll connection closed
+Full-duplex WS connection active
+```
+
+**Which is better for whom:**
+
+| Use Case | Best Transport | Why |
+|---|---|---|
+| Chat apps / notifications | WebSocket | Low latency, persistent connection |
+| Dashboard with live updates | WebSocket | Frequent server-push |
+| Behind strict corporate proxy | Long Polling | WS often blocked |
+| IoT / embedded/old browsers | Long Polling | WS support may be missing |
+| Gaming / real-time sync | WebSocket | Sub-50ms latency required |
+| Serverless deployments (Lambda) | Long Polling | WS not supported in Lambda |
+
+**Easiest Socket.io implementation:**
+
+```bash
+npm install socket.io socket.io-client
+```
+
+```javascript
+// ── server.js (Node.js + Express) ────────────────────────────────────────────
+const express  = require("express");
+const http     = require("http");
+const { Server } = require("socket.io");
+
+const app    = express();
+const server = http.createServer(app);
+const io     = new Server(server, {
+  cors: { origin: "http://localhost:3000" },
+  // Force specific transport (optional):
+  // transports: ["websocket"]          // skip long-poll entirely
+  // transports: ["polling"]            // long-poll only (serverless)
+});
+
+io.on("connection", (socket) => {
+  console.log("Client connected:", socket.id);
+
+  // Listen for events from client
+  socket.on("chat-message", (data) => {
+    // Broadcast to ALL clients (including sender)
+    io.emit("chat-message", { user: data.user, text: data.text });
+    // OR broadcast to ALL except sender:
+    // socket.broadcast.emit("chat-message", data);
+  });
+
+  socket.on("join-room", (room) => {
+    socket.join(room);
+    io.to(room).emit("notification", `${socket.id} joined ${room}`);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("Client disconnected:", socket.id);
+  });
+});
+
+server.listen(4000, () => console.log("Server on :4000"));
+```
+
+```jsx
+// ── ChatComponent.jsx (React client) ─────────────────────────────────────────
+import { useEffect, useRef, useState } from "react";
+import { io } from "socket.io-client";
+
+export default function Chat() {
+  const [messages, setMessages] = useState([]);
+  const [input, setInput]       = useState("");
+  const socketRef = useRef(null);
+
+  useEffect(() => {
+    socketRef.current = io("http://localhost:4000");
+
+    socketRef.current.on("chat-message", (data) => {
+      setMessages(prev => [...prev, data]);
+    });
+
+    return () => socketRef.current.disconnect();   // cleanup on unmount
+  }, []);
+
+  function sendMessage() {
+    socketRef.current.emit("chat-message", { user: "Alice", text: input });
+    setInput("");
+  }
+
+  return (
+    <div>
+      {messages.map((m, i) => <p key={i}><b>{m.user}:</b> {m.text}</p>)}
+      <input value={input} onChange={e => setInput(e.target.value)} />
+      <button onClick={sendMessage}>Send</button>
+    </div>
+  );
+}
+```
+
+---
+
+### Q18 [ADVANCED]: What is Redis Locking (Distributed Lock)?
+
+**A:** A distributed lock is a mechanism to ensure that across multiple processes/servers, only ONE process executes a critical section at a time. Redis is commonly used because its single-threaded command processing guarantees atomicity.
+
+**ELI5:** Imagine 10 cashiers sharing one physical cash drawer. Without a lock, two cashiers could open it at the same time and both try to give change from the same money. A lock is like a physical key: only the cashier holding the key can open the drawer. When done, they put the key back.
+
+**The problem without locking:**
+```javascript
+// ❌ Two Node.js instances can BOTH execute this simultaneously
+async function deductCredits(userId, amount) {
+  const user = await db.findOne({ _id: userId });
+  if (user.credits >= amount) {
+    await db.updateOne({ _id: userId }, { $inc: { credits: -amount } });
+    // But if 2 instances ran simultaneously, user might go negative
+  }
+}
+```
+
+**Redis lock implementation (SET NX PX — atomic):**
+```javascript
+const redis = require("redis").createClient();
+
+async function acquireLock(lockKey, ttlMs = 5000) {
+  // SET lock_key "1" NX PX 5000
+  // NX = only set if NOT EXISTS (atomic check + set)
+  // PX = expire in milliseconds (prevents deadlock if process crashes)
+  const result = await redis.set(lockKey, "1", { NX: true, PX: ttlMs });
+  return result === "OK";   // "OK" = lock acquired, null = already locked
+}
+
+async function releaseLock(lockKey) {
+  await redis.del(lockKey);
+}
+
+// Usage
+async function processPayment(orderId) {
+  const lockKey = `lock:order:${orderId}`;
+  const acquired = await acquireLock(lockKey, 10_000);   // 10s TTL
+
+  if (!acquired) {
+    throw new Error("Order is already being processed");
+  }
+
+  try {
+    // ── CRITICAL SECTION ──────────────────────────
+    const order = await db.findOne({ _id: orderId });
+    if (order.status !== "pending") throw new Error("Already processed");
+    await chargeCard(order);
+    await db.updateOne({ _id: orderId }, { $set: { status: "paid" } });
+    // ── END CRITICAL SECTION ──────────────────────
+  } finally {
+    await releaseLock(lockKey);   // always release, even on error
+  }
+}
+```
+
+**Problem with simple SET NX: race on release**
+
+If Process A's lock expires (slow execution) and Process B acquired it, Process A might delete Process B's lock when it finally calls `redis.del`. 
+
+**Safe release with Lua script (atomic check-and-delete):**
+```javascript
+const UNLOCK_SCRIPT = `
+  if redis.call("GET", KEYS[1]) == ARGV[1] then
+    return redis.call("DEL", KEYS[1])
+  else
+    return 0
+  end
+`;
+
+async function acquireLock(lockKey, ttlMs = 5000) {
+  const lockValue = crypto.randomUUID();  // unique per lock holder
+  const result = await redis.set(lockKey, lockValue, { NX: true, PX: ttlMs });
+  return result === "OK" ? lockValue : null;
+}
+
+async function releaseLock(lockKey, lockValue) {
+  // Atomic: only delete if WE still own the lock
+  await redis.eval(UNLOCK_SCRIPT, { keys: [lockKey], arguments: [lockValue] });
+}
+```
+
+**Redlock algorithm (multi-node Redis — production grade):**
+- Acquire lock on N/2+1 Redis nodes (majority)
+- Only if a majority succeeded, the lock is valid
+- Prevents split-brain when a single Redis node crashes
+- Use the `redlock` npm package for this
+
+```javascript
+const Redlock = require("redlock");
+const redlock = new Redlock([redis1, redis2, redis3], { retryCount: 3 });
+
+async function withLock(resource, ttl, fn) {
+  const lock = await redlock.acquire([resource], ttl);
+  try {
+    return await fn();
+  } finally {
+    await lock.release();
+  }
+}
+
+await withLock("lock:ticket:A12", 10_000, async () => {
+  // Only ONE process across all instances enters here
+  await bookTicket("A12", userId);
+});
+```
+
+**Redis vs DB-level locking — when to use which:**
+| | Redis Distributed Lock | DB Row Lock (SELECT FOR UPDATE) |
+|---|---|---|
+| **Speed** | Sub-millisecond | Slower (DB transaction overhead) |
+| **Cross-service** | ✅ Works across microservices | ❌ Only within DB clients |
+| **TTL auto-expiry** | ✅ Built-in | ❌ Manual timeout needed |
+| **Availability** | Redis must be up | DB must be up |
+| **Use when** | Microservices, rate limiting, job dedup | Single-service inventory, financial operations |
+
+---
+
+### Q19 [INTERMEDIATE]: What parameters do you check when your backend is slow?
+
+**A:** Backend slowness has three root causes: **slow I/O** (DB, external API), **CPU saturation** (compute-heavy code), or **resource contention** (locks, memory pressure, connection limits). Diagnose systematically.
+
+**ELI5:** When a car is slow, you check: is it no fuel (resources exhausted)?, bad engine (CPU), flat tyres (slow I/O), or a traffic jam (contention)? Same for backend — check each system in order.
+
+**Step-by-step diagnosis:**
+
+```
+STEP 1: Observe metrics (before touching code)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  CPU usage        → high? → CPU-bound work (loops, crypto, JSON.parse on large data)
+  Memory usage     → growing? → memory leak, swapping
+  Heap usage       → near limit? → GC pressure (frequent GC pauses)
+  Event loop lag   → > 100ms? → something is blocking the loop
+  
+  Tools: PM2 (pm2 monit), Node.js --inspect, clinic.js flame chart
+
+STEP 2: Request-level tracing
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Add request duration logging:
+  const start = Date.now();
+  // ... handler logic
+  console.log(`[${req.method} ${req.path}] ${Date.now() - start}ms`);
+  
+  OR use: morgan middleware / OpenTelemetry / Datadog APM / New Relic
+
+STEP 3: Database query analysis
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  MongoDB: db.setProfilingLevel(1, { slowms: 100 }) → check system.profile
+  MongoDB: .explain("executionStats") on slow queries → look for COLLSCAN
+  PostgreSQL: EXPLAIN ANALYZE SELECT …
+  Check: missing indexes, N+1 queries, large full collection scans
+  
+  N+1 pattern (very common):
+  ❌ for (const order of orders) {
+       const user = await db.findOne({ _id: order.userId });  // 1 query per order
+     }
+  ✅ const userIds = orders.map(o => o.userId);
+     const users = await db.find({ _id: { $in: userIds } }); // 1 query total
+
+STEP 4: External API calls
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Log time for each external call (payment gateway, email service, 3rd party API)
+  ❌ Sequential API calls:
+     const a = await fetchServiceA();  // 200ms
+     const b = await fetchServiceB();  // 200ms  — total: 400ms
+  ✅ Parallel:
+     const [a, b] = await Promise.all([fetchServiceA(), fetchServiceB()]); // total: 200ms
+
+STEP 5: Connection pool exhaustion
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  DB connections: check pool size vs concurrent requests
+  mongoose.connection.pool.size  →  default 5 — may be too small at scale
+  Redis: check connected_clients, blocked_clients
+  HTTP keep-alive: check if agent is reusing connections
+
+STEP 6: Memory / GC pressure
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  process.memoryUsage().heapUsed  → track over time
+  High GC pauses → --expose-gc + gc() timing / clinic.js heapprofile
+  Look for: large objects in closures, growing caches without TTL
+
+STEP 7: Event loop blocking
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  const { monitorEventLoopDelay } = require("perf_hooks");
+  const h = monitorEventLoopDelay({ resolution: 20 });
+  h.enable();
+  setInterval(() => console.log("EL lag:", h.mean / 1e6, "ms"), 1000);
+  
+  If lag > 50ms: find synchronous blocking code (JSON.parse on 10MB, crypto, image processing)
+  Fix: offload to Worker Thread or setImmediate chunking
+```
+
+**Quick checklist:**
+- [ ] CPU / memory metrics (PM2 / CloudWatch / DataDog)
+- [ ] Slow query logs in DB (MongoDB profiler / PG slow query log)
+- [ ] Check for N+1 queries
+- [ ] Check for sequential awaits that could be Promise.all
+- [ ] DB connection pool size
+- [ ] External API call latency (log each one)
+- [ ] Event loop lag monitoring
+- [ ] Memory growth over time (heap snapshots)
+- [ ] Check Redis slow log: `SLOWLOG GET 10`
+- [ ] Use APM: Datadog / New Relic / OpenTelemetry tracing
+
+---
+
+### Q20 [INTERMEDIATE]: A script runs locally but fails in production — what are the possible issues?
+
+**A:** This is a classic debugging scenario. The answer is always: "the environments are different — find what's different."
+
+**ELI5:** Your recipe works at home but fails at the restaurant. Possible reasons: different oven temperature (environment config), missing ingredient (dependency not installed), different pan size (resource limits), recipe not shared properly (missing env vars), or the restaurant doesn't allow that cooking technique (permissions/firewall).
+
+**Systematic checklist of differences:**
+
+```
+1. ENVIRONMENT VARIABLES
+━━━━━━━━━━━━━━━━━━━━━━━━
+  ❌ Missing .env file in production (never commit .env)
+  ❌ Variable exists locally but not in prod (CI/CD secrets not set)
+  ❌ NODE_ENV=development local vs NODE_ENV=production — different code paths
+  ✅ Check: console.log(process.env) at startup / compare .env.example to prod secrets
+
+2. NODE.JS / RUNTIME VERSION MISMATCH
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ❌ Local: Node 20, Production: Node 16 — API differences (fetch native, etc.)
+  ✅ Fix: specify engines in package.json, use .nvmrc, pin Docker base image
+  { "engines": { "node": ">=20.0.0" } }
+
+3. DEPENDENCIES / package-lock.json
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ❌ npm install installs latest minor: 1.2.3 local vs 1.2.5 prod (subtle breaking change)
+  ❌ Local has devDependencies, prod runs npm install --omit=dev (missing dep)
+  ✅ Fix: always npm ci (uses lock file exactly) in CI/CD
+  ✅ Check: is the failing module in devDependencies vs dependencies?
+
+4. FILE PATHS (Windows vs Linux)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ❌ Local: Windows (backslash path.join), Prod: Linux (forward slash)
+  ❌ Case sensitivity: "MyFile.js" works on Windows (case-insensitive), 
+     fails on Linux (case-sensitive): require("myfile.js") ≠ "MyFile.js"
+  ✅ Fix: use path.join() or path.resolve() instead of string concatenation
+  ✅ Fix: keep filenames and imports consistently cased
+
+5. PERMISSIONS
+━━━━━━━━━━━━━━
+  ❌ Script tries to write to /logs directory (no permission in prod container)
+  ❌ Port 80/443 requires root (use 3000+ and reverse proxy instead)
+  ✅ Check: ls -la, check Docker USER, check directory write permissions
+
+6. MEMORY / RESOURCE LIMITS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ❌ Local: 16GB RAM, Prod: 512MB container limit → OOM kill
+  ❌ Local processes 100 items, prod processes 100,000 → timeout
+  ✅ Check: container memory limits, execution time limits (Lambda: 15min, etc.)
+
+7. NETWORK / EXTERNAL SERVICES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ❌ VPN / localhost dependencies (script calls localhost:5432 — works locally, fails in prod)
+  ❌ Firewall blocking outbound from prod to 3rd party API
+  ❌ SSL certificate issues (self-signed cert works locally, not trusted in prod)
+  ✅ Check: try curl/wget the external service from the prod server
+
+8. BUILD ARTIFACTS
+━━━━━━━━━━━━━━━━━━
+  ❌ Local runs TypeScript directly (ts-node), prod runs compiled JS → compile error
+  ❌ next build missing, running next start without building first
+  ✅ Check: is the build step (tsc, next build) happening in CI?
+
+9. TIMING / ASYNC ISSUES
+━━━━━━━━━━━━━━━━━━━━━━━━
+  ❌ DB not yet ready when app starts (race condition on startup)
+  ❌ Local DB already has seed data, prod DB is empty
+  ✅ Fix: health-check before starting, retry logic on startup, seed scripts in CI
+
+10. LOGS AND OBSERVABILITY
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ✅ First thing: read production logs fully (not just the last line)
+  ✅ Check: structured logs (JSON), stack trace, inner error message
+  ✅ Reproduce in staging with production env vars before touching prod
+```
+
+**Debugging workflow:**
+```
+1. Read prod logs end-to-end (full stack trace, not just "500 Internal Error")
+2. Reproduce in staging with prod env vars
+3. Compare: node --version, npm ls [failing package]
+4. Check env vars completeness (CI/CD secrets panel)
+5. Check network connectivity from prod (curl, ping)
+6. Add verbose logging temporarily to narrow down the failure point
+7. Check if build step ran correctly (compiled artifacts present)
+```
+
+---
+
+### Q21 [ADVANCED]: Design a CI/CD Pipeline — AWS and Azure, what do you do at each step?
+
+**A:** CI/CD automates the path from code commit to production. The goal: fast, reliable, safe deployments with automated testing and rollback capability.
+
+**ELI5:** CI/CD is like a car factory assembly line. CI is the quality control inspector who checks every part before it goes to the next station. CD is the automated conveyor that takes the approved car from factory to dealership without a human driver. You catch defects early and deploy reliably every time.
+
+**Common pipeline stages (both AWS and Azure):**
+
+```
+Developer → git push → [Pipeline Triggers] → Build → Test → Security Scan
+  → Package → Deploy Staging → Integration Tests → Approval Gate → Deploy Prod
+```
+
+**AWS Pipeline (CodePipeline + CodeBuild + ECS):**
+
+```yaml
+# buildspec.yml — runs in AWS CodeBuild
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 20
+    commands:
+      - npm ci                          # exact lock file install
+
+  pre_build:
+    commands:
+      - npm run lint                    # ESLint
+      - npm run test:unit               # Jest unit tests
+      - npm audit --audit-level=high    # dependency security check
+      - aws ecr get-login-password | docker login --username AWS --password-stdin $ECR_REGISTRY
+
+  build:
+    commands:
+      - docker build -t $IMAGE_REPO_NAME:$CODEBUILD_BUILD_NUMBER .
+      - docker tag $IMAGE_REPO_NAME:$CODEBUILD_BUILD_NUMBER $ECR_REGISTRY/$IMAGE_REPO_NAME:$CODEBUILD_BUILD_NUMBER
+      - docker tag $IMAGE_REPO_NAME:$CODEBUILD_BUILD_NUMBER $ECR_REGISTRY/$IMAGE_REPO_NAME:latest
+
+  post_build:
+    commands:
+      - docker push $ECR_REGISTRY/$IMAGE_REPO_NAME:$CODEBUILD_BUILD_NUMBER
+      - docker push $ECR_REGISTRY/$IMAGE_REPO_NAME:latest
+      # Write image definition for CodeDeploy ECS action
+      - printf '[{"name":"app","imageUri":"%s"}]' $ECR_REGISTRY/$IMAGE_REPO_NAME:$CODEBUILD_BUILD_NUMBER > imagedefinitions.json
+
+artifacts:
+  files:
+    - imagedefinitions.json
+    - appspec.yml
+```
+
+```
+AWS CodePipeline stages:
+━━━━━━━━━━━━━━━━━━━━━━━━
+  Stage 1: Source
+    → GitHub / CodeCommit webhook → trigger on push to main
+    
+  Stage 2: Build (CodeBuild)
+    → npm ci → lint → tests → docker build → push to ECR
+    
+  Stage 3: Deploy to Staging
+    → CodeDeploy → ECS blue/green → update staging service with new image
+    → Run smoke tests / health check
+    
+  Stage 4: Manual Approval (SNS notification to Slack/email)
+    → Human reviews staging
+    → Approves or rejects
+    
+  Stage 5: Deploy to Production
+    → CodeDeploy ECS → blue/green deployment
+    → 10% traffic → 50% → 100% (canary/linear)
+    → Rollback if health check fails
+    
+  Stage 6: Notification
+    → SNS → Slack: "Deploy #123 to prod succeeded in 4m 32s"
+```
+
+**Azure Pipeline (azure-pipelines.yml + App Service):**
+
+```yaml
+# azure-pipelines.yml
+trigger:
+  branches:
+    include: [main]
+
+variables:
+  dockerImage: "myapp"
+  acrRegistry: "mycompany.azurecr.io"
+  tag: "$(Build.BuildNumber)"
+
+stages:
+  # ── STAGE 1: Build + Test ──────────────────────────────────────────────────
+  - stage: BuildAndTest
+    jobs:
+      - job: BuildJob
+        pool:
+          vmImage: "ubuntu-latest"
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: "20.x"
+
+          - script: npm ci
+            displayName: "Install dependencies"
+
+          - script: npm run lint
+            displayName: "Lint"
+
+          - script: npm run test:unit -- --coverage
+            displayName: "Unit tests"
+
+          - task: PublishTestResults@2
+            inputs:
+              testResultsFormat: "JUnit"
+              testResultsFiles: "**/test-results.xml"
+
+          - task: Docker@2
+            displayName: "Build and push Docker image"
+            inputs:
+              command: buildAndPush
+              containerRegistry: "ACRServiceConnection"
+              repository: $(dockerImage)
+              tags: |
+                $(tag)
+                latest
+
+  # ── STAGE 2: Deploy Staging ────────────────────────────────────────────────
+  - stage: DeployStaging
+    dependsOn: BuildAndTest
+    condition: succeeded()
+    jobs:
+      - deployment: StagingDeploy
+        environment: "staging"
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: AzureWebAppContainer@1
+                  inputs:
+                    azureSubscription: "AzureServiceConnection"
+                    appName: "myapp-staging"
+                    imageName: "$(acrRegistry)/$(dockerImage):$(tag)"
+
+                - script: npm run test:integration
+                  displayName: "Integration tests against staging"
+
+  # ── STAGE 3: Deploy Production (with approval gate) ───────────────────────
+  - stage: DeployProduction
+    dependsOn: DeployStaging
+    condition: succeeded()
+    jobs:
+      - deployment: ProdDeploy
+        environment: "production"   # environment has approval check in Azure DevOps UI
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: AzureWebAppContainer@1
+                  inputs:
+                    azureSubscription: "AzureServiceConnection"
+                    appName: "myapp-production"
+                    imageName: "$(acrRegistry)/$(dockerImage):$(tag)"
+                    deployToSlotOrASE: true
+                    slotName: "staging"   # deploy to staging SLOT
+
+                - task: AzureAppServiceManage@0
+                  displayName: "Swap to production"
+                  inputs:
+                    azureSubscription: "AzureServiceConnection"
+                    appName: "myapp-production"
+                    sourceSlot: "staging"   # swap staging slot → production (zero downtime)
+```
+
+**Security steps every pipeline should have:**
+```
+✅ npm audit --audit-level=high   (dep vulnerability check)
+✅ Container image scanning (Trivy / AWS ECR scan / Azure Defender)
+✅ SAST (static analysis): SonarQube / CodeQL
+✅ Secret detection: git-secrets / Gitleaks (prevent API keys committed)
+✅ DAST (dynamic): ZAP scan against staging URL
+✅ Sign artifacts (AWS: ECR image signing; Azure: artifact integrity)
+```
+
+**Zero-downtime deployment strategies:**
+| Strategy | How | Downtime | Rollback |
+|---|---|---|---|
+| Blue/Green | New version on fresh infra, swap traffic | Zero | Instant (swap back) |
+| Canary | 5% → 25% → 100% traffic shift | Zero | Reduce canary % |
+| Rolling | Replace instances one by one | Near-zero | Redeploy previous image |
+| Feature flags | Deploy code with flag off, toggle flag | Zero | Toggle flag off |
+
+---
+
+### Q22 [INTERMEDIATE]: What is GitHub Actions — triggers, syntax and what happens when?
+
+**A:** GitHub Actions is GitHub's built-in CI/CD automation platform. You define workflows in YAML files inside `.github/workflows/`. Workflows run on GitHub-hosted or self-hosted runners (VMs) in response to events.
+
+**ELI5:** GitHub Actions is like setting up automatic security cameras with auto-responses. "If someone opens the front door (push to main), sound the alarm (run tests). If the alarm is silent (tests pass), open the delivery chute (deploy)."
+
+**Anatomy of a workflow:**
+```yaml
+# .github/workflows/ci.yml
+name: CI / CD Pipeline
+
+# ── TRIGGERS (on: section) ───────────────────────────────────────────────────
+on:
+  push:
+    branches: [main, develop]       # runs on push to these branches
+  pull_request:
+    branches: [main]                # runs when PR targets main
+  schedule:
+    - cron: "0 2 * * *"             # runs daily at 2am UTC
+  workflow_dispatch:                # can be triggered manually from UI
+  release:
+    types: [published]              # runs when a GitHub Release is published
+
+# ── GLOBALS ──────────────────────────────────────────────────────────────────
+env:
+  NODE_VERSION: "20"
+  IMAGE_NAME: "myapp"
+
+# ── JOBS ─────────────────────────────────────────────────────────────────────
+jobs:
+
+  # Job 1: test (runs first)
+  test:
+    runs-on: ubuntu-latest          # GitHub-hosted runner (Windows / macOS also available)
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4    # action (reusable unit) that clones the repo
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"              # cache node_modules between runs
+
+      - name: Install dependencies
+        run: npm ci                 # run shell command
+
+      - name: Run tests
+        run: npm test
+        env:
+          CI: true
+          DB_URL: ${{ secrets.TEST_DB_URL }}   # from repository/org secrets
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage/
+
+  # Job 2: build docker image (depends on test passing)
+  build:
+    needs: test                     # only runs if test job succeeded
+    runs-on: ubuntu-latest
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tags }}   # pass data between jobs
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=sha                # sha-abc1234
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}    # automatic, no setup needed
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+
+  # Job 3: deploy to production (only on main branch, manual approval via environment)
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: production         # requires environment protection rules (approval, reviewers)
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Deploy to ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: task-def.json
+          service: my-ecs-service
+          cluster: my-cluster
+          wait-for-service-stability: true
+```
+
+**What happens at each trigger:**
+
+| Event | When fire | Common use |
+|---|---|---|
+| `push` to main | Every commit merged | Deploy to staging/prod |
+| `pull_request` | PR opened/updated | Run tests, lint, preview deploy |
+| `schedule` | Cron expression | Nightly builds, security scans |
+| `workflow_dispatch` | Manual from UI | Emergency prod deploy, manual release |
+| `release: published` | GitHub Release | Build and publish packages (npm publish) |
+| `repository_dispatch` | API call | Triggered by other systems |
+
+**Key concepts:**
+- **Secrets:** environment secrets (repo settings → Secrets) — never log them
+- **GITHUB_TOKEN:** auto-generated per-run token — safe for repo actions
+- **Environment:** named deployment target with optional protection rules (required reviewers, wait timer)
+- **Matrix strategy:** run same job with multiple configs (multiple Node versions, multiple OS)
+- **Reusable workflows:** call a workflow from another workflow (DRY principle)
+
+```yaml
+# Matrix example — test on Node 18 and 20, on ubuntu and windows
+strategy:
+  matrix:
+    node: [18, 20]
+    os: [ubuntu-latest, windows-latest]
+runs-on: ${{ matrix.os }}
+steps:
+  - uses: actions/setup-node@v4
+    with:
+      node-version: ${{ matrix.node }}
+```
+
+---
+
+### Q23 [ADVANCED]: What security parameters should you implement in a Node.js / Express app?
+
+**A:** Express is unopinionated — security is entirely your responsibility. Apply defense in depth: secure each layer.
+
+**ELI5:** A Node.js Express app is like opening a restaurant with no locks, no ID checks, and an open kitchen. Security is bolting those locks on yourself. Helmet is the alarm system. Rate limiting is the bouncer. Input validation is checking if the "food order" is actually a food order and not a bomb.
+
+**1. HTTP Security Headers — use Helmet.js**
+```javascript
+const helmet = require("helmet");
+app.use(helmet());
+// Sets: X-Frame-Options, X-Content-Type-Options, X-XSS-Protection, HSTS,
+// Content-Security-Policy, Referrer-Policy, Permissions-Policy
+```
+
+**2. Rate Limiting — prevent brute force & DDoS**
+```javascript
+const rateLimit = require("express-rate-limit");
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,    // 15 minutes
+  max: 10,                       // 10 login attempts per 15 min
+  message: "Too many login attempts. Try again later.",
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.post("/auth/login", authLimiter, loginHandler);
+```
+
+**3. Input Validation — never trust user input**
+```javascript
+const { z } = require("zod");
+
+const CreateUserSchema = z.object({
+  email: z.string().email().max(255),
+  password: z.string().min(8).max(100),
+  name: z.string().min(1).max(100).regex(/^[a-zA-Z\s]+$/),
+});
+
+app.post("/users", (req, res) => {
+  const result = CreateUserSchema.safeParse(req.body);
+  if (!result.success) return res.status(400).json({ errors: result.error.issues });
+  // proceed with result.data (typed, validated)
+});
+```
+
+**4. SQL/NoSQL Injection Prevention**
+```javascript
+// ❌ NEVER interpolate user input into queries
+const user = await db.find({ name: req.query.name });   // MongoDB injection risk
+// Attacker sends: ?name[$gt]=  → returns ALL users
+
+// ✅ Validate shape with Zod before using in query
+// ✅ Use MongoDB query operators only from validated structure
+// ✅ For SQL: use parameterized queries always
+pool.query("SELECT * FROM users WHERE id = $1", [req.params.id]);  // ✅
+pool.query(`SELECT * FROM users WHERE id = ${req.params.id}`);     // ❌ SQL injection
+```
+
+**5. Authentication & JWT security**
+```javascript
+// ✅ Short JWT expiry + refresh token pattern
+const accessToken = jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: "15m" });
+const refreshToken = jwt.sign({ userId }, process.env.REFRESH_SECRET, { expiresIn: "7d" });
+
+// ✅ Store refresh token in HttpOnly cookie (not localStorage)
+res.cookie("refreshToken", refreshToken, {
+  httpOnly: true,
+  secure: true,
+  sameSite: "strict",
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+});
+
+// ✅ Always verify JWT algorithm explicitly (prevent alg:none attack)
+jwt.verify(token, process.env.JWT_SECRET, { algorithms: ["HS256"] });
+```
+
+**6. CORS — restrict origins**
+```javascript
+const cors = require("cors");
+app.use(cors({
+  origin: ["https://yourdomain.com", "https://admin.yourdomain.com"],
+  credentials: true,  // allow cookies
+}));
+// ❌ Never: origin: "*" with credentials: true
+```
+
+**7. Password hashing — bcrypt with correct cost factor**
+```javascript
+const bcrypt = require("bcrypt");
+const SALT_ROUNDS = 12;  // balance: 10-14 is typical; higher = slower brute force
+
+const hash = await bcrypt.hash(plainPassword, SALT_ROUNDS);
+const match = await bcrypt.compare(plainPassword, storedHash);
+```
+
+**8. Environment & secrets management**
+```javascript
+// ✅ Use environment variables, never hard-code secrets
+// ✅ Validate env vars at startup
+const { DB_URL, JWT_SECRET, REDIS_URL } = process.env;
+if (!DB_URL || !JWT_SECRET) {
+  console.error("Missing required env vars"); process.exit(1);
+}
+// ✅ Use AWS Secrets Manager / Azure Key Vault in production
+```
+
+**9. Dependency security**
+```bash
+npm audit                         # check for CVEs
+npm audit fix                     # auto-fix where possible
+# Add to CI: npm audit --audit-level=high → fail build if high/critical CVEs
+```
+
+**10. Error handling — don't leak internals**
+```javascript
+// ❌ Never send stack traces or DB errors to client
+res.status(500).json({ error: err.stack });
+
+// ✅ Log internally, send generic message to client
+console.error("Internal error:", err);
+res.status(500).json({ error: "Internal server error" });
+
+// ✅ Distinguish operational (4xx) vs programmer (5xx) errors
+```
+
+**Security checklist:**
+- [ ] Helmet.js for HTTP headers
+- [ ] express-rate-limit on all auth routes
+- [ ] Zod/Joi input validation on all routes
+- [ ] Parameterized queries (no string interpolation in DB queries)
+- [ ] JWT: short expiry, explicit algorithm, HttpOnly cookie refresh
+- [ ] CORS: whitelist origins only
+- [ ] bcrypt with ≥ 10 rounds
+- [ ] No secrets in code or NEXT_PUBLIC_ / client bundle
+- [ ] `npm audit` in CI/CD
+- [ ] Error handler that doesn't expose stack traces
+
+---
+
 ## MongoDB
 
-**Category:** NoSQL Database | **Questions:** 8+ Scenarios | **Level:** Intermediate → Advanced
+**Category:** NoSQL Database | **Questions:** 10+ Scenarios | **Level:** Intermediate → Advanced
 
 MongoDB is a document-oriented NoSQL database designed for scalability and flexibility. These scenarios cover schema design, transactions, sharding, and real-world challenges.
 
@@ -961,6 +2885,266 @@ MongoDB is a document-oriented NoSQL database designed for scalability and flexi
 
 **Q8:** Design a payment system ensuring no duplicate charges.
 - A: Idempotency key, transaction + charge logging, periodic reconciliation
+
+---
+
+### Q9 [INTERMEDIATE]: What are Aggregation Pipelines and what is $facet?
+
+**A:** An aggregation pipeline is a sequence of **stages** that transform documents step-by-step. Each stage receives the output of the previous stage, like an assembly line.
+
+**ELI5:** Think of a car assembly line. Raw metal enters. Stage 1 cuts the body. Stage 2 paints it. Stage 3 adds wheels. The output of one station becomes the input for the next. MongoDB aggregation is the same — each stage transforms the data before passing it along.
+
+**Core stages:**
+```javascript
+db.orders.aggregate([
+  // Stage 1: Filter — like SQL WHERE
+  { $match: { status: "completed", createdAt: { $gte: new Date("2024-01-01") } } },
+
+  // Stage 2: Join — like SQL LEFT JOIN
+  { $lookup: {
+    from: "customers",
+    localField: "customerId",
+    foreignField: "_id",
+    as: "customer"
+  }},
+  { $unwind: "$customer" },  // flatten the joined array
+
+  // Stage 3: Compute new fields
+  { $addFields: {
+    totalWithTax: { $multiply: ["$total", 1.18] },
+    customerName: "$customer.name"
+  }},
+
+  // Stage 4: Group — like SQL GROUP BY
+  { $group: {
+    _id: "$customer.country",
+    totalRevenue: { $sum: "$totalWithTax" },
+    orderCount:   { $sum: 1 },
+    avgOrderValue: { $avg: "$totalWithTax" }
+  }},
+
+  // Stage 5: Sort results
+  { $sort: { totalRevenue: -1 } },
+
+  // Stage 6: Limit output
+  { $limit: 10 },
+
+  // Stage 7: Reshape output — like SQL SELECT column aliasing
+  { $project: {
+    country: "$_id",
+    totalRevenue: { $round: ["$totalRevenue", 2] },
+    orderCount: 1,
+    avgOrderValue: { $round: ["$avgOrderValue", 2] },
+    _id: 0
+  }}
+])
+```
+
+**What is `$facet`?**
+
+`$facet` runs **multiple independent aggregation pipelines in a single pass** over the collection. This is perfect for search result pages that need: total count + pagination + category filters + price range buckets — all at once.
+
+**ELI5:** Imagine you're counting a box of LEGO pieces. Normally you'd count them once for colour, then again for size, then again for type. With `$facet` you count everything in one pass and get all three answers simultaneously.
+
+```javascript
+// Example: E-commerce product search with facets
+db.products.aggregate([
+  // First: filter the dataset (common pre-filter for all facets)
+  { $match: { category: "electronics", inStock: true } },
+
+  // $facet: run all these sub-pipelines on the same filtered dataset
+  { $facet: {
+
+    // Facet 1: Paginated results
+    paginatedResults: [
+      { $sort: { rating: -1 } },
+      { $skip: 0 },
+      { $limit: 20 },
+      { $project: { name: 1, price: 1, rating: 1, image: 1 } }
+    ],
+
+    // Facet 2: Total count (for pagination UI)
+    totalCount: [
+      { $count: "total" }
+    ],
+
+    // Facet 3: Price range buckets (price histogram)
+    priceRanges: [
+      { $bucket: {
+        groupBy: "$price",
+        boundaries: [0, 100, 500, 1000, 5000],
+        default: "5000+",
+        output: { count: { $sum: 1 } }
+      }}
+    ],
+
+    // Facet 4: Brand distribution
+    brands: [
+      { $group: { _id: "$brand", count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+      { $limit: 10 }
+    ],
+
+    // Facet 5: Average rating per sub-category
+    avgRatingBySubcategory: [
+      { $group: {
+        _id: "$subCategory",
+        avgRating: { $avg: "$rating" },
+        productCount: { $sum: 1 }
+      }}
+    ]
+  }}
+])
+
+// Result shape:
+// {
+//   paginatedResults: [ { name, price, … }, … ],
+//   totalCount: [{ total: 1243 }],
+//   priceRanges: [{ _id: 0, count: 45 }, { _id: 100, count: 320 }, …],
+//   brands: [{ _id: "Samsung", count: 89 }, …],
+//   avgRatingBySubcategory: [{ _id: "Laptops", avgRating: 4.2, … }, …]
+// }
+```
+
+**Key pipeline operators quick reference:**
+
+| Stage | SQL equivalent | Use |
+|---|---|---|
+| `$match` | WHERE | Filter documents early (uses indexes!) |
+| `$project` | SELECT | Include/exclude/compute fields |
+| `$group` | GROUP BY | Aggregate into groups |
+| `$sort` | ORDER BY | Sort pipeline output |
+| `$lookup` | LEFT JOIN | Join another collection |
+| `$unwind` | FLATTEN | Deconstruct array field into separate docs |
+| `$limit`/`$skip` | LIMIT/OFFSET | Pagination |
+| `$facet` | — | Multiple parallel sub-pipelines in one pass |
+| `$bucket` | — | Range-based grouping (histograms) |
+| `$addFields` | AS (computed col) | Add computed fields without removing others |
+| `$out`/`$merge` | INSERT INTO | Save pipeline output to a collection |
+
+**Performance tips for aggregation:**
+1. `$match` and `$limit` as early as possible — reduces documents flowing down
+2. `$match` on indexed fields — uses the index just like a `find()` query
+3. `$facet` is better than N separate queries — one collection scan for all facets
+4. For analytics on large collections, use `$out` to store pre-computed results
+
+---
+
+### Q10 [INTERMEDIATE]: Advantages and disadvantages of indexing in MongoDB — when to use what?
+
+**A:** An index is a separate data structure (B-tree by default) that maps field values to document locations. It dramatically speeds up reads at the cost of write overhead and storage.
+
+**ELI5:** A book index is a sorted list at the back that says "page 243 for 'recursion'". Without it, you'd read every page. With it, you jump straight to page 243. MongoDB indexes work the same way — sorted list of values pointing to documents. The trade-off: maintaining the index during every insert/update costs time.
+
+**Without index (COLLSCAN) vs with index (IXSCAN):**
+```javascript
+// Check query plan
+db.movies.find({ title: "Inception" }).explain("executionStats")
+// COLLSCAN: reads ALL docs — O(n)
+// IXSCAN:   reads index — O(log n)
+```
+
+**Types of indexes:**
+
+```javascript
+// 1. Single Field Index — most common
+db.movies.createIndex({ title: 1 })             // ascending
+db.movies.createIndex({ year: -1 })             // descending
+
+// 2. Compound Index — covers multi-field queries
+// Rule: Equality → Sort → Range (ESR rule)
+db.orders.createIndex({ customerId: 1, status: 1, createdAt: -1 })
+// ✅ Covers: find({ customerId, status }).sort({ createdAt })
+// ❌ Doesn't help: find({ status }).sort({ createdAt }) — skips first field
+
+// 3. Multikey Index — for array fields (auto-created when field is array)
+db.posts.createIndex({ tags: 1 })
+// find({ tags: "mongodb" }) → uses index even though tags is an array
+
+// 4. Text Index — full-text search
+db.articles.createIndex({ title: "text", body: "text" }, { weights: { title: 10 } })
+db.articles.find({ $text: { $search: "mongodb performance" } })
+
+// 5. Geospatial Index — location-based queries
+db.restaurants.createIndex({ location: "2dsphere" })
+db.restaurants.find({ location: { $near: { $geometry: { type: "Point", coordinates: [72.8, 18.9] } }, $maxDistance: 1000 } })
+
+// 6. Hashed Index — for sharding (even distribution)
+db.users.createIndex({ userId: "hashed" })   // shard key must be hashed for even distribution
+
+// 7. TTL Index — auto-delete documents after a time
+db.sessions.createIndex({ createdAt: 1 }, { expireAfterSeconds: 3600 })  // delete after 1 hour
+
+// 8. Partial Index — only index documents matching a filter (saves space)
+db.orders.createIndex({ customerId: 1 }, { partialFilterExpression: { status: "active" } })
+// Only indexes active orders — inactive orders don't occupy index space
+
+// 9. Sparse Index — only index documents where field EXISTS
+db.users.createIndex({ phone: 1 }, { sparse: true })
+// Documents without 'phone' field are excluded from the index
+
+// 10. Unique Index
+db.users.createIndex({ email: 1 }, { unique: true })  // enforce uniqueness
+```
+
+**Advantages of indexing:**
+
+| Advantage | Detail |
+|---|---|
+| Fast reads | O(log n) tree traversal vs O(n) collection scan |
+| Covered queries | If all fields are in the index, MongoDB NEVER reads the document itself |
+| Sorted output | Index already sorted — free sort for ORDER BY |
+| Unique constraint | Unique index enforces data integrity |
+| TTL auto-cleanup | TTL indexes delete expired documents automatically |
+| Range queries | B-tree efficient for >, <, between operations |
+
+**Disadvantages of indexing:**
+
+| Disadvantage | Detail |
+|---|---|
+| Write overhead | Every `insert`, `update`, `delete` must also update the index |
+| Storage cost | Index = extra disk/RAM space (often 10-30% of collection size) |
+| RAM usage | Working set (hot indexes) must fit in RAM for best performance |
+| Index build time | Building index on large collection = expensive operation |
+| Over-indexing | Too many indexes slow down writes significantly |
+| Wrong compound order | Index may be unused if query doesn't match prefix (ESR rule) |
+
+**When to use what — decision guide:**
+
+```
+Query pattern                          → Index type
+──────────────────────────────────────────────────────────────
+Exact match on one field              → Single-field
+Multi-field queries with sort         → Compound (ESR order)
+Array field search                    → Multikey (auto)
+Full-text search                      → Text index
+Location-based queries                → 2dsphere
+Auto-expire documents (sessions/OTP)  → TTL
+Shard key distribution                → Hashed
+Large collection, only index active   → Partial
+Optional fields (nullable)            → Sparse
+Enforce no duplicates                 → Unique
+```
+
+**The ESR (Equality → Sort → Range) compound index rule:**
+```javascript
+// Query: find active orders for a customer, sorted by date, created this month
+db.orders.find({ 
+  customerId: "C1",        // EQUALITY
+  createdAt: { $gte: ... } // RANGE
+}).sort({ status: 1 })     // SORT
+
+// CORRECT compound index — Equality first, then Sort, then Range
+db.orders.createIndex({ customerId: 1, status: 1, createdAt: 1 })
+//                         EQUALITY    SORT        RANGE
+```
+
+**Detecting slow queries (always do this before adding indexes):**
+```javascript
+db.setProfilingLevel(1, { slowms: 100 })   // log queries > 100ms
+db.system.profile.find().sort({ ts: -1 }).limit(5)   // view slow queries
+db.collection.find(query).explain("executionStats")   // see COLLSCAN vs IXSCAN
+```
 
 ---
 
@@ -1210,4 +3394,6 @@ Use deployment slots: deploy new to staging slot (blue=prod, green=staging). Run
 
 **Last Updated:** March 2026
 **Coverage:** JavaScript, React, Next.js, Node.js, MongoDB, Docker, AWS, Azure
+
+> **New questions added (March 2026):** JS: Object join with Map, Deep merge, Debounce+Throttle React component, CAP Theorem | React: HMR, Diffing deep dive, Security checklist, WCAG A/AA/AAA, Lighthouse performance | Node.js: Web Workers vs Worker Threads, Race condition prevention, IRCTC 1000-user system design | Node.js cross-cutting: Socket.io polling types, Redis distributed lock, Backend performance checklist, Script local-vs-prod debugging, CI/CD pipeline (AWS + Azure), GitHub Actions syntax, Node.js/Express security checklist | MongoDB: Aggregation pipelines + $facet, Indexing advantages/disadvantages
 
