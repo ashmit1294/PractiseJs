@@ -8,7 +8,7 @@ A comprehensive consolidated collection of interview questions and answers for e
 
 - [JavaScript (24+ Questions)](#javascript)
 - [React (25+ Questions)](#react)
-- [Next.js (10 Questions)](#nextjs)
+- [Next.js (11 Questions)](#nextjs)
 - [Node.js (23+ Questions)](#nodejs)
 - [MongoDB (10+ Scenarios)](#mongodb)
 - [Docker (28 Questions)](#docker)
@@ -1305,7 +1305,7 @@ FIX:
 
 ## Next.js
 
-**Category:** Full-Stack React Framework | **Questions:** 10 | **Level:** Basic → Advanced
+**Category:** Full-Stack React Framework | **Questions:** 11 | **Level:** Basic → Advanced
 
 Next.js combines React with server-side rendering, routing, and data fetching. These questions cover the App Router, caching layers, Server Components, and production patterns.
 
@@ -1429,6 +1429,276 @@ During NAVIGATION (soft nav — not full page reload):
 5. Middleware for cross-cutting concerns
 6. Server Actions for mutations
 7. Deployment via Vercel or self-hosted with output: 'standalone'
+
+---
+
+### Q11 [ADVANCED]: How do you measure and optimise Core Web Vitals in a Next.js app?
+
+**A:** Next.js has built-in tooling for every Core Web Vital. The strategy is: **measure first** (in production with real user data), then apply **targeted Next.js optimisations** per metric.
+
+**ELI5:** Core Web Vitals are like a car's MOT test — three specific checks Google uses to judge if a page feels good to users. LCP is how fast the main content loads, INP is how snappy the page feels when you click, CLS is whether the page jumps around unexpectedly. Next.js gives you dedicated components for each problem.
+
+---
+
+**Step 1 — Measure Core Web Vitals in Next.js**
+
+```javascript
+// app/layout.tsx (App Router) — or pages/_app.tsx (Pages Router)
+// Built-in: export reportWebVitals to receive real browser measurements
+
+// Pages Router:
+export function reportWebVitals(metric) {
+  // metric.name: 'LCP' | 'FID' | 'CLS' | 'INP' | 'FCP' | 'TTFB'
+  // metric.value: number (ms for time-based, score for CLS)
+  console.log(metric);
+
+  // Send to analytics (e.g. Google Analytics, Datadog, custom endpoint)
+  if (metric.name === "LCP" && metric.value > 2500) {
+    // Alert: LCP is poor (> 2.5s threshold)
+    sendToAnalytics({ event: "poor_lcp", value: metric.value });
+  }
+}
+
+// App Router — use the web-vitals package directly in a Client Component:
+"use client";
+import { useReportWebVitals } from "next/web-vitals";
+
+export function WebVitalsReporter() {
+  useReportWebVitals((metric) => {
+    console.log(metric.name, metric.value);
+    // Send metric.name + metric.value to your monitoring service
+  });
+  return null;
+}
+// Place <WebVitalsReporter /> in your root layout
+```
+
+**Thresholds (Google's "good" targets):**
+| Metric | Good | Needs Improvement | Poor |
+|---|---|---|---|
+| LCP (Largest Contentful Paint) | < 2.5s | 2.5–4s | > 4s |
+| INP (Interaction to Next Paint) | < 200ms | 200–500ms | > 500ms |
+| CLS (Cumulative Layout Shift) | < 0.1 | 0.1–0.25 | > 0.25 |
+| TTFB (Time to First Byte) | < 800ms | 800ms–1.8s | > 1.8s |
+| FCP (First Contentful Paint) | < 1.8s | 1.8–3s | > 3s |
+
+**Where to view in production:**
+- **Vercel Analytics** (automatic CWV per route, free tier) — zero config on Vercel
+- **Google Search Console → Core Web Vitals report** — field data from Chrome users
+- **Google PageSpeed Insights** (URL-level) — lab + field data combined
+- **Chrome DevTools → Lighthouse** — lab measurement (Incognito mode)
+
+---
+
+**Step 2 — Fix LCP: `next/image`**
+
+LCP is almost always caused by a large hero image loading slowly. `next/image` handles this automatically.
+
+```jsx
+import Image from "next/image";
+
+// ✅ Hero image — add priority to preload immediately (no lazy-load)
+<Image
+  src="/hero.jpg"
+  alt="Hero banner"
+  width={1200}
+  height={600}
+  priority                    // ← disables lazy-load, adds <link rel="preload">
+  sizes="(max-width: 768px) 100vw, 1200px"   // responsive srcset
+  placeholder="blur"          // ← shows blurred placeholder while loading (no CLS)
+  blurDataURL="data:image/jpeg;base64,..."    // ← tiny base64 of the image
+/>
+
+// ✅ Below-fold images — lazy load (default)
+<Image
+  src="/product.jpg"
+  alt="Product"
+  width={400}
+  height={400}
+  // No priority — lazy loaded automatically
+/>
+```
+
+**What `next/image` does automatically:**
+- Serves modern formats: **WebP / AVIF** (30–50% smaller)
+- Generates **responsive `srcset`** for the correct resolution per device
+- **Lazy-loads** below-fold images (Intersection Observer)
+- **Prevents CLS** — reserves exact space before image loads
+- Routes images through `/_next/image` optimiser (runtime resizing)
+- Caches optimised images on CDN edge
+
+---
+
+**Step 3 — Fix CLS: `next/font`**
+
+Font loading causes CLS (layout shift when fonts swap) and FOIT (flash of invisible text). `next/font` eliminates both.
+
+```javascript
+// app/layout.tsx
+import { Inter, Roboto_Mono } from "next/font/google";
+// OR: import localFont from "next/font/local";  ← for self-hosted fonts
+
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",          // font-display: swap — show fallback immediately
+  variable: "--font-inter", // expose as CSS variable
+  preload: true,            // default: preload subset
+});
+
+const robotoMono = Roboto_Mono({
+  subsets: ["latin"],
+  variable: "--font-roboto-mono",
+  display: "swap",
+});
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en" className={`${inter.variable} ${robotoMono.variable}`}>
+      <body className={inter.className}>{children}</body>
+    </html>
+  );
+}
+```
+
+**What `next/font` does:**
+- Downloads Google Fonts **at build time** — no runtime request to `fonts.googleapis.com` (eliminates render-blocking network round-trip)
+- Self-hosts the font files → served from your CDN, not Google's servers
+- Injects optimal `font-display` and `size-adjust` to **eliminate CLS on font swap**
+- Zero layout shift: uses CSS `size-adjust` to make the fallback font the same width as the web font
+
+---
+
+**Step 4 — Fix render-blocking scripts: `next/script`**
+
+Third-party scripts (analytics, chat widgets, A/B testing) block rendering and hurt TBT/LCP.
+
+```jsx
+import Script from "next/script";
+
+// strategy options:
+// "beforeInteractive"  → blocks hydration (use only for critical polyfills)
+// "afterInteractive"   → loads after page hydration (default — good for analytics)
+// "lazyOnload"         → loads during browser idle time (lowest priority)
+// "worker"             → offload to Web Worker via Partytown (experimental)
+
+// ✅ Analytics — load after page is interactive
+<Script
+  src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXX"
+  strategy="afterInteractive"
+/>
+
+// ✅ Chat widget — load during idle (doesn't affect LCP/INP)
+<Script
+  src="https://cdn.chatservice.com/widget.js"
+  strategy="lazyOnload"
+  onLoad={() => console.log("Chat loaded")}
+/>
+
+// ✅ Critical polyfill — must load before hydration
+<Script
+  src="/polyfills.js"
+  strategy="beforeInteractive"
+/>
+
+// ✅ Inline script with strategy
+<Script id="google-analytics" strategy="afterInteractive">
+  {`
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-XXXXXX');
+  `}
+</Script>
+```
+
+---
+
+**Step 5 — Fix TTFB: rendering strategy choices**
+
+TTFB is directly controlled by how Next.js generates the page:
+
+```
+Static (SSG / ISR) — best TTFB
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Pre-built at deploy time → served from CDN edge
+  TTFB: ~10–50ms (CDN cache hit)
+  Use: marketing pages, blogs, product pages (anything not user-specific)
+
+  // App Router: no fetch options = static by default
+  const data = await fetch("https://api/products");  // cached forever
+  // OR with revalidation:
+  const data = await fetch("https://api/products", { next: { revalidate: 3600 } });
+
+Dynamic (SSR) — worst TTFB
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Rendered on every request — server round-trip adds latency
+  TTFB: 100–800ms+
+  Use: personalised pages (dashboard, account), real-time data
+
+  // App Router: force dynamic
+  export const dynamic = "force-dynamic";
+  // or: use cookies() / headers() — auto-marks route as dynamic
+
+Partial Prerendering (PPR — Next.js 14+)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Static shell from CDN instantly → dynamic parts streamed in via Suspense
+  Best of both worlds: fast initial paint + fresh personalised content
+  
+  export const experimental_ppr = true;  // in layout or page
+  
+  // Static shell (from CDN):
+  <ProductLayout>
+    <Suspense fallback={<RecommendationsSkeleton />}>
+      <PersonalisedRecommendations userId={userId} /> {/* Dynamic, streamed */}
+    </Suspense>
+  </ProductLayout>
+```
+
+---
+
+**Complete Next.js performance optimisation checklist:**
+
+```
+Images:
+  ✅ Use next/image for ALL images
+  ✅ Add priority to above-fold / LCP image
+  ✅ Set correct sizes prop for responsive images
+  ✅ Use placeholder="blur" for LCP images
+
+Fonts:
+  ✅ Use next/font/google (never <link href="fonts.googleapis.com">)
+  ✅ Set display: "swap"
+  ✅ Subset to used characters only (subsets: ["latin"])
+
+Scripts:
+  ✅ Use next/script for ALL third-party scripts
+  ✅ Use "afterInteractive" for analytics
+  ✅ Use "lazyOnload" for chat/social widgets
+  ✅ Never put analytics scripts in <head> manually
+
+Rendering:
+  ✅ Static/ISR for content pages (best TTFB)
+  ✅ Dynamic only when strictly necessary
+  ✅ PPR for pages mixing static shell + personalised sections
+  ✅ Stream dynamic sections via Suspense
+
+JavaScript bundle:
+  ✅ Server Components for data-heavy components (zero client JS)
+  ✅ dynamic() import for heavy client-only components
+  ✅ Avoid importing large libs in Client Components
+  ✅ Run: ANALYZE=true next build (with @next/bundle-analyzer)
+
+Caching:
+  ✅ Set revalidate on fetch() calls (not every route = force-dynamic)
+  ✅ Use unstable_cache for non-fetch data sources (DB queries)
+  ✅ Understand the 4 cache layers (Request Memo → Data → Full Route → Router)
+
+Monitoring:
+  ✅ reportWebVitals / useReportWebVitals → send to analytics
+  ✅ Vercel Analytics for per-route CWV (on Vercel)
+  ✅ Google Search Console for real-user field data
+  ✅ Lighthouse in CI (lighthouse-ci npm package)
+```
 
 ---
 
