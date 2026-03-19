@@ -388,3 +388,117 @@ jobs:
 > 4. Blue stays alive for quick rollback — just flip the LB back.
 > 5. After validation period, decommission Blue.
 > Zero downtime; instant rollback capability. ECS and CodeDeploy support this natively.
+
+---
+
+### Resilience & Disaster Recovery
+
+**Q: Strategies to improve system resilience/survival quality for applications deployed on AWS**
+> Resilience = ability to recover from failures and continue operation. Multi-layered approach required.
+> 
+> **1. High Availability (HA):**
+> - Deploy across MULTIPLE AVAILABILITY ZONES (AZs) → if one AZ fails, traffic shifts to others
+> - Use Auto Scaling Groups (ASG) with min 2-3 instances across AZs
+> - Application Load Balancer (ALB) distributes traffic; health checks remove unhealthy targets
+> - RDS Multi-AZ: synchronous replica in another AZ; failover is automatic (DNS update)
+> 
+> **2. Disaster Recovery (DR):**
+> - Regular snapshots / backups (EBS, RDS, DynamoDB point-in-time recovery)
+> - Cross-region replication (for critical apps)
+> - Recovery Time Objective (RTO): how long until system is back up (target: minutes to hours)
+> - Recovery Point Objective (RPO): how much data can be lost (target: recent backups)
+> 
+> **3. Circuit Breaker + Retry Logic:**
+> ```
+> Request → Try (fail) → Retry with backoff → If threshold exceeded, Circuit breaks
+>          → sends fast error to client instead of hanging
+> After timeout, Circuit half-open → test single request → if OK, close circuit
+> ```
+> Use libraries like AWS SDK retry policies, Polly (C#), Resilience4j (Java).
+> 
+> **4. Load Balancing + Auto Scaling:**
+> - ALB routes requests across instances; if instance unhealthy, ALB stops sending traffic
+> - ASG scales up when CPU > 70%; scales down when < 30%
+> - Prevents single point of failure; handles traffic spikes automatically
+> 
+> **5. Queue-Based Async Processing (SQS):**
+> - Instead of: User request → Sync processing (slow, can timeout)
+> - Better: User request → SQS queue → Worker processes asynchronously
+> - If worker dies, message stays in SQS; another worker picks it up
+> - Decouples producer from consumer; consumer can scale independently
+> 
+> **6. Cache & CDN (CloudFront):**
+> - CloudFront caches at edge locations; if origin goes down, CloudFront can serve stale content
+> - ElastiCache (Redis/Memcached) caches DB queries; reduces DB load
+> - Cache MISS on CloudFront falls back to origin; if origin slow, users see old data (better than error)
+> 
+> **7. Monitoring, Alerting, Logging (CloudWatch):**
+> - Set up alarms: if CPU > 80%, alert ops team
+> - Log aggregation: send all app logs to CloudWatch; search errors rapidly
+> - Metrics: CPU, network, disk; identify trends before failure
+> - Synthetics: periodic health checks from multiple regions
+> 
+> **8. Graceful Degradation:**
+> - If non-critical service fails (e.g., recommendations), show default data instead of error
+> - Prioritize critical paths: auth > payment > recommendations
+> 
+> **9. Rate Limiting & DDoS Protection:**
+> - AWS WAF: block malicious IPs, rate-limit requests
+> - Shield Standard (free): basic DDoS protection on Layer 3/4
+> - Shield Advanced: advanced DDoS mitigation (paid)
+> 
+> **10. Multi-Region Deployment (for critical apps):**
+> - App runs in us-east-1 AND eu-west-1
+> - Route 53 health checks fail over to secondary region automatically
+> - Data replicated globally (DynamoDB Global Tables, RDS read replicas, S3 cross-region replication)
+
+---
+
+### CI/CD Pipeline Design
+
+**Q: Designing a CI/CD pipeline for a first-time application using modern tools and processes**
+> From commit to production deployment, automated testing and quality gates ensure speed and safety.
+> 
+> **Pipeline Stages (typical flow):**
+> 1. **Source Stage**: Code pushed to GitHub/GitLab/CodeCommit
+> 2. **Build Stage**: Compile, lint, unit tests, create Docker image
+> 3. **Test Stage**: Integration tests, security scanning (SAST), artifact scanning (container image vulnerability scan)
+> 4. **Stage Deployment**: Deploy to staging environment, run end-to-end tests, smoke tests
+> 5. **Approval**: Manual approval if needed (for production)
+> 6. **Production Deployment**: Blue-green or canary deployment, health check, rollback if needed
+> 
+> **Modern Tools Stack:**
+> 
+> | Stage | AWS Tools | Popular Alternatives |
+> |-------|-----------|---|
+> | Source | CodeCommit | GitHub, GitLab, Bitbucket |
+> | Build | CodeBuild | Jenkins, GitLab CI, CircleCI, GitHub Actions |
+> | Test | CodeBuild (run tests) | Same as Build |
+> | Deploy | CodeDeploy, CloudFormation | Terraform (IaC), Helm (Kubernetes) |
+> | Orchestration | CodePipeline | Jenkins, GitLab CI, GitHub Actions |
+> | Container Registry | ECR (Elastic Container Registry) | Docker Hub, Artifactory, GitHub Container Registry |
+> 
+> **Recommended First-Time Setup:**
+> ```
+> GitHub → GitHub Actions (free CI/CD) → AWS CodeDeploy → ECS or EC2
+> OR
+> GitHub → AWS CodePipeline → CodeBuild → CodeDeploy → ECS/EKS
+> ```
+> 
+> **Pipeline Configuration (AWS CodePipeline + CodeBuild + ECS):**
+> See CloudFormation/Terraform configuration above for full details. Key points:
+> - `buildspec.yml` defines: install → lint/test → build Docker image → push to ECR
+> - Manual approval gate before production deployment
+> - ECS new task definition references the new image URI from build artifacts
+> 
+> **Best Practices for New Applications:**
+> 1. **Start simple**: GitHub Actions + one deploy target (e.g., ECS) before multi-region
+> 2. **Test automation**: unit + integration + e2e tests in build stage (fail fast)
+> 3. **Security scanning**: container image scan, dependency scanning (CVE), secrets detection
+> 4. **Infrastructure as Code (IaC)**: CloudFormation or Terraform; deploy infra alongside code
+> 5. **Blue-Green Deployment**: zero-downtime; old version stays up while new version starts; traffic switched atomically
+> 6. **Health Checks**: endpoint must respond 200 OK before traffic hits it
+> 7. **Rollback Strategy**: if deployment fails, auto-rollback to previous version
+> 8. **Monitoring**: enable CloudWatch alarms; if error rate > threshold after deploy, trigger rollback
+> 9. **Staging Environment**: mirrors production; test there before production deployment
+> 10. **Incremental Rollout**: canary deployment (5% traffic) → wait 15 min → 50% → 100% (catch issues early on small traffic slice)

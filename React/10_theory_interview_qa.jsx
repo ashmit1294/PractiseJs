@@ -424,9 +424,66 @@ function BatchingDemo() {
 
 export { GoodComponent, ControlledForm, UncontrolledForm, Parent, SearchResults, CounterDisplay };
 
-// ─────────────────────────────────────────────────────────
-// ██ SECTION 4: WEBPACK (React Build Tooling)
-// ─────────────────────────────────────────────────────────
+/*
+Q16 [INTERMEDIATE]: React.memo, useMemo, and useCallback — when to use each and performance pitfalls
+─────────────────────────────────────────────────────────────────────────────────────────────────
+A: All three memoize different things. Misuse creates unnecessary overhead.
+
+   React.memo:         wraps a COMPONENT to skip re-render if props are shallowly equal
+   useMemo:            caches a COMPUTED VALUE across renders
+   useCallback:        caches a FUNCTION REFERENCE across renders
+
+   Key rule: Use memoization ONLY when profiling shows a real performance problem.
+   Memoization has a cost (comparison checks, memory for cached values).
+*/
+
+const RenderCountMemo = memo(function RenderCountMemo({ value }) {
+  console.log('Memo component rendered');
+  return <div>{value}</div>;
+});
+
+function OptimizedMemoDemo() {
+  const [count, setCount] = useState(0);
+  const [other, setOther] = useState(0);
+
+  // Without useCallback: new func every render → RenderCountMemo re-renders
+  // const handleIncrement = () => setCount(c => c + 1); // BAD
+
+  // With useCallback: stable reference → RenderCountMemo skips re-render on "other" change
+  const handleIncrement = useCallback(() => setCount(c => c + 1), []);
+
+  // Without useMemo: recomputes expensive value every render
+  // const expensive = complexCalculation(); // BAD
+
+  // With useMemo: caches until dependency changes
+  const expensive = useMemo(() => {
+    console.log('Computing...');
+    return Math.sqrt(count) * 1000;
+  }, [count]);
+
+  return (
+    <>
+      <button onClick={() => setOther(o => o + 1)}>Other: {other}</button>
+      <RenderCountMemo value={count} />
+      <div>{expensive.toFixed(2)}</div>
+      <button onClick={handleIncrement}>Increment</button>
+    </>
+  );
+}
+
+/*
+Q17 [INTERMEDIATE]: Design patterns in React — Container/Presentational, HOC, Render Props, Custom Hooks, Compound Components
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+A: Multiple patterns for composing and sharing logic across components.
+
+   1. Container/Presentational: Container handles state/logic; Presentational renders UI
+   2. HOC: function that takes component, returns enhanced component with added logic
+   3. Render Props: component accepts function prop that returns JSX
+   4. Custom Hooks: extract logic into a hook (modern, preferred approach)
+   5. Compound Components: related components work together via shared Context
+*/
+
+// Render Props example:\nconst DataProvider = ({ URL, render }) => {\n  const [data, setData] = useState(null);\n  useEffect(() => { \n    fetch(URL).then(r => r.json()).then(setData); \n  }, [URL]);\n  return render(data);\n};\n\n// Usage: <DataProvider URL=\"/api/data\" render={data => <Component data={data} />} />\n\n// Custom Hooks (preferred):\nfunction useDataFetch(url) {\n  const [data, setData] = useState(null);\n  const [loading, setLoading] = useState(false);\n  const [error, setError] = useState(null);\n\n  useEffect(() => {\n    setLoading(true);\n    fetch(url)\n      .then(r => r.json())\n      .then(setData)\n      .catch(setError)\n      .finally(() => setLoading(false));\n  }, [url]);\n\n  return { data, loading, error };\n}\n\nfunction ComponentUsingHook() {\n  const { data, loading, error } = useDataFetch('/api/items');\n  return (\n    <div>\n      {loading && <p>Loading...</p>}\n      {error && <p>Error: {error.message}</p>}\n      {data && <div>{JSON.stringify(data)}</div>}\n    </div>\n  );\n}\n\n/*\nQ18 [INTERMEDIATE]: Axios vs Fetch on top of React Query — layered mental model\n────────────────────────────────────────────────────────────────────────────────\nA: Mental model layers:\n   Bottom: Fetch/Axios (HTTP request layer)\n   Middle: React Query (cache + sync layer)\n   Top: React components (consume data)\n\n   Fetch: browser API, no built-in retry/cache; verbose\n   Axios: third-party, better DX (interceptors, auto JSON; slightly heavier\n   React Query: sits ABOVE both; handles caching, bg refetch, stale-while-revalidate, deduplication\n\n   Use React Query to stop writing useState + useEffect for data fetching\n*/\n\nfunction UserComponent() {\n  // React Query handles caching, background refetch on focus, auto-retry\n  const { data: user, isLoading, error } = useQuery({\n    queryKey: ['user', 1],\n    queryFn: () => fetch('/api/user/1').then(r => r.json()),\n    staleTime: 1000 * 60 * 5,  // data fresh for 5 minutes\n  });\n\n  return isLoading ? 'Loading...' : error ? 'Error!' : <div>{user.name}</div>;\n}\n\n/*\nQ19 [ADVANCED]: How to design a front-end application like Jira for performance and accessibility\n────────────────────────────────────────────────────────────────────────────────────────────────\nA: Large-scale apps need architectural decisions. Challenges: large lists, state management, keyboard nav, a11y.\n\n   Performance:\n   1. Virtualization for long lists (react-window) — render only visible items\n   2. Suspense + lazy loading — split code by route\n   3. Debounce search input — reduce API calls\n   4. Memoization wisely — profile first\n\n   Accessibility:\n   1. Keyboard navigation with roving tabindex\n   2. ARIA labels, semantic HTML\n   3. Focus management in modals\n   4. Color contrast, readable fonts\n*/\n\nimport { FixedSizeList } from 'react-window';\n\nfunction VirtualizedIssueList({ issues }) {\n  return (\n    <FixedSizeList\n      height={600}\n      itemCount={issues.length}\n      itemSize={50}\n      width=\"100%\"\n    >\n      {({ index, style }) => (\n        <div style={style}>\n          {issues[index].title}\n        </div>\n      )}\n    </FixedSizeList>\n  );\n}\n\nfunction AccessibleIssueBoard({ issues }) {\n  const [selectedIndex, setSelectedIndex] = useState(0);\n\n  const handleKeyDown = (e) => {\n    if (e.key === 'ArrowDown') setSelectedIndex(prev => Math.min(prev + 1, issues.length - 1));\n    if (e.key === 'ArrowUp') setSelectedIndex(prev => Math.max(prev - 1, 0));\n  };\n\n  return (\n    <div role=\"listbox\" onKeyDown={handleKeyDown}>\n      {issues.map((issue, index) => (\n        <div\n          key={issue.id}\n          role=\"option\"\n          tabIndex={selectedIndex === index ? 0 : -1}\n          aria-selected={selectedIndex === index}\n        >\n          {issue.title}\n        </div>\n      ))}\n    </div>\n  );\n}\n\n/*\nQ20 [ADVANCED]: How to extend/inherit one class into another using CSS preprocessors (@extend, @mixin, LESS)\n─────────────────────────────────────────────────────────────────────────────────────────────────────────\nA: CSS preprocessors enable class inheritance and style composition:\n\n   @extend: inherit all styles from another class (single inheritance)\n   @mixin: reusable style blocks with optional parameters\n   Both reduce duplication; @extend can cause unexpected specificity issues.\n\n   SCSS example:\n   .button { padding: 10px; border: 1px solid #ccc; }\n   .button-primary { @extend .button; background: blue; }\n\n   Less & Stylus similar syntax\n*/\n\n// ─────────────────────────────────────────────────────────\n// ██ SECTION 4: WEBPACK (React Build Tooling)\n// ─────────────────────────────────────────────────────────
 
 /*
 Q12 [BASIC]: What is Webpack and why does React need a bundler?

@@ -748,11 +748,7 @@ KEY CONCEPTS:
 - Minification: Remove comments, shorten variable names, compress
 */
 
-module.exports = {
-  makeCounter,
-  Range,
-  Entity,
-  factTrampolined,
-  withTimeout,
-  createValidator,
-};
+/*
+Q19 [BASIC]: What is IIFE (Immediately Invoked Function Expression)?
+───────────────────────────────────────────────────────────────────
+A: A function that is defined and called immediately. Syntax: (function() { ... })() or (() => { ... })()\n   Use cases:\n   1. Avoid polluting global scope — variables are local to the IIFE\n   2. Module pattern — create private variables and public API\n   3. Execute async code before others (pre-ES6 async/await era)\n   4. Isolate code to prevent conflicts in global namespace (especially in scripts)\n*/\n\n// Immediately invoked - common in legacy code and UMD modules\n(function() {\n  const privateVar = 'secret';\n  console.log('IIFE executed immediately');\n})();\n\n// Arrow function version (ES6+)\n(() => {\n  const x = 42;\n  console.log('arrow IIFE executed');\n})();\n\n// Module pattern: revealing private and public API\nconst counterModule = (() => {\n  let count = 0;  // private\n  return {\n    increment() { return ++count; },\n    decrement() { return --count; },\n    getCount()  { return count; },\n  };\n})();\n\ncounterModule.increment();\ncounterModule.increment();\n// counterModule.count;  // ❌ undefined — count is private\n// counterModule.getCount();  // ✅ 2\n\n// Pre-ES6: pass arguments to IIFE to isolate dependencies\n(function(window, document, $) {\n  // $ is guaranteed jQuery here, not overridden by other scripts\n  // common in legacy jQuery code\n})(window, document, jQuery);\n\nmodule.exports = {\n  makeCounter,\n  Range,\n  Entity,\n  factTrampolined,\n  withTimeout,\n  createValidator,\n};

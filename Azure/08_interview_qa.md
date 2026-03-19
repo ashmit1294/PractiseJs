@@ -48,6 +48,55 @@ const dbPassword = dbPasswordSecret.value;
 **Q: What is Privileged Identity Management (PIM)?**
 > PIM provides just-in-time (JIT) privileged access. Instead of permanently assigning the Owner or Contributor role to admins (who might forget to clean up, or whose account might be compromised), admins request elevated access for a limited time (e.g., 1 hour), provide a justification, and optionally need approval. Access expires automatically. All activations are audited.
 
+**Q: What is Azure AD (Entra ID) based authentication with Function App middleware and RBAC?**
+> Azure AD (rebranded Microsoft Entra ID) is the identity/access management service. Integration with Azure Functions uses OAuth 2.0 and OpenID Connect (OIDC). Requests include a Bearer JWT token from Entra ID in the Authorization header. Function middleware validates the token signature using Entra ID's public key endpoint.
+> 
+> **Authentication flow:**
+> 1. Client/app obtains JWT token from Entra ID (`https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token`)
+> 2. Client sends HTTP request to Function: `Authorization: Bearer eyJhbGc...` (JWT token)
+> 3. Function middleware intercepts, validates token signature and expiration against Entra ID's certificate
+> 4. On success, claims extracted from JWT (user ID, roles, groups) populated in `HttpContext.User`
+> 5. Function code checks `User.IsInRole("Admin")` or `User.HasClaim("roles", "Admin")` for authorization
+> 
+> **Configuration:**
+> - Register the app in Entra ID → get Application ID and Credentials
+> - Configure Function App authentication: Azure Portal → Authentication → Entra ID provider
+> - Middleware automatically enforces token validation on every incoming request
+> - Invalid/missing tokens → 401 Unauthorized; unauthorized roles → 403 Forbidden
+> 
+> **RBAC pattern (Role-Based Access Control):**
+> - Define App Roles in Entra ID app manifest: `["Admin", "Editor", "Viewer"]`
+> - Assign users/groups/service principals to roles via Entra ID
+> - Function receives role claims in the JWT token (no extra API call needed)
+> - Authorize via `[Authorize(Roles = "Admin")]` attribute or `User.IsInRole("Admin")` check
+> 
+> **Code example (C# Azure Function with Entra ID):**
+> ```csharp
+> [FunctionName("GetSecretData")]
+> [Authorize(Roles = "Admin")]  // ← Blocks non-admin automatically
+> public static IActionResult Run(
+>     [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequest req,
+>     ILogger log,
+>     ClaimsPrincipal principal)
+> {
+>     // Middleware already validated JWT token
+>     var userId = principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+>     var roles = principal?.FindAll("roles").Select(c => c.Value);
+>
+>     if (!principal?.IsInRole("Admin") ?? false)
+>         return new UnauthorizedResult();  // 403 Forbidden
+>
+>     // Admin-only logic here
+>     return new OkObjectResult(new { message = "Admin access granted" });
+> }
+> ```
+> 
+> **Best practices:**
+> - Use Managed Identity (Azure-native service account) for Function → Key Vault → avoid storing credentials in code
+> - Token validation done once by middleware → no repeated checks
+> - Log authentication failures; audit Entra ID sign-in logs for suspicious patterns
+> - Implement token refresh for long-running functions using MSAL libraries
+
 ---
 
 ## Compute

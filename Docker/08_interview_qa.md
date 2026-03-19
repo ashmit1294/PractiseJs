@@ -196,3 +196,259 @@ docker cp <id>:/app/log.txt .     # copy file out of container
 > | Override at build | `--build-arg NAME=value` | Also `--build-arg` with `ARG` → `ENV` |
 > | Persists in image | ❌ (after its layer) | ✅ |
 > | Suitable for secrets | ❌ (shows in docker history) | ❌ (shows in inspect) |
+
+---
+
+## GitHub Actions — CI/CD with Docker
+
+**Q26. GitHub Actions — CI/CD pipeline, workflows, jobs, steps, secrets**
+> GitHub Actions is GitHub's built-in CI/CD platform. Runs workflows triggered by events (push, pull request, schedule, manual).
+> 
+> **Key Concepts:**
+> - **Workflow**: YAML file (`.github/workflows/*.yml`) that defines the entire CI/CD automation
+> - **Trigger/Event**: `on: [push, pull_request]` — what causes the workflow to run
+> - **Job**: independent execution unit (runs on a runner machine)
+> - **Step**: individual command or action within a job
+> - **Action**: reusable code unit (from GitHub Marketplace or custom)
+> - **Runner**: machine where jobs execute (GitHub-hosted: ubuntu/windows/macos; or self-hosted)
+> - **Secret**: encrypted environment variable (passwords, API keys); doesn't leak in logs
+> 
+> **Workflow Execution Flow:**
+> ```mermaid
+> graph LR
+>     A["Push to main<br/>or PR Created"] -->|Trigger Event| B["Workflow Started"]
+>     B --> C["Matrix/Strategy<br/>Setup"]
+>     C --> D["Runner Machine<br/>Allocated"]
+>     D --> E["Checkout Code"]
+>     E --> F["Setup Environment<br/>Node.js/Python/etc"]
+>     F --> G["Install Dependencies<br/>npm ci"]
+>     G --> H["Run Tests"]
+>     H -->|✅ Passed| I["Build Artifact"]
+>     H -->|❌ Failed| J["Notify Developer"]
+>     I --> K{"Condition Check<br/>github.ref?"}
+>     K -->|main branch| L["Deploy Job"]
+>     K -->|other| M["Skip Deployment"]
+>     L --> N["Configure AWS<br/>Credentials"]
+>     N --> O["Build & Push<br/>Docker Image"]
+>     O --> P["Deploy to ECS"]
+>     P --> Q["All Complete<br/>Send Notification"]
+>     J --> Q
+>     M --> Q
+> ```
+> 
+> **Workflow Example:**
+> ```yaml
+> name: CI/CD Pipeline
+> 
+> on:
+>   push:
+>     branches: [main, develop]
+>   pull_request:
+>     branches: [main]
+> 
+> jobs:
+>   test:
+>     runs-on: ubuntu-latest
+>     steps:
+>       - uses: actions/checkout@v3
+>       - uses: actions/setup-node@v3
+>         with:
+>           node-version: '18'
+>       - run: npm ci
+>       - run: npm test
+>       - run: npm run build
+> 
+>   deploy:
+>     needs: test                    # wait for test job to finish
+>     if: github.ref == 'refs/heads/main'
+>     runs-on: ubuntu-latest
+>     steps:
+>       - uses: actions/checkout@v3
+>       - name: Build and deploy
+>         env:
+>           API_KEY: ${{ secrets.PROD_API_KEY }}
+>         run: |
+>           docker build -t myapp:latest .
+>           docker push myapp:latest
+> ```
+> 
+> **Secrets Management:**
+> 1. Go to GitHub Repo Settings → Secrets and variables → Actions
+> 2. Add secret: `PROD_API_KEY = sk_live_...` (encrypted, never shown)
+> 3. In workflow: `${{ secrets.PROD_API_KEY }}`
+> 4. At runtime: secret injected but NEVER logged (GitHub masks in logs)
+> 
+> **Common Actions:**
+> - `actions/checkout` — clone repo code
+> - `actions/setup-node` — install Node.js version
+> - `docker/build-push-action` — build and push Docker image to registry
+> - `aws-actions/configure-aws-credentials` — authenticate to AWS
+
+---
+
+**Q27. GitHub Actions + Docker + ECR + ECS end-to-end deployment**
+> ```yaml
+> name: Build, Push to ECR, and Deploy to ECS
+> 
+> on:
+>   push:
+>     branches: [main]
+> 
+> jobs:
+>   deploy:
+>     runs-on: ubuntu-latest
+>     steps:
+>       - uses: actions/checkout@v3
+> 
+>       - name: Configure AWS credentials
+>         uses: aws-actions/configure-aws-credentials@v2
+>         with:
+>           role-to-assume: arn:aws:iam::123456789:role/GitHubActionsRole
+>           aws-region: us-east-1
+> 
+>       - name: Login to ECR
+>         id: login-ecr
+>         uses: aws-actions/amazon-ecr-login@v1
+> 
+>       - name: Build Docker image
+>         run: |
+>           docker build -t myapp:${{ github.sha }} .
+>           docker tag myapp:${{ github.sha }} ${{ steps.login-ecr.outputs.registry }}/myapp:latest
+> 
+>       - name: Push to ECR
+>         run: |
+>           docker push ${{ steps.login-ecr.outputs.registry }}/myapp:latest
+> 
+>       - name: Update ECS service (forces new deployment)
+>         run: |
+>           aws ecs update-service \
+>             --cluster prod-cluster \
+>             --service myapp \
+>             --force-new-deployment
+> 
+>       - name: Wait for ECS service to stabilize
+>         run: |
+>           aws ecs wait services-stable \
+>             --cluster prod-cluster \
+>             --services myapp
+> ```
+> 
+> **End-to-End Deployment Pipeline:**
+> ```mermaid
+> graph TD
+>     A["Developer Pushes<br/>to main"] -->|Trigger| B["GitHub Actions<br/>Workflow"]
+>     B -->|1. OIDC| C["AWS IAM Role<br/>Assumed<br/>No long-lived keys"]
+>     C -->|2. Auth| D["ECR Login<br/>Get credentials"]
+>     D -->|3. Build| E["Build Docker Image<br/>Tag: commit-SHA"]
+>     E -->|4. Push| F["ECR Registry<br/>Image stored<br/>myapp:latest"]
+>     F -->|5. Update| G["ECS Cluster<br/>Update Service"]
+>     G -->|6. Deploy| H["Task Definition<br/>New Revision"]
+>     H -->|7. Create| I["New ECS Tasks<br/>Pull from ECR"]
+>     I -->|8. Rolling Update| J["Old Tasks Drain<br/>New Tasks Start"]
+>     J -->|9. Health Check| K["Load Balancer<br/>Routes to<br/>Healthy Tasks"]
+>     K -->|10. Monitor| L["CloudWatch<br/>Logs & Metrics"]
+>     L -->|✅ Healthy| M["Deployment Complete"]
+>     I -->|❌ Unhealthy| N["Rollback<br/>Previous Task Def"]
+>     N --> M
+> ```
+> 
+> **Flow:**
+> 1. Developer pushes to `main`
+> 2. GitHub Actions triggered
+> 3. Assume AWS IAM role via OIDC (no long-lived keys needed)
+> 4. Build Docker image, tag with commit SHA
+> 5. Push to ECR
+> 6. Update ECS service → triggers new deployment
+> 7. Wait until all tasks are healthy (ready)
+
+---
+
+## Docker Compose for Local Development
+
+**Q28. Docker Compose for complete application stack (dev vs prod)**
+> Developers use `docker-compose up` to run the entire application stack locally: app + database + cache + message queue.
+> Run once, have everything — no installation manual steps.
+> 
+> **Service Dependency & Startup Flow:**
+> ```mermaid
+> graph TB
+>     A["docker-compose up"] -->|Resolve| B["Dependency<br/>Analysis"]
+>     B --> C["Start cache<br/>Redis:6379"]
+>     C -->|no condition| D["cache: running"]
+>     B --> E["Start db<br/>PostgreSQL:5432"]
+>     E -->|healthcheck| F{"pg_isready?"}
+>     F -->|waiting| F
+>     F -->|✅ healthy| G["db: healthy"]
+>     B --> H["Start app<br/>Build Dockerfile"]
+>     H -->|condition:<br/>service_healthy| I["Wait for db<br/>health check"}]
+>     I -->|condition:<br/>service_started| J["Wait for cache<br/>running"]
+>     J -->|ready| K["App connect:<br/>postgresql://user:password@db:5432/myapp"]
+>     K --> L["App connect:<br/>redis://cache:6379"]
+>     L --> M["App: running<br/>Port 3000"]
+>     
+>     subgraph compose["Docker Compose Stack"]
+>         D
+>         G
+>         M
+>     end
+>     
+>     N["Named Volume:<br/>pgdata persistent"] -.-> G
+>     O["Bind Mount:<br/>.:/app hot reload"] -.-> M
+> ```
+> 
+> **docker-compose.yml (development):**
+> ```yaml
+> version: '3.8'
+> services:
+>   app:
+>     build: .
+>     ports:
+>       - "3000:3000"
+>     environment:
+>       DATABASE_URL: postgresql://user:password@db:5432/myapp
+>       REDIS_URL: redis://cache:6379
+>     depends_on:
+>       db:
+>         condition: service_healthy   # wait for db health check
+>       cache:
+>         condition: service_started
+>     volumes:
+>       - .:/app                       # mount source code (live reload)
+>       - /app/node_modules            # but not node_modules (keep container's version)
+> 
+>   db:
+>     image: postgres:15
+>     environment:
+>       POSTGRES_USER: user
+>       POSTGRES_PASSWORD: password
+>       POSTGRES_DB: myapp
+>     volumes:
+>       - pgdata:/var/lib/postgresql/data
+>     healthcheck:
+>       test: ["CMD", "pg_isready"]
+>       interval: 10s
+>       timeout: 5s
+>       retries: 5
+> 
+>   cache:
+>     image: redis:7-alpine
+>     ports:
+>       - "6379:6379"
+> 
+> volumes:
+>   pgdata:
+> ```
+> 
+> **Key points:**
+> - `depends_on` with `condition: service_healthy` ensures services start in order
+> - `volumes` mount source code for hot reload during development
+> - Named volume `pgdata` persists DB data between `docker-compose down` / `docker-compose up` cycles
+> - Service names are DNS hostnames: app connects to `db:5432` (not localhost)
+> 
+> **CI Pipeline integration (GitHub Actions):**
+> ```yaml
+> - name: Run integration tests
+>   run: |
+>     docker-compose -f docker-compose.test.yml up --abort-on-container-exit
+>     # Compose runs app + db + test services, tears down when tests finish
+> ```

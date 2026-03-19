@@ -425,9 +425,87 @@ const nextConfig = {
 
 export {};
 
-// ─────────────────────────────────────────────────────────
-// ██ SECTION 5: WEBPACK & TURBOPACK (Next.js Build Tooling)
-// ─────────────────────────────────────────────────────────
+/*
+Q10 [ADVANCED]: Isomorphic React — Universal rendering, SSR, hydration
+──────────────────────────────────────────────────────────────────────
+A: Isomorphic = same React code runs on BOTH server and client.
+   Benefits: SEO (full HTML for crawlers), fast first paint (HTML immediately),
+   progressive enhancement (works without JS), code reuse.
+
+   Three phases:
+   1. Server renders component tree to HTML string
+   2. HTML sent to browser; React bundle downloads
+   3. Hydration: React attaches to existing DOM, enables interactivity (no re-render if trees match)
+   4. Client takes over: state changes happen in browser
+
+   Next.js App Router Server Components (default):
+   - Server Components: run only on server, ZERO JS bundle cost, can query DB
+   - 'use client' Components: run on server (SSR) + browser (hydrated), included in bundle
+*/
+
+// app/blog/page.tsx — Server Component (async, direct DB access, no client JS)
+async function BlogPage() {
+  const posts = await fetch('https://api.example.com/posts', {
+    next: { revalidate: 3600 },  // ISR: fresh data every 1 hour
+  }).then(r => r.json());
+
+  return (
+    <div>
+      <h1>My Blog</h1>
+      <PostList posts={posts} />   {/* Server Component → pure HTML */}
+    </div>
+  );
+}
+
+function PostList({ posts }: { posts: Post[] }) {
+  // Also Server Component; renders to HTML only
+  return (
+    <ul>
+      {posts.map(post => (
+        <li key={post.id}>
+          <h2>{post.title}</h2>
+          <p>{post.excerpt}</p>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+// app/components/Subscribe.tsx — 'use client' Component (interactivity)
+'use client';  // ← directive tells Next.js: this must run in browser
+
+import { useState } from 'react';
+
+export function SubscribeButton({ postId }: { postId: number }) {
+  const [subscribed, setSubscribed] = useState(false);
+  return (
+    <button onClick={() => setSubscribed(!subscribed)}>
+      {subscribed ? '🔔 Subscribed' : '🔕 Subscribe'}
+    </button>
+  );
+}
+
+// EXECUTION:
+// 1. Server renders BlogPage (Server Component) → fetches posts, gets DB data
+// 2. Server renders PostList (Server Component) → pure HTML (NO JS needed)
+// 3. Server renders SubscribeButton (Client Component) → sends JS code to client
+// 4. HTML sent to browser + React runtime + SubscribeButton JS (PostList JS NOT included!)
+// 5. Hydration: React mounts SubscribeButton, enables onClick listeners & state
+// 6. PostList stays static HTML, SubscribeButton becomes interactive
+
+// HYDRATION MISMATCH (bug to avoid):
+function DateDisplay() {
+  // ❌ BAD: server renders today, client renders tomorrow (different time zones)
+  return <div>{new Date().toDateString()}</div>;
+  // TypeError: Hydration mismatch!
+
+  // ✅ GOOD: initial render is null (matches server), then set on client
+  // const [date, setDate] = useState<string | null>(null);
+  // useEffect(() => setDate(new Date().toDateString()), []);  // client-side only
+  // return <div>{date || 'Loading...'}</div>;
+}
+
+export type { Post };
 
 /*
 Q11 [BASIC]: How does webpack work in Next.js and when do you customise it?
