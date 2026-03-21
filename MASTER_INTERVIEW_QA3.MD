@@ -6779,3 +6779,774 @@ const resolvers2 = {
 --- End of Section 10 ---
 
 ---
+
+# Section 11: SYSTEM DESIGN (Q93-Q104)
+
+---
+
+## Q93: Walk me through designing a system to handle a flash sale — 1 item, 10,000 concurrent buyers.
+
+### ELI5
+
+Imagine one toy is put on a shop shelf and 10,000 kids run in at the same time. If everyone grabs and checks out normally, 9,999 kids will be disappointed AND the shop's payment system will crash from the load. The smart shopkeeper puts up a virtual queue: a ticket machine outside the door gives numbered tickets (Redis queue). Only one ticket can win — the rest see "sold out" instantly. The lucky winner is taken to the checkout room (payment flow). Everyone else is handled gracefully without ever reaching the stockroom.
+
+### Visual Diagram
+
+```
+10,000 clients
+    |
+    v
++--------------------+
+| CDN / Load Balancer|   <-- WAF, rate-limit per IP
++--------------------+
+    |
+    v
++--------------------+
+| API Gateway        |   <-- throttles to ~500 req/s burst
++--------------------+
+    |
+    v
++------------------------+       already sold?
+| Redis SETNX / Lua      |-----> return "sold out" instantly (no DB hit)
+| atomic stock check     |
++------------------------+
+    |  stock > 0: decrement
+    v
++------------------------+
+| Queue (SQS / Redis)    |   <-- enqueue order intent
++------------------------+
+    |
+    v
++------------------------+
+| Order Worker (single   |   <-- processes queue serially or with low concurrency
+| consumer or low-conc.) |   <-- idempotency key prevents double-charge
++------------------------+
+    |
+    v
++------------------------+
+| Payment Service        |   <-- calls Stripe / PSP with idempotency key
++------------------------+
+    |
+    v
++------------------------+
+| DB (write order)       |   <-- Postgres / DynamoDB
++------------------------+
+
+Key insight: Redis atomic operations (DECR, Lua script) are the lock.
+             DB is only touched once per sale — not 10,000 times.
+```
+
+### Code Example
+
+```javascript
+const express = require('express');
+const redis = require('ioredis');
+const { SQSClient, SendMessageCommand } = require('@aws-sdk/client-sqs');
+
+const app = express();
+const redisClient = new redis(process.env.REDIS_URL);
+const sqs = new SQSClient({ region: 'us-east-1' });
+
+const ITEM_ID = 'flash-item-001';
+const STOCK_KEY = `stock:${ITEM_ID}`;
+const QUEUE_URL = process.env.SQS_QUEUE_URL;
+
+// ----- Lua script: atomically check and decrement stock -----
+// Lua scripts execute as a single atomic operation in Redis — no race conditions
+const decrementIfAvailable = `
+  local stock = tonumber(redis.call('GET', KEYS[1]))
+  if stock and stock > 0 then
+    redis.call('DECR', KEYS[1])
+    return 1   -- success: buyer gets the item
+  else
+    return 0   -- sold out
+  end
+`;
+
+// ----- Route: buyer attempts to purchase -----
+app.post('/flash-sale/buy', async (req, res) => {
+  const { userId, paymentToken } = req.body;
+  const idempotencyKey = `order:${userId}:${ITEM_ID}`;
+
+  // Step 1: Check if this user already has a pending order (idempotency)
+  const existing = await redisClient.get(idempotencyKey);
+  if (existing) {
+    return res.status(409).json({ status: 'already_purchased' });
+  }
+
+  // Step 2: Atomically decrement stock — only ONE buyer can win
+  // Redis processes this Lua script as a single transaction
+  const won = await redisClient.eval(decrementIfAvailable, 1, STOCK_KEY);
+
+  if (won === 0) {
+    // Stock was already 0 — return immediately, no DB, no queue
+    return res.status(410).json({ status: 'sold_out' });
+  }
+
+  // Step 3: Mark this user as having claimed the item (TTL = 15 min to complete payment)
+  await redisClient.setex(idempotencyKey, 900, 'reserved');
+
+  // Step 4: Enqueue order for async processing — don't block the HTTP response on payment
+  await sqs.send(new SendMessageCommand({
+    QueueUrl: QUEUE_URL,
+    MessageBody: JSON.stringify({ userId, itemId: ITEM_ID, paymentToken }),
+    MessageDeduplicationId: idempotencyKey, // prevents SQS duplicate delivery
+    MessageGroupId: 'flash-sale',           // FIFO queue ensures ordered processing
+  }));
+
+  // Respond immediately — payment processes asynchronously
+  res.status(202).json({
+    status: 'reserved',
+    message: 'Your order is being processed. You will be notified.',
+  });
+});
+
+// ----- Worker (separate process) processes the SQS queue -----
+// processOrderFromQueue runs with concurrency=1 to prevent overselling at payment stage
+async function processOrderFromQueue(message) {
+  const { userId, itemId, paymentToken } = JSON.parse(message.Body);
+
+  // Step 5: Write order to DB with idempotency check
+  const orderId = await db.createOrderIfNotExists({ userId, itemId, paymentToken });
+  if (!orderId) return; // duplicate — already processed
+
+  // Step 6: Charge payment with idempotency key so Stripe won't double-charge on retry
+  await stripe.charges.create({
+    amount: 9999,
+    currency: 'usd',
+    source: paymentToken,
+    idempotencyKey: `charge:${userId}:${itemId}`,
+  });
+
+  // Step 7: Notify user via WebSocket or email
+  await notifyUser(userId, { status: 'purchased', orderId });
+}
+```
+
+### Step-by-Step Explanation
+
+1. **CDN + WAF layer** absorbs static traffic and blocks obvious bots / per-IP abuse before requests reach application servers.
+2. **API Gateway throttling** limits burst rate — prevents 10,000 simultaneous connections from overwhelming workers.
+3. **Redis atomic stock check** (Lua script or `DECR`) is the true concurrency gate. Only one operation can read-and-decrement at a time — no two buyers can both see stock > 0 simultaneously.
+4. **Sold-out path is instant**: if Redis returns 0, the API returns `410 Gone` without touching the database. 9,999 buyers get this response in <5ms.
+5. **Winning buyer is enqueued**, not immediately processed through payment. This decouples the flash-sale API from payment latency.
+6. **Idempotency keys** at three levels: Redis (user dedup), SQS (message dedup), Stripe (charge dedup). A crash at any stage can be retried safely.
+7. **Worker processes the queue** at controlled concurrency — serialises the actual DB write and payment call, preventing DB thundering-herd.
+8. **Pre-warm strategy**: stock is loaded into Redis before the sale starts (`SET stock:flash-item-001 1`). Redis never hits the DB during the sale.
+
+### Complexity
+
+| Component | Latency | Why |
+|-----------|---------|-----|
+| Redis DECR (sold out path) | ~0.5ms | In-memory, O(1) |
+| Redis DECR (win path) + SQS enqueue | ~5-10ms | Network to SQS |
+| DB write (worker, async) | ~20-50ms | Doesn't block buyer response |
+| Payment (worker, async) | ~200-500ms | External PSP call |
+| Throughput | ~50k-100k req/s | Redis single-threaded but extremely fast |
+
+---
+
+## Q94: How does the CAP theorem apply when choosing between PostgreSQL and MongoDB?
+
+### ELI5
+
+You run a library with two branches. CAP says you can only guarantee two of three things during a network outage: that both branches have the same books (Consistency), that a branch always answers the phone (Availability), and that the two branches can still talk to each other even with a broken phone line (Partition Tolerance). Since network failures always happen in the real world, you must always have P — so the real choice is: do you shut a branch down until the lines are fixed (CP) or let it keep lending books that might be slightly out of date (AP)?
+
+### Visual Diagram
+
+```
+         CONSISTENCY
+              /\
+             /  \
+            /    \
+    CP     /  ???  \     CA
+          /   pick   \
+         /   any two  \
+        /______________\
+PARTITION               AVAILABILITY
+TOLERANCE
+
+--- Networks always partition → P is mandatory ---
+--- Real choice: CP vs AP ---
+
+PostgreSQL (default, strong consistency):
+  CP system
+  - All nodes agree before responding
+  - During partition: primary stops accepting writes to avoid split-brain
+  - Use when: financial data, inventory counts, anything needing exact truth
+
+MongoDB (with w:majority):
+  CP system (by default with replica sets + w:majority)
+  - Majority of replicas must acknowledge write before returning success
+  - Can tune toward AP by lowering write concern (w:1) + enabling reads from secondaries
+
+MongoDB (with w:1, read from secondaries):
+  AP system
+  - Always available for reads/writes
+  - Stale reads possible (secondary might be seconds behind primary)
+  - Use when: product catalogue, user preferences, analytics — eventual consistency acceptable
+
++------------------+------------------+---------------------+
+| Property         | PostgreSQL       | MongoDB (tunable)   |
++------------------+------------------+---------------------+
+| Default mode     | CP               | CP (w:majority)     |
+| Can be AP?       | No (MVCC, ACID)  | Yes (w:1 + reads)   |
+| ACID tx support  | Full             | Multi-doc (4.0+)    |
+| Partition behav. | Primary freezes  | Configurable        |
++------------------+------------------+---------------------+
+```
+
+### Code Example
+
+```javascript
+// ----- PostgreSQL: CP behaviour — strong consistency -----
+// Uses serializable isolation — reads always see committed, consistent data
+// During a network partition, the primary simply stops accepting writes
+
+const { Pool } = require('pg');
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+
+// This query will either return accurate data or fail — never stale data
+async function getAccountBalance(accountId) {
+  const { rows } = await pool.query(
+    'SELECT balance FROM accounts WHERE id = $1',
+    [accountId]
+  );
+  return rows[0]?.balance; // always the latest committed value
+}
+
+// ----- MongoDB: tunable consistency -----
+const { MongoClient } = require('mongodb');
+const client = new MongoClient(process.env.MONGO_URI);
+
+// CP mode: w:majority ensures all replica majority acknowledge
+// Safe for writes that must never be lost (e.g. orders, payments)
+async function writeOrderCP(order) {
+  const db = client.db('shop');
+  await db.collection('orders').insertOne(order, {
+    writeConcern: { w: 'majority', j: true }, // j:true = written to journal (disk)
+  });
+}
+
+// AP mode: w:1 + read from secondaries — fast but eventually consistent
+// Fine for product catalogue, session data, analytics counters
+async function readProductCatalogueAP(productId) {
+  const db = client.db('shop');
+  // readPreference: secondary may return data 0-200ms behind primary
+  return db.collection('products')
+    .findOne({ _id: productId }, { readPreference: 'secondaryPreferred' });
+}
+
+// ----- Choosing based on business requirement -----
+// "User just paid — show their updated balance" -> PostgreSQL or MongoDB w:majority
+// "Show product recommendations" -> MongoDB w:1, read secondary — staleness tolerable
+// "Deduct inventory for flash sale" -> Redis atomic + Postgres for final write
+```
+
+### Step-by-Step Explanation
+
+1. **CAP Theorem**: in a distributed system you can guarantee at most two of: Consistency (every read returns the latest write), Availability (every request gets a non-error response), Partition Tolerance (system works despite network splits).
+2. **Network partitions always happen** (hardware failures, data centre splits) so P is not optional — the real design choice is whether to sacrifice C or A during a partition.
+3. **Consistency-over-Availability (CP)**: the system stops responding (or returns errors) rather than return stale/inconsistent data. PostgreSQL's primary goes read-only during a partition.
+4. **Availability-over-Consistency (AP)**: the system keeps serving requests but some nodes may return stale data. MongoDB with `w:1` and `readPreference: secondary` behaves this way.
+5. **PostgreSQL is always CP** — MVCC and serialisable transactions make it physically impossible to return stale committed data.
+6. **MongoDB is a tunable CP/AP system** — write concern (`w:majority` vs `w:1`) and read preference (`primary` vs `secondary`) let you choose per-operation.
+7. **PACELC model** extends CAP: even when there is no partition (normal operation), you must trade off latency vs consistency. MongoDB secondaries improve read latency at the cost of consistency.
+8. **Decision guide**: Use PostgreSQL for money, inventory, auth. Use MongoDB for documents that tolerate eventual consistency (catalogue, logs, user activity, preferences).
+
+### Complexity
+
+| Scenario | PostgreSQL | MongoDB w:majority | MongoDB w:1 |
+|----------|------------|--------------------|-------------|
+| Network partition behaviour | Primary halts writes | Primary halts writes | Writes continue (risk loss) |
+| Read freshness | Always latest | Always latest | May be stale (seconds) |
+| Write latency | Medium (WAL fsync) | Higher (replica ack) | Low (ack from primary only) |
+| ACID multi-document | Full | Supported (4.0+) | Supported |
+| Best use | Financial, inventory | Orders, auth | Catalogue, analytics |
+
+---
+
+## Q95: What is the difference between horizontal and vertical scaling? When does each make sense?
+
+### ELI5
+
+Vertical scaling is making your one worker bigger and stronger — give them a better computer, more RAM, a faster CPU. Horizontal scaling is hiring more workers and splitting the work across all of them. There is a ceiling on how big one worker can get (the best server in the world still has a limit), but you can always hire more workers — as long as you can split the work fairly (load balancing) and the workers can share information (shared state, distributed cache).
+
+### Visual Diagram
+
+```
+VERTICAL SCALING (scale up):
+  Before:       After:
+  [Server 4GB]  [Server 64GB]  <-- same machine, bigger hardware
+  One instance, no code change, but has a ceiling (max EC2/VM size)
+
+HORIZONTAL SCALING (scale out):
+  Before:           After:
+  [Server A]        [Server A]
+                    [Server B]   <-- new instances added
+                    [Server C]
+                    [Server D]
+        |
+  [Load Balancer]  <-- distributes traffic across A, B, C, D
+        |
+  [Shared State]   <-- Redis, DB, S3 (cannot be local to each server)
+
+--- When to use each ---
+
++----------------------+------------------------+------------------------+
+| Factor               | Vertical               | Horizontal             |
++----------------------+------------------------+------------------------+
+| App is stateful      | Good (single session)  | Hard (need sticky      |
+|                      |                        | sessions / shared cache)|
+| Cost at scale        | Expensive (premium hw) | Cheaper (commodity)    |
+| Downtime for scaling | Yes (restart needed)   | No (add instances live)|
+| Ceiling              | Hard limit ~100s GBs   | Virtually unlimited    |
+| Example              | Single Postgres DB     | Stateless Node.js API  |
++----------------------+------------------------+------------------------+
+```
+
+### Code Example
+
+```javascript
+// ----- Stateless Node.js service — ready for horizontal scaling -----
+// Key rule: NOTHING stored in-process memory that needs to survive across requests
+
+const express = require('express');
+const redis = require('ioredis');
+const app = express();
+
+const cache = new redis(process.env.REDIS_URL); // shared across ALL instances
+
+// BAD: storing session in local memory — instance B won't know about it
+// const sessions = {}; // <-- breaks horizontal scaling
+
+// GOOD: store sessions in Redis — all instances share the same state
+app.use(require('express-session')({
+  store: new (require('connect-redis')(require('express-session')))({ client: cache }),
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+}));
+
+// Stateless route — no instance-local state used
+app.get('/api/products', async (req, res) => {
+  // Cache check goes to Redis, not local variable — works on any instance
+  const cached = await cache.get('products:all');
+  if (cached) return res.json(JSON.parse(cached));
+
+  const products = await db.query('SELECT * FROM products');
+  await cache.setex('products:all', 60, JSON.stringify(products));
+  res.json(products);
+});
+
+app.listen(process.env.PORT || 3000);
+
+// ----- ECS / EC2 Auto Scaling: horizontal scale triggers -----
+// aws autoscaling put-scaling-policy \
+//   --scaling-adjustment 2 \        <-- add 2 instances when triggered
+//   --adjustment-type ChangeInCapacity \
+//   --metric-aggregation-type Average
+//
+// Trigger on: CPU > 70% for 2 consecutive 60s periods
+
+// ----- Vertical scaling: RDS example -----
+// You cannot horizontally scale a single Postgres writer easily.
+// Scale vertically: db.t3.medium -> db.r6g.2xlarge (8 vCPU, 64 GB RAM)
+// Then add read replicas (horizontal) for read-only traffic.
+```
+
+### Step-by-Step Explanation
+
+1. **Vertical scaling** (scale up): increase CPU, RAM, or disk on the existing machine. Simple — no code changes, no architecture changes. Has a hard ceiling and typically requires downtime or a stop/restart.
+2. **Horizontal scaling** (scale out): add more instances of the same service behind a load balancer. No ceiling in theory, enables zero-downtime scaling, but requires the application to be stateless.
+3. **Stateless requirement**: for horizontal scaling, each request must be servable by ANY instance. No in-process memory (local variables, in-memory caches, local file system) can hold state that must survive across requests.
+4. **Shared state layer**: horizontally scaled apps need to push shared state to external systems — sessions to Redis, uploads to S3, queues to SQS/Kafka, DB writes to a single writer or distributed DB.
+5. **Databases are usually vertically scaled first** — scaling writes horizontally requires sharding or a distributed DB (CockroachDB, DynamoDB), which adds complexity. Read replicas are horizontal but only for reads.
+6. **Start vertical, go horizontal**: for a new service, vertical scaling is simpler and cheaper. As you hit CPU/memory limits or need high availability (no single point of failure), move to horizontal with a load balancer.
+7. **Auto Scaling Groups (AWS) or HPA (Kubernetes)** implement horizontal scaling automatically based on CPU, memory, or custom metrics like SQS queue depth.
+8. **Cost inversion at scale**: a single beefy server is expensive per unit. Many commodity servers are cheaper per unit and provide redundancy — horizontal scaling wins at high scale.
+
+### Complexity
+
+| Dimension | Vertical | Horizontal |
+|-----------|----------|------------|
+| Implementation effort | Low — change instance type | Medium — stateless design required |
+| Downtime | Usually yes | No (rolling deploys) |
+| Upper limit | Machine size (e.g. 128 vCPU) | Virtually unlimited |
+| Cost efficiency at scale | Poor | Good |
+| Best for | Databases (writer), legacy apps | Stateless APIs, workers, microservices |
+| Failure tolerance | Single point of failure | High (N-1 redundancy) |
+
+---
+
+## Q96: How does a CDN work? What should and shouldn't you cache on a CDN?
+
+### ELI5
+
+A CDN is like a chain of local libraries scattered all over the world. When you write a new book (publish a file), copies are sent to every local library. Now when a reader (user) in Tokyo wants that book, they get it from the Tokyo library in 5ms — not from your publishing house in New York (which would take 200ms). The CDN caches your files close to your users. But if the book contains personalised chapters with the reader's name (dynamic/user-specific data), you cannot pre-print it — each reader needs their own custom copy from the publisher.
+
+### Visual Diagram
+
+```
+Without CDN:
+  User (Tokyo) ------200ms------> Origin Server (New York)
+                                         |
+                                  reads file, returns
+  User (Tokyo) <-----200ms--------------+
+
+With CDN:
+  First request (MISS):
+  User (Tokyo) --5ms--> CDN Edge (Tokyo)
+                              |  cache miss
+                              +----150ms----> Origin (New York)
+                              <----150ms----- file returned
+                              stores in edge cache
+  User (Tokyo) <--5ms-- CDN Edge returns file
+
+  Subsequent requests (HIT):
+  User (Tokyo) --5ms--> CDN Edge (Tokyo) --5ms--> User (Tokyo)
+                        (served from cache, origin not touched)
+
+--- What to cache / not cache ---
+
++----------------------------+------------------+--------------------+
+| Content                    | Cache on CDN?    | Cache-Control      |
++----------------------------+------------------+--------------------+
+| JS/CSS bundles (hashed)    | YES              | max-age=31536000   |
+| Images, fonts, videos      | YES              | max-age=86400+     |
+| HTML (static site)         | YES              | max-age=60-3600    |
+| API responses (public)     | Sometimes        | max-age=30-300     |
+| API responses (authed)     | NO               | no-store, private  |
+| User profile pages         | NO               | private            |
+| Payment / checkout         | NO               | no-store           |
+| Admin pages                | NO               | no-store           |
++----------------------------+------------------+--------------------+
+```
+
+### Code Example
+
+```javascript
+const express = require('express');
+const app = express();
+
+// ----- Static assets: cache aggressively on CDN -----
+// Webpack/Vite adds content hash to filenames: main.a3f92b.js
+// Hash changes on every deploy → safe to cache forever
+app.use('/static', express.static('dist', {
+  maxAge: '1y',           // tells CDN: cache for 1 year
+  immutable: true,        // tells CDN: never check for updates
+  // Cache-Control: public, max-age=31536000, immutable
+}));
+
+// ----- Public API responses: short TTL cache -----
+// Product list changes rarely — 60 seconds is fine
+app.get('/api/products', (req, res) => {
+  res.set({
+    'Cache-Control': 'public, max-age=60, s-maxage=300',
+    // max-age=60: browser caches 60s
+    // s-maxage=300: CDN caches 300s (overrides max-age for shared caches)
+    'Surrogate-Key': 'products',  // CloudFront / Fastly tag for selective purge
+  });
+  res.json(products);
+});
+
+// ----- Authenticated endpoint: MUST NOT be cached on CDN -----
+app.get('/api/profile', authenticate, (req, res) => {
+  res.set({
+    'Cache-Control': 'private, no-store',
+    // private: browser can cache but CDN must not
+    // no-store: don't cache anywhere (safest for sensitive data)
+  });
+  res.json({ user: req.user });
+});
+
+// ----- CDN cache invalidation using CloudFront -----
+const { CloudFrontClient, CreateInvalidationCommand } = require('@aws-sdk/client-cloudfront');
+const cf = new CloudFrontClient({ region: 'us-east-1' });
+
+async function invalidateProductCache() {
+  // Called when a product is updated — forces CDN to refetch from origin
+  await cf.send(new CreateInvalidationCommand({
+    DistributionId: process.env.CF_DISTRIBUTION_ID,
+    InvalidationBatch: {
+      CallerReference: Date.now().toString(),
+      Paths: { Quantity: 1, Items: ['/api/products*'] },
+    },
+  }));
+}
+```
+
+### Step-by-Step Explanation
+
+1. A CDN has **Points of Presence (PoPs)** — servers located in cities worldwide near users.
+2. On first request to an edge PoP (cache **miss**), the PoP forwards the request to your **origin server**, stores the response, and returns it.
+3. On subsequent requests (cache **hit**), the edge serves the cached response in milliseconds — origin is never contacted, saving bandwidth and latency.
+4. **Cache-Control headers** on your origin responses govern CDN behaviour: `max-age` sets TTL, `s-maxage` overrides for shared caches (CDN), `private` prevents CDN caching, `no-store` disables all caching.
+5. **What to cache**: anything public and not user-specific — static assets (JS, CSS, images, fonts), public API responses, static HTML pages.
+6. **What NOT to cache**: authenticated responses (user profile, cart, orders), forms with CSRF tokens, payment/checkout pages, admin dashboards.
+7. **Cache busting**: for static assets, include a content hash in the filename (`bundle.abc123.js`). When you deploy, the filename changes, so old cached files are never served from CDN and no manual invalidation is needed.
+8. **CDN invalidation**: when dynamic content changes (product price update), call the CDN API to purge the cache for specific paths. Expensive at scale — use short TTLs or purge-by-tag (Surrogate-Key / Cache-Tag) instead of individual path purges.
+
+### Complexity
+
+| Metric | Without CDN | With CDN |
+|--------|-------------|----------|
+| Latency (cross-continent) | 100-300ms | 3-20ms |
+| Origin load (cache hit) | 100% requests hit origin | Near 0% for cache hits |
+| TTFB for static assets | ~100ms+ | ~5-15ms |
+| Cost | Pay for all origin bandwidth | Pay CDN bandwidth (cheaper) |
+| Cache invalidation lag | Instant | Up to TTL duration |
+
+---
+
+## Q97: What is the Circuit Breaker pattern? What are its 3 states?
+
+### ELI5
+
+Think of the circuit breaker in your home fuse box. When something goes wrong (too much current / a service keeps failing), the breaker trips and cuts power — stopping the flow immediately. Without it, the faulty appliance could damage everything else. After a set time, you flip the breaker back to test if things are fixed. In software, a circuit breaker sits between your service and an external dependency (payment gateway, third-party API). When that dependency keeps failing, the breaker "opens" and immediately returns an error instead of waiting for timeouts — protecting your service from cascading failure.
+
+### Visual Diagram
+
+```
+States:
+
+CLOSED (normal operation):
+  Your Service --request--> External API
+  Success: counter resets
+  Failure: failure counter++
+  If failures >= threshold --> OPEN
+
+OPEN (dependency is failing):
+  Your Service --request--> [CIRCUIT BREAKER]
+                               |
+                    immediately returns fallback/error
+                    External API is NOT called
+  After timeout --> HALF-OPEN
+
+HALF-OPEN (testing if dependency recovered):
+  Your Service --ONE test request--> External API
+  Success: --> back to CLOSED
+  Failure: --> back to OPEN
+
+State Transitions:
+  CLOSED -----(N failures in window)-----> OPEN
+  OPEN   -----(timeout elapsed)---------> HALF-OPEN
+  HALF-OPEN --(1 success)---------------> CLOSED
+  HALF-OPEN --(1 failure)---------------> OPEN
+
+Without Circuit Breaker (cascading failure):
+  ServiceA --> ServiceB --> ServiceC (DOWN)
+  ServiceB waits 30s for timeout
+  ServiceA waits 30s for ServiceB
+  Thread pool exhausted --> ServiceA crashes too
+
+With Circuit Breaker:
+  ServiceA --> ServiceB --> [OPEN breaker] --> instant fallback
+  ServiceB responds in <1ms
+  ServiceA stays healthy
+```
+
+### Code Example
+
+```javascript
+// Using 'opossum' — the standard Node.js circuit breaker library
+const CircuitBreaker = require('opossum');
+const axios = require('axios');
+
+// ----- The function we want to protect -----
+// This calls an external payment gateway that might be slow or down
+async function callPaymentGateway(payload) {
+  const response = await axios.post('https://payments.example.com/charge', payload, {
+    timeout: 3000, // don't wait more than 3s
+  });
+  return response.data;
+}
+
+// ----- Wrap it with circuit breaker -----
+const breaker = new CircuitBreaker(callPaymentGateway, {
+  timeout: 3000,         // call is a failure if it takes > 3s
+  errorThresholdPercentage: 50, // open when 50% of calls fail within the rolling window
+  resetTimeout: 30000,   // after 30s in OPEN, move to HALF-OPEN to test recovery
+  rollingCountTimeout: 10000,   // 10s rolling window for failure rate calculation
+  rollingCountBuckets: 10,      // divide the window into 10 buckets (1s each)
+});
+
+// ----- Fallback: what to return when circuit is OPEN -----
+breaker.fallback((payload) => {
+  // Return a safe default instead of letting the error propagate
+  console.warn('Payment gateway circuit is OPEN — using fallback');
+  return { status: 'queued', message: 'Payment will be retried shortly' };
+});
+
+// ----- Event listeners for monitoring -----
+breaker.on('open',     () => console.error('Circuit OPENED — payment gateway failing'));
+breaker.on('halfOpen', () => console.info('Circuit HALF-OPEN — testing recovery'));
+breaker.on('close',    () => console.info('Circuit CLOSED — payment gateway recovered'));
+breaker.on('fallback', (result) => console.warn('Fallback served:', result));
+
+// ----- Express route using the breaker -----
+const app = require('express')();
+app.use(require('express').json());
+
+app.post('/checkout', async (req, res, next) => {
+  try {
+    // breaker.fire() calls callPaymentGateway when CLOSED
+    // returns fallback immediately when OPEN
+    const result = await breaker.fire(req.body);
+    res.json(result);
+  } catch (err) {
+    next(err); // error handler sends 503
+  }
+});
+```
+
+### Step-by-Step Explanation
+
+1. **CLOSED state** (normal): requests pass through to the dependency. A rolling window tracks the failure rate. When failures exceed the threshold (e.g. 50% of requests in 10s), the breaker trips to OPEN.
+2. **OPEN state** (dependency suspected down): the breaker immediately returns a fallback response without calling the dependency. This prevents thread/connection exhaustion and keeps your service fast even when the dependency is dead. After a reset timeout (e.g. 30s), moves to HALF-OPEN.
+3. **HALF-OPEN state** (testing): allows a single test request through to the real dependency. Success → back to CLOSED. Failure → back to OPEN.
+4. The key benefit is **fail fast**: instead of waiting 30s for a timeout on every request, you fail in <1ms while the breaker is open.
+5. **Fallbacks** provide graceful degradation — a cached result, a default value, or a "queued for later" response.
+6. Why not just timeouts? Timeouts still block a thread for N seconds. A circuit breaker stops the flood of blocking requests.
+7. **Bulkhead pattern** is complementary: limits the number of concurrent calls to a dependency so a slow service can't consume all your threads.
+8. Combine with **retry + exponential backoff** in HALF-OPEN state to avoid hammering a recovering service.
+
+### Complexity
+
+| State | Caller experience | Dependency impact |
+|-------|-------------------|-------------------|
+| CLOSED (healthy) | Normal latency | Full traffic |
+| CLOSED (degrading) | Slow (timeout wait) | Full traffic + errors |
+| OPEN | <1ms (instant fallback) | Zero traffic |
+| HALF-OPEN | One real call, rest fallback | One probe request |
+| Transition overhead | O(1) per request | None |
+
+---
+
+## Q98: What is the difference between optimistic and pessimistic locking? When would you use each?
+
+### ELI5
+
+Two people want to edit the same Google Doc. Pessimistic locking is like printing the doc, putting a "LOCKED — do not touch" sign on it, editing your printed copy, then unlocking it. Nobody else can print another copy while you hold the lock. Optimistic locking is like both people editing a copy at the same time. When you save, Google checks: "has this doc changed since you opened it?" If yes, your save is rejected and you must merge. Optimistic is faster when conflicts are rare. Pessimistic is safer when conflicts are likely and collisions must be prevented.
+
+### Visual Diagram
+
+```
+PESSIMISTIC LOCKING:
+  User A: SELECT ... FOR UPDATE   <-- database locks the row
+  User B: SELECT ... FOR UPDATE   <-- BLOCKED, waits for A to finish
+  User A: UPDATE + COMMIT         <-- lock released
+  User B: now gets the lock, reads updated value, proceeds
+
+OPTIMISTIC LOCKING:
+  User A reads row: { balance: 100, version: 5 }
+  User B reads row: { balance: 100, version: 5 }  (both get same snapshot)
+
+  User A tries to update:
+    UPDATE accounts SET balance=90, version=6 WHERE id=1 AND version=5
+    -- succeeds (version still 5) -- rows affected: 1
+
+  User B tries to update:
+    UPDATE accounts SET balance=80, version=6 WHERE id=1 AND version=5
+    -- FAILS (version is now 6, not 5) -- rows affected: 0
+    -- application must retry with fresh read
+
++---------------------+--------------------+----------------------+
+| Factor              | Pessimistic        | Optimistic           |
++---------------------+--------------------+----------------------+
+| Mechanism           | DB row lock        | Version/timestamp    |
+| Blocks?             | Yes                | No                   |
+| Good for            | High contention    | Low contention       |
+| Risk                | Deadlock possible  | Stale read + retry   |
+| DB overhead         | Lock manager cost  | Extra version column |
++---------------------+--------------------+----------------------+
+```
+
+### Code Example
+
+```javascript
+const { Pool } = require('pg');
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+
+// ----- PESSIMISTIC LOCKING: SELECT FOR UPDATE -----
+// Use when: deducting inventory, transferring money — conflicts are likely
+async function transferMoneyPessimistic(fromId, toId, amount) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    // Lock both rows immediately — no other transaction can change them until we COMMIT
+    // Order IDs consistently (lower first) to prevent deadlocks
+    const [firstId, secondId] = fromId < toId ? [fromId, toId] : [toId, fromId];
+    const { rows } = await client.query(
+      'SELECT id, balance FROM accounts WHERE id = ANY($1) ORDER BY id FOR UPDATE',
+      [[firstId, secondId]]
+    );
+
+    const from = rows.find(r => r.id === fromId);
+    const to   = rows.find(r => r.id === toId);
+
+    if (from.balance < amount) throw new Error('Insufficient funds');
+
+    await client.query('UPDATE accounts SET balance = balance - $1 WHERE id = $2', [amount, fromId]);
+    await client.query('UPDATE accounts SET balance = balance + $1 WHERE id = $2', [amount, toId]);
+
+    await client.query('COMMIT');
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
+// ----- OPTIMISTIC LOCKING: version column -----
+// Use when: updating user profile, product description — conflicts rare
+async function updateProductOptimistic(productId, newPrice, knownVersion) {
+  const result = await pool.query(
+    // WHERE version = knownVersion ensures we only update if nobody else changed it
+    `UPDATE products
+     SET price = $1, version = version + 1
+     WHERE id = $2 AND version = $3
+     RETURNING *`,
+    [newPrice, productId, knownVersion]
+  );
+
+  if (result.rowCount === 0) {
+    // Another process updated the row between our read and write
+    // Application must re-read the row and retry with the new version
+    throw new ConflictError('Product was modified by another process — please retry');
+  }
+
+  return result.rows[0];
+}
+
+// ----- Mongoose optimistic locking (built-in with mongoose-update-if-current) -----
+// const mongoose = require('mongoose');
+// const schema = new mongoose.Schema({ price: Number }, { optimisticConcurrency: true });
+// model.save() automatically uses __v (version key) and throws VersionError on conflict
+```
+
+### Step-by-Step Explanation
+
+1. **Pessimistic locking**: acquire an exclusive lock on a database row before reading and modifying it. Other transactions that try to lock the same row are **blocked** until the lock is released. Implemented in SQL with `SELECT ... FOR UPDATE`.
+2. **Optimistic locking**: no lock is acquired. Instead, a `version` column (or `updatedAt` timestamp) is read alongside the data. On write, include `WHERE version = <value-read>` — if another process changed the row, the WHERE clause matches 0 rows and the update fails. The application retries.
+3. **Deadlock risk with pessimistic**: if two transactions each lock different rows and then try to lock each other's rows, both wait forever. Prevent by always acquiring multiple locks in a consistent order (lower ID first).
+4. **Choose pessimistic when**: high contention (many concurrent writers), you cannot afford to retry (financial transfers), or conflicts are frequent (inventory during flash sales).
+5. **Choose optimistic when**: reads heavily outnumber writes, conflicts are rare (user profile updates), the retry cost is low, and blocking writers would be worse than occasional retries.
+6. **MVCC in PostgreSQL** is not optimistic locking — it handles read/write concurrency automatically. Explicit optimistic locking is an application-level pattern layered on top.
+7. **HTTP ETags** are optimistic locking for REST APIs — `GET` returns an `ETag`, `PUT` sends `If-Match: <ETag>`, server rejects with `412 Precondition Failed` if the resource changed.
+8. Mongoose has built-in optimistic locking via the `__v` version key and the `optimisticConcurrency` plugin.
+
+### Complexity
+
+| Metric | Pessimistic | Optimistic |
+|--------|-------------|------------|
+| Blocking | Yes — other writers wait | No blocking |
+| Throughput under low contention | Lower (lock overhead) | Higher |
+| Throughput under high contention | Better (prevents retries) | Poor (many retries) |
+| Deadlock risk | Yes (multi-row locks) | No |
+| Implementation | `SELECT FOR UPDATE` | Add `version` column + retry logic |
+| Best scenario | Bank transfers, inventory | CMS edits, user profiles |
+
+---
