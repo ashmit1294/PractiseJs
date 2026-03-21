@@ -7865,3 +7865,1729 @@ console.log(hasCycle(solo));   // true
 | Floyd's (hasCycle) | O(n) | O(1) | No extra data structures |
 | Hash Set approach | O(n) | O(n) | Store all visited nodes |
 | detectCycleStart | O(n) | O(1) | Two phases, both O(n) |
+
+## Q148: Maximum depth (height) of a binary tree.
+
+### ELI5
+The depth of a binary tree is the number of nodes along the longest path from the root down to the farthest leaf. Think of it as how many floors a building has -- you go from the top floor (root) and count how many floors you descend to reach the lowest room (leaf node). Recursively: the depth of a tree is 1 (for the root) plus the maximum depth of its left or right subtree.
+
+### Visual Diagram
+```
+         1           <- depth 1
+        / \
+       2   3         <- depth 2
+      / \
+     4   5           <- depth 3
+    /
+   6                 <- depth 4
+
+  maxDepth(1) = 1 + max( maxDepth(2), maxDepth(3) )
+             = 1 + max( 1 + max(maxDepth(4), maxDepth(5)), 1 )
+             = 1 + max( 1 + max(1 + maxDepth(6), 1), 1 )
+             = 1 + max( 1 + max(1 + 1, 1), 1 )
+             = 1 + max( 1 + 2, 1 )
+             = 1 + 3
+             = 4
+```
+
+### Code Example
+```javascript
+class TreeNode {
+  constructor(val, left = null, right = null) {
+    this.val = val;
+    this.left = left;
+    this.right = right;
+  }
+}
+
+// ============================================================
+// Recursive (DFS) -- O(n) time, O(h) space (h = height of tree)
+// ============================================================
+function maxDepthRecursive(root) {
+  if (root === null) return 0;
+
+  const leftDepth  = maxDepthRecursive(root.left);
+  const rightDepth = maxDepthRecursive(root.right);
+
+  return 1 + Math.max(leftDepth, rightDepth);
+}
+
+// ============================================================
+// Iterative BFS (level-order) -- O(n) time, O(w) space
+// w = max width of tree (worst case O(n) for complete tree)
+// ============================================================
+function maxDepthBFS(root) {
+  if (root === null) return 0;
+
+  const queue = [root];
+  let depth = 0;
+
+  while (queue.length > 0) {
+    depth++;
+    const levelSize = queue.length; // nodes at current level
+
+    for (let i = 0; i < levelSize; i++) {
+      const node = queue.shift();
+      if (node.left)  queue.push(node.left);
+      if (node.right) queue.push(node.right);
+    }
+    // After processing all nodes at current level, depth++
+  }
+
+  return depth;
+}
+
+// ============================================================
+// Iterative DFS (using explicit stack) -- O(n) time, O(h) space
+// ============================================================
+function maxDepthDFS(root) {
+  if (root === null) return 0;
+
+  // Stack stores [node, currentDepth] pairs
+  const stack = [[root, 1]];
+  let maxDepth = 0;
+
+  while (stack.length > 0) {
+    const [node, depth] = stack.pop();
+    maxDepth = Math.max(maxDepth, depth);
+
+    if (node.left)  stack.push([node.left,  depth + 1]);
+    if (node.right) stack.push([node.right, depth + 1]);
+  }
+
+  return maxDepth;
+}
+
+// ============================================================
+// Tests
+// ============================================================
+
+// Build tree:
+//       1
+//      / \
+//     2   3
+//    / \
+//   4   5
+//  /
+// 6
+const root = new TreeNode(1,
+  new TreeNode(2,
+    new TreeNode(4,
+      new TreeNode(6)
+    ),
+    new TreeNode(5)
+  ),
+  new TreeNode(3)
+);
+
+console.log(maxDepthRecursive(root)); // 4
+console.log(maxDepthBFS(root));       // 4
+console.log(maxDepthDFS(root));       // 4
+
+// Edge cases
+console.log(maxDepthRecursive(null)); // 0
+console.log(maxDepthRecursive(new TreeNode(1))); // 1 (single node)
+
+// Balanced tree depth 3
+//     1
+//    / \
+//   2   3
+//  / \ / \
+// 4  5 6  7
+const balanced = new TreeNode(1,
+  new TreeNode(2, new TreeNode(4), new TreeNode(5)),
+  new TreeNode(3, new TreeNode(6), new TreeNode(7))
+);
+console.log(maxDepthRecursive(balanced)); // 3
+```
+
+### Step-by-Step Explanation
+1. **Base case**: An empty subtree (`null`) has depth 0. A leaf node (both children null) returns 1 + max(0, 0) = 1.
+2. **Recursion**: Depth = 1 (for current node) + max depth of either subtree. The recursion naturally explores all paths and the "max" bubbles up the deepest path.
+3. **BFS approach**: Process the tree level by level. Each time we finish a level (exhaust `levelSize` nodes), depth is incremented. When the queue empties, depth equals the number of levels.
+4. **DFS iterative**: Use an explicit stack storing `[node, depthAtNode]`. At each pop, update `maxDepth`. Push children with `depth + 1`. Avoids the O(n) call-stack risk of deep trees.
+5. **Space tradeoff**: Recursive DFS uses O(h) call stack (O(n) for a skewed tree). BFS uses O(w) where w is max width (O(n) for a complete tree at bottom level). Iterative DFS uses O(h).
+
+### Complexity
+
+| Approach | Time | Space | Notes |
+|----------|------|-------|-------|
+| Recursive DFS | O(n) | O(h) | h = height; O(n) worst for skewed tree |
+| Iterative BFS | O(n) | O(w) | w = max width; O(n) for complete tree |
+| Iterative DFS | O(n) | O(h) | Same as recursive but explicit stack |
+
+## Q149: Validate a Binary Search Tree (BST).
+
+### ELI5
+A Binary Search Tree has one rule: every node in the LEFT subtree must be LESS THAN the current node's value, and every node in the RIGHT subtree must be GREATER THAN the current node's value. A common mistake is only checking the immediate parent -- but we need to check ALL ancestors. The trick is to pass down a valid range `(min, max)` as we recurse: the root can be anything (-infinity to +infinity), but going left tightens the upper bound, and going right tightens the lower bound.
+
+### Visual Diagram
+```
+  Valid BST:
+         5
+        / \
+       3   7
+      / \ / \
+     2  4 6  8
+  Range check:
+  5 in (-inf, +inf)  OK
+  3 in (-inf, 5)     OK
+  7 in (5, +inf)     OK
+  2 in (-inf, 3)     OK
+  4 in (3, 5)        OK
+  6 in (5, 7)        OK
+  8 in (7, +inf)     OK
+
+  Invalid BST:
+         5
+        / \
+       3   7
+        \
+         6    <- 6 > 5 but is in the LEFT subtree of 5 -> INVALID
+              (range for right child of 3 is (3,5), but 6 is not in (3,5))
+```
+
+### Code Example
+```javascript
+class TreeNode {
+  constructor(val, left = null, right = null) {
+    this.val = val; this.left = left; this.right = right;
+  }
+}
+
+// ============================================================
+// Approach 1: Min/Max range propagation (recursive)
+// Most intuitive and interview-standard
+// ============================================================
+function isValidBST(root, min = -Infinity, max = Infinity) {
+  if (root === null) return true; // empty tree is valid
+
+  // Current node must be strictly within (min, max)
+  if (root.val <= min || root.val >= max) return false;
+
+  // Going LEFT: the new upper bound is root.val (everything left < root.val)
+  // Going RIGHT: the new lower bound is root.val (everything right > root.val)
+  return (
+    isValidBST(root.left,  min,       root.val) &&
+    isValidBST(root.right, root.val,  max)
+  );
+}
+
+// ============================================================
+// Approach 2: In-order traversal (iterative)
+// A valid BST produces a strictly increasing sequence when traversed in-order.
+// ============================================================
+function isValidBSTInorder(root) {
+  const stack = [];
+  let prev = -Infinity;
+  let curr = root;
+
+  while (curr !== null || stack.length > 0) {
+    // Go as far left as possible
+    while (curr !== null) {
+      stack.push(curr);
+      curr = curr.left;
+    }
+
+    // Process node
+    curr = stack.pop();
+
+    if (curr.val <= prev) return false; // not strictly increasing
+    prev = curr.val;
+
+    // Move to right subtree
+    curr = curr.right;
+  }
+
+  return true;
+}
+
+// ============================================================
+// Tests
+// ============================================================
+
+// Valid BST:       5
+//                 / \
+//                3   7
+//               / \ / \
+//              2  4 6  8
+const validBST = new TreeNode(5,
+  new TreeNode(3, new TreeNode(2), new TreeNode(4)),
+  new TreeNode(7, new TreeNode(6), new TreeNode(8))
+);
+console.log(isValidBST(validBST));         // true
+console.log(isValidBSTInorder(validBST));  // true
+
+// Invalid BST:  5
+//              / \
+//             1   4    <- 4 is right child of 5 but 4 < 5: INVALID
+//                / \
+//               3   6
+const invalid1 = new TreeNode(5,
+  new TreeNode(1),
+  new TreeNode(4, new TreeNode(3), new TreeNode(6))
+);
+console.log(isValidBST(invalid1));         // false
+console.log(isValidBSTInorder(invalid1));  // false
+
+// Tricky: looks valid locally but fails global range check
+//       10
+//      /  \
+//     5    15
+//         /  \
+//        6    20   <- 6 < 10, should be in left subtree of 10: INVALID
+const tricky = new TreeNode(10,
+  new TreeNode(5),
+  new TreeNode(15, new TreeNode(6), new TreeNode(20))
+);
+console.log(isValidBST(tricky));           // false
+console.log(isValidBSTInorder(tricky));    // false
+
+// Edge cases
+console.log(isValidBST(null));                       // true
+console.log(isValidBST(new TreeNode(1)));             // true
+console.log(isValidBST(new TreeNode(2, new TreeNode(2), null))); // false (equal not allowed)
+```
+
+### Step-by-Step Explanation
+1. **Why `(min, max)` bounds and not just compare with parent?**: Each node must be less than ALL its ancestors that it branched right from and greater than ALL ancestors it branched left from. Just comparing with the direct parent would miss violations deeper in the tree.
+2. **Range tightening**: Going left from node with value `v`: everything below must be `< v`, so `max = v`. Going right: everything must be `> v`, so `min = v`.
+3. **Strict inequality**: BSTs typically require STRICTLY less than / greater than (duplicates not allowed). The check is `val <= min || val >= max` (not `<` / `>`).
+4. **In-order approach**: A BST in-order traversal (left, root, right) always produces a sorted ascending sequence. If we ever see a value <= the previous value, it is not a valid BST.
+5. **Integer overflow edge case**: The problem uses `-Infinity` / `+Infinity` to avoid integer overflow that occurs when using `Number.MIN_SAFE_INTEGER` or `Integer.MIN_VALUE` in other languages.
+
+### Complexity
+
+| Approach | Time | Space | Notes |
+|----------|------|-------|-------|
+| Min/max recursive | O(n) | O(h) | h = tree height |
+| In-order iterative | O(n) | O(h) | Stack size = height |
+
+## Q150: Binary search on a sorted array.
+
+### ELI5
+Binary search works on a SORTED array. Instead of checking every element (O(n) linear search), you look at the MIDDLE element and ask: "Is my target less than, equal to, or greater than the middle?" If equal -- done. If less -- the target must be in the LEFT half. If greater -- it must be in the RIGHT half. You discard half the remaining elements every step, so you find any element in O(log n) steps.
+
+### Visual Diagram
+```
+  arr = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19]
+  target = 7
+
+  left=0, right=9
+  mid = 4,  arr[4]=9  > 7  -> search LEFT half
+  left=0, right=3
+  mid = 1,  arr[1]=3  < 7  -> search RIGHT half
+  left=2, right=3
+  mid = 2,  arr[2]=5  < 7  -> search RIGHT half
+  left=3, right=3
+  mid = 3,  arr[3]=7  == 7  -> FOUND at index 3
+
+  Each step halves the search space:
+  10 -> 5 -> 3 -> 2 -> 1    (log2(10) ~ 3.3 steps)
+```
+
+### Code Example
+```javascript
+// ============================================================
+// Iterative binary search (preferred -- no call stack)
+// Returns the index of target, or -1 if not found
+// ============================================================
+function binarySearch(arr, target) {
+  let left = 0;
+  let right = arr.length - 1;
+
+  while (left <= right) {
+    // Use Math.floor((left + right) / 2) BUT:
+    // (left + right) can overflow in languages with fixed integers.
+    // Safe formula: left + Math.floor((right - left) / 2)
+    const mid = left + Math.floor((right - left) / 2);
+
+    if (arr[mid] === target) {
+      return mid; // found
+    } else if (arr[mid] < target) {
+      left = mid + 1;  // target is in right half
+    } else {
+      right = mid - 1; // target is in left half
+    }
+  }
+
+  return -1; // not found
+}
+
+// ============================================================
+// Recursive binary search
+// ============================================================
+function binarySearchRecursive(arr, target, left = 0, right = arr.length - 1) {
+  if (left > right) return -1;
+
+  const mid = left + Math.floor((right - left) / 2);
+
+  if (arr[mid] === target)   return mid;
+  if (arr[mid] < target)  return binarySearchRecursive(arr, target, mid + 1, right);
+  return binarySearchRecursive(arr, target, left, mid - 1);
+}
+
+// ============================================================
+// leftmost insertion point (lower bound)
+// Returns index where target should be inserted to keep array sorted
+// (first position where arr[i] >= target)
+// ============================================================
+function lowerBound(arr, target) {
+  let left = 0, right = arr.length;
+  while (left < right) {
+    const mid = left + Math.floor((right - left) / 2);
+    if (arr[mid] < target) left = mid + 1;
+    else right = mid;
+  }
+  return left;
+}
+
+// ============================================================
+// rightmost insertion point (upper bound)
+// Returns first position where arr[i] > target
+// ============================================================
+function upperBound(arr, target) {
+  let left = 0, right = arr.length;
+  while (left < right) {
+    const mid = left + Math.floor((right - left) / 2);
+    if (arr[mid] <= target) left = mid + 1;
+    else right = mid;
+  }
+  return left;
+}
+
+// ============================================================
+// Tests
+// ============================================================
+
+const sorted = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19];
+
+console.log(binarySearch(sorted, 7));   // 3
+console.log(binarySearch(sorted, 1));   // 0
+console.log(binarySearch(sorted, 19));  // 9
+console.log(binarySearch(sorted, 6));   // -1 (not in array)
+console.log(binarySearch([], 5));       // -1
+
+console.log(binarySearchRecursive(sorted, 13)); // 6
+console.log(binarySearchRecursive(sorted, 4));  // -1
+
+// Lower/upper bound
+const withDups = [1, 3, 3, 3, 5, 7];
+console.log(lowerBound(withDups, 3)); // 1 (first index with value >= 3)
+console.log(upperBound(withDups, 3)); // 4 (first index with value > 3)
+// Range of 3s in array: [1, 4)  => indices 1, 2, 3
+
+// Count occurrences of 3
+console.log(upperBound(withDups, 3) - lowerBound(withDups, 3)); // 3
+```
+
+### Step-by-Step Explanation
+1. **Invariant**: At every iteration, if the target exists in the array it is within `arr[left..right]` (inclusive). We maintain this invariant by updating `left` or `right` to exclude the mid element we already checked.
+2. **Termination**: The loop terminates when `left > right` -- the window is empty, target not found. With correct updates (`left = mid + 1`, `right = mid - 1`), the window always shrinks.
+3. **Overflow-safe mid**: In languages with fixed-size integers (Java, C), `(left + right)` can overflow. `left + (right - left) / 2` is equivalent but safe. JavaScript uses 64-bit floats so overflow is not a practical issue, but it is good practice.
+4. **`<= right` in while**: The `=` is crucial. When `left === right`, there is still one element to check. Changing to `<` would miss single-element arrays.
+5. **Lower/upper bound**: Two classic variants. `lowerBound` finds the first position where `arr[i] >= target`. `upperBound` finds the first position where `arr[i] > target`. Together they define the range `[lower, upper)` where target appears.
+
+### Complexity
+
+| Approach | Time | Space | Notes |
+|----------|------|-------|-------|
+| Iterative | O(log n) | O(1) | Window halves each iteration |
+| Recursive | O(log n) | O(log n) | O(log n) call stack |
+| Linear search (baseline) | O(n) | O(1) | No sorting required |
+
+## Q151: Flatten a deeply nested array without using `Array.flat()`.
+
+### ELI5
+Flattening an array means taking something like `[1, [2, [3, [4]]]]` and making it `[1, 2, 3, 4]`. The native method `arr.flat(Infinity)` does this in one call, but if you need to implement it yourself: walk through every element. If an element is an array, recurse into it. If it is a plain value, add it to the result. This is a classic recursive tree traversal.
+
+### Visual Diagram
+```
+  Input: [1, [2, [3, [4]], 5], 6]
+
+  flatten([1, [2, [3, [4]], 5], 6])
+  |-- 1         -> number  -> push 1
+  |-- [2,[3,[4]],5] -> array -> recurse
+  |    |-- 2    -> number  -> push 2
+  |    |-- [3,[4]] -> array -> recurse
+  |    |    |-- 3  -> number -> push 3
+  |    |    |-- [4]  -> array -> recurse
+  |    |         |-- 4 -> number -> push 4
+  |    |-- 5    -> number  -> push 5
+  |-- 6         -> number  -> push 6
+
+  Result: [1, 2, 3, 4, 5, 6]
+```
+
+### Code Example
+```javascript
+// ============================================================
+// Approach 1: Recursive (cleanest, standard interview answer)
+// ============================================================
+function flattenRecursive(arr) {
+  const result = [];
+
+  for (const item of arr) {
+    if (Array.isArray(item)) {
+      // Recurse and spread the inner result into result
+      result.push(...flattenRecursive(item));
+    } else {
+      result.push(item);
+    }
+  }
+
+  return result;
+}
+
+// ============================================================
+// Approach 2: Iterative with stack (avoids call stack overflow
+// for very deeply nested arrays)
+// ============================================================
+function flattenIterative(arr) {
+  const stack = [...arr]; // copy so we don't mutate input
+  const result = [];
+
+  while (stack.length > 0) {
+    const item = stack.pop();
+
+    if (Array.isArray(item)) {
+      // Push contents back onto stack in reverse order
+      // (so we process them left-to-right)
+      stack.push(...item);
+    } else {
+      result.push(item);
+    }
+  }
+
+  // Stack pops from the end, so result is in REVERSE order
+  return result.reverse();
+}
+
+// ============================================================
+// Approach 3: reduce + recursion (functional style)
+// ============================================================
+function flattenReduce(arr) {
+  return arr.reduce((acc, item) => {
+    return acc.concat(Array.isArray(item) ? flattenReduce(item) : item);
+  }, []);
+}
+
+// ============================================================
+// Approach 4: Controlled depth (flatten only N levels)
+// ============================================================
+function flattenDepth(arr, depth = 1) {
+  if (depth === 0) return arr.slice(); // no more flattening
+
+  const result = [];
+  for (const item of arr) {
+    if (Array.isArray(item) && depth > 0) {
+      result.push(...flattenDepth(item, depth - 1));
+    } else {
+      result.push(item);
+    }
+  }
+  return result;
+}
+
+// ============================================================
+// Tests
+// ============================================================
+
+const nested = [1, [2, [3, [4]], 5], 6];
+
+console.log(flattenRecursive(nested));  // [1,2,3,4,5,6]
+console.log(flattenIterative(nested));  // [1,2,3,4,5,6]
+console.log(flattenReduce(nested));     // [1,2,3,4,5,6]
+
+// flattenDepth
+console.log(flattenDepth([1,[2,[3,[4]]]], 1)); // [1,2,[3,[4]]]
+console.log(flattenDepth([1,[2,[3,[4]]]], 2)); // [1,2,3,[4]]
+console.log(flattenDepth([1,[2,[3,[4]]]], Infinity)); // [1,2,3,4]
+
+// Edge cases
+console.log(flattenRecursive([]));                          // []
+console.log(flattenRecursive([1, 2, 3]));                   // [1,2,3]
+console.log(flattenRecursive([[[[[[1]]]]]]));               // [1]
+console.log(flattenRecursive([1, null, undefined, false])); // [1, null, undefined, false]
+// Note: null/undefined/false are NOT arrays, so they get pushed as-is
+```
+
+### Step-by-Step Explanation
+1. **`Array.isArray(item)`**: This is the correct check. `typeof item === "object"` would not work because `null` is also `"object"`.
+2. **Recursive approach**: For each element, if it is an array, flatten it and spread into result. Otherwise push directly. The recursion bottoms out when all elements are non-arrays (primitives, objects, etc.).
+3. **Iterative with stack**: Push array contents onto a stack. Pop one at a time. If it is an array, push its contents. If it is a value, collect it. Because we use a LIFO stack and push contents forward, we reverse at the end to restore left-to-right order.
+4. **`reduce` approach**: Classic functional pattern. `concat` handles both `[].concat(5) -> [5]` and `[].concat([5,6]) -> [5,6]`. The recursion handles nesting.
+5. **`flattenDepth`**: Real-world usage often requires flattening a fixed number of levels. Decrement depth at each level; when depth reaches 0, stop recursing.
+
+### Complexity
+
+| Approach | Time | Space | Notes |
+|----------|------|-------|-------|
+| Recursive | O(n) | O(n + d) | n = total elements, d = max depth (call stack) |
+| Iterative | O(n) | O(n) | Stack can hold all elements; no call stack |
+| reduce | O(n) | O(n + d) | Creates many intermediate arrays (concat) |
+| flattenDepth | O(n) | O(n) | Same as recursive but bounded depth |
+
+## Q152: Group anagrams from an array of strings.
+
+### ELI5
+An anagram is a word formed by rearranging the letters of another word. "eat", "tea", and "ate" are all anagrams of each other -- they have the same letters in different orders. To group them: for each word, create a "signature" by sorting its letters alphabetically. All anagrams will produce the same sorted signature. Use a hash map where the key is the sorted signature and the value is an array of words with that signature.
+
+### Visual Diagram
+```
+  Input: ["eat","tea","tan","ate","nat","bat"]
+
+  Word   -> Sorted key -> Map
+  "eat"  -> "aet"      -> { "aet": ["eat"] }
+  "tea"  -> "aet"      -> { "aet": ["eat","tea"] }
+  "tan"  -> "ant"      -> { "aet": [...], "ant": ["tan"] }
+  "ate"  -> "aet"      -> { "aet": ["eat","tea","ate"], "ant": ["tan"] }
+  "nat"  -> "ant"      -> { "aet": [...], "ant": ["tan","nat"] }
+  "bat"  -> "abt"      -> { "aet": [...], "ant": [...], "abt": ["bat"] }
+
+  Output: [["eat","tea","ate"], ["tan","nat"], ["bat"]]
+```
+
+### Code Example
+```javascript
+// ============================================================
+// Approach 1: Sort as key (clean, O(n * k log k))
+// k = max word length
+// ============================================================
+function groupAnagrams(strs) {
+  const map = new Map(); // sorted string -> array of anagrams
+
+  for (const str of strs) {
+    // Sort the characters to create a canonical key
+    const key = str.split("").sort().join("");
+
+    if (!map.has(key)) {
+      map.set(key, []);
+    }
+    map.get(key).push(str);
+  }
+
+  return Array.from(map.values());
+}
+
+// ============================================================
+// Approach 2: Character count as key (O(n * k), no sorting)
+// Build a key from character frequencies: "a2b1c3" etc.
+// ============================================================
+function groupAnagramsFast(strs) {
+  const map = new Map();
+
+  for (const str of strs) {
+    // Count frequency of each a-z letter
+    const count = new Array(26).fill(0);
+    for (const ch of str) {
+      count[ch.charCodeAt(0) - 97]++; // 'a' = 97
+    }
+    // Key: comma-separated frequency array "0,1,0,0,...,1,0..."
+    const key = count.join(",");
+
+    if (!map.has(key)) map.set(key, []);
+    map.get(key).push(str);
+  }
+
+  return Array.from(map.values());
+}
+
+// ============================================================
+// Tests
+// ============================================================
+
+console.log(groupAnagrams(["eat","tea","tan","ate","nat","bat"]));
+// [["eat","tea","ate"], ["tan","nat"], ["bat"]]
+
+console.log(groupAnagrams([""]));
+// [[""]]  (single empty string)
+
+console.log(groupAnagrams(["a"]));
+// [["a"]]
+
+// No anagrams
+console.log(groupAnagrams(["abc","def","ghi"]));
+// [["abc"],["def"],["ghi"]]
+
+// All same word
+console.log(groupAnagrams(["ab","ba","ab"]));
+// [["ab","ba","ab"]]
+
+// Approach 2
+console.log(groupAnagramsFast(["eat","tea","tan","ate","nat","bat"]));
+// [["eat","tea","ate"], ["tan","nat"], ["bat"]]
+
+// ============================================================
+// Bonus: check if two strings are anagrams of each other
+// ============================================================
+function isAnagram(s, t) {
+  if (s.length !== t.length) return false;
+  const count = new Map();
+  for (const ch of s) count.set(ch, (count.get(ch) || 0) + 1);
+  for (const ch of t) {
+    if (!count.has(ch)) return false;
+    count.set(ch, count.get(ch) - 1);
+    if (count.get(ch) < 0) return false;
+  }
+  return true;
+}
+console.log(isAnagram("anagram", "nagaram")); // true
+console.log(isAnagram("rat", "car"));         // false
+```
+
+### Step-by-Step Explanation
+1. **Canonical key**: The insight is that all anagrams, when sorted, produce the same string. `"eat".split("").sort().join("") === "aet"` and so does `"tea"` and `"ate"`. This becomes the hash map key.
+2. **Map lookup is O(1)**: For each of the n words, we do O(k log k) work to sort it (k = word length), then O(1) to look up and insert. Total: O(n * k log k).
+3. **Character count key (approach 2)**: Instead of sorting, count letter frequencies. For 26-letter alphabet, this is O(k) per word. The key is a 26-element array joined to a string. More efficient for long words.
+4. **`Array.from(map.values())`**: Collects all the grouped arrays into the final result. `map.values()` returns an iterator, `Array.from` converts it to an array.
+5. **Edge cases**: Empty string `""` -> sorted key is `""`. All empty strings group together. Single chars always form groups of 1 unless they match another.
+
+### Complexity
+
+| Approach | Time | Space | Notes |
+|----------|------|-------|-------|
+| Sort key | O(n * k log k) | O(n * k) | n words, k = avg word length |
+| Count key | O(n * k) | O(n * k) | No sorting, 26-char key |
+
+## Q153: Top K frequent elements.
+
+### ELI5
+Given an array of numbers, find the K most frequently occurring values. For example, in `[1,1,1,2,2,3]` with K=2, the answer is `[1,2]` because 1 appears 3 times and 2 appears twice. The classic approaches are: (a) sort by frequency -- O(n log n), or (b) bucket sort by frequency -- O(n), or (c) a min-heap of size K -- O(n log k).
+
+### Visual Diagram
+```
+  nums = [1,1,1,2,2,3],  k = 2
+
+  Step 1: Count frequencies
+  Map: { 1:3, 2:2, 3:1 }
+
+  Approach A -- sort entries by frequency descending, take top k:
+  entries: [[1,3],[2,2],[3,1]] -> sorted -> [[1,3],[2,2],[3,1]]
+  top k=2: [1, 2]
+
+  Approach B -- bucket sort:
+  bucket[3] = [1]   (1 appears 3 times)
+  bucket[2] = [2]   (2 appears 2 times)
+  bucket[1] = [3]   (3 appears 1 time)
+  Scan from bucket[n] downward, collect until k elements found.
+  bucket[3]: take 1  (count=1)
+  bucket[2]: take 2  (count=2 -> k reached)
+  Result: [1, 2]  -- O(n) total!
+```
+
+### Code Example
+```javascript
+// ============================================================
+// Approach 1: Frequency map + sort -- O(n log n)
+// ============================================================
+function topKFrequent_sort(nums, k) {
+  const freq = new Map();
+  for (const n of nums) freq.set(n, (freq.get(n) || 0) + 1);
+
+  return [...freq.entries()]
+    .sort((a, b) => b[1] - a[1])  // sort by frequency descending
+    .slice(0, k)
+    .map(([val]) => val);
+}
+
+// ============================================================
+// Approach 2: Bucket sort -- O(n) time (best approach)
+// Index = frequency, value = array of numbers with that frequency
+// ============================================================
+function topKFrequent_bucket(nums, k) {
+  const freq = new Map();
+  for (const n of nums) freq.set(n, (freq.get(n) || 0) + 1);
+
+  // Buckets: index = frequency, bucket[i] = numbers with frequency i
+  // Max possible frequency = nums.length
+  const buckets = new Array(nums.length + 1).fill(null).map(() => []);
+
+  for (const [num, count] of freq) {
+    buckets[count].push(num);
+  }
+
+  // Collect top-k from highest frequency buckets
+  const result = [];
+  for (let i = buckets.length - 1; i >= 0 && result.length < k; i--) {
+    for (const num of buckets[i]) {
+      result.push(num);
+      if (result.length === k) break;
+    }
+  }
+
+  return result;
+}
+
+// ============================================================
+// Approach 3: Min-heap of size k -- O(n log k)
+// (Useful when k << n and we want to avoid sorting all n elements)
+// Simulated here with sorting (true heap would need a library)
+// ============================================================
+function topKFrequent_heap(nums, k) {
+  const freq = new Map();
+  for (const n of nums) freq.set(n, (freq.get(n) || 0) + 1);
+
+  // Min-heap simulation: maintain array of [num, freq] sorted by freq asc
+  // (In production, use a proper min-heap for O(n log k))
+  const heap = [];
+
+  for (const [num, count] of freq) {
+    heap.push([num, count]);
+    heap.sort((a, b) => a[1] - b[1]); // sort ascending by freq (min at front)
+    if (heap.length > k) heap.shift(); // evict the minimum-frequency element
+  }
+
+  return heap.map(([val]) => val);
+}
+
+// ============================================================
+// Tests
+// ============================================================
+
+console.log(topKFrequent_sort([1,1,1,2,2,3], 2));   // [1,2]
+console.log(topKFrequent_bucket([1,1,1,2,2,3], 2)); // [1,2]
+console.log(topKFrequent_heap([1,1,1,2,2,3], 2));   // [1,2] or [2,1]
+
+console.log(topKFrequent_sort([1], 1));              // [1]
+console.log(topKFrequent_bucket([4,4,4,5,5,6], 1)); // [4]
+
+// k = all distinct elements
+console.log(topKFrequent_sort([1,2,3], 3));          // [1,2,3] (any order)
+```
+
+### Step-by-Step Explanation
+1. **Count frequencies**: Build a `Map` of `{value: count}`. This is O(n).
+2. **Sort approach**: Convert the map to an array of `[value, count]` pairs, sort descending by count, slice the first k, extract values. Simple but O(n log n).
+3. **Bucket sort approach**: Since frequency is bounded by `n` (an element can appear at most n times), we can use the frequency as an array index. Create buckets of size n+1. Index i holds all numbers with exactly frequency i. Scan from i=n down, collect elements, stop when k collected. Total: O(n).
+4. **Heap approach (concept)**: A min-heap of size k stores the k most frequent elements seen so far. When a new element is evaluated, if its frequency is greater than the heap minimum, evict the min and insert the new one. Final heap = top k. Real O(n log k) requires a proper heap data structure.
+5. **Problem guarantee**: LeetCode assumes the answer is unique (there is exactly one set of top-k elements by frequency).
+
+### Complexity
+
+| Approach | Time | Space | Notes |
+|----------|------|-------|-------|
+| Sort | O(n log n) | O(n) | Simple, works for small n |
+| Bucket sort | O(n) | O(n) | Best approach for this problem |
+| Min-heap | O(n log k) | O(n + k) | Best when k << n |
+
+## Q154: Implement merge sort in JavaScript.
+
+### ELI5
+Merge sort uses "divide and conquer": split the array in half repeatedly until you have arrays of size 1 (which are trivially sorted). Then MERGE pairs of sorted arrays together -- this merge step is where the sorting actually happens. Two sorted arrays can always be merged into one sorted array in O(n) time by comparing the front elements and always taking the smaller one.
+
+### Visual Diagram
+```
+  Input: [38, 27, 43, 3, 9, 82, 10]
+
+  DIVIDE:
+  [38, 27, 43, 3, 9, 82, 10]
+  [38, 27, 43]     [3, 9, 82, 10]
+  [38] [27, 43]    [3, 9] [82, 10]
+  [38] [27] [43]   [3] [9] [82] [10]
+
+  MERGE (build back up, sorted):
+  [38] [27] -> [27, 38]     [3] [9] -> [3, 9]
+  [27, 38] [43] -> [27, 38, 43]    [3, 9] [82, 10] -> [3, 9, 10, 82]
+  wait: [82] [10] -> [10, 82]  then [3,9]+[10,82] -> [3,9,10,82]
+  [27,38,43] + [3,9,10,82] -> [3,9,10,27,38,43,82]
+
+  Merge two sorted arrays:
+  left=[27,38,43], right=[3,9,10,82]
+  compare 27 vs 3  -> take 3    result=[3]
+  compare 27 vs 9  -> take 9    result=[3,9]
+  compare 27 vs 10 -> take 10   result=[3,9,10]
+  compare 27 vs 82 -> take 27   result=[3,9,10,27]
+  compare 38 vs 82 -> take 38   result=[3,9,10,27,38]
+  compare 43 vs 82 -> take 43   result=[3,9,10,27,38,43]
+  left empty, append right=[82] -> [3,9,10,27,38,43,82]
+```
+
+### Code Example
+```javascript
+// ============================================================
+// merge: merges two sorted arrays into one sorted array
+// O(n) time, O(n) space
+// ============================================================
+function merge(left, right) {
+  const result = [];
+  let l = 0, r = 0;
+
+  while (l < left.length && r < right.length) {
+    if (left[l] <= right[r]) {
+      result.push(left[l++]);
+    } else {
+      result.push(right[r++]);
+    }
+  }
+
+  // Append remaining elements (at most one side will have leftover elements)
+  while (l < left.length)  result.push(left[l++]);
+  while (r < right.length) result.push(right[r++]);
+
+  return result;
+}
+
+// ============================================================
+// mergeSort: recursive divide-and-conquer
+// O(n log n) time, O(n) space
+// ============================================================
+function mergeSort(arr) {
+  // Base case: arrays of 0 or 1 are already sorted
+  if (arr.length <= 1) return arr;
+
+  const mid = Math.floor(arr.length / 2);
+
+  const left  = mergeSort(arr.slice(0, mid));  // sort left half
+  const right = mergeSort(arr.slice(mid));      // sort right half
+
+  return merge(left, right); // merge two sorted halves
+}
+
+// ============================================================
+// Bottom-up iterative merge sort (no recursion, same complexity)
+// ============================================================
+function mergeSortIterative(arr) {
+  const n = arr.length;
+  let result = [...arr]; // work on a copy
+
+  for (let size = 1; size < n; size *= 2) {
+    // Merge pairs of subarrays of length 'size'
+    for (let left = 0; left < n; left += size * 2) {
+      const mid   = Math.min(left + size, n);
+      const right = Math.min(left + size * 2, n);
+      const merged = merge(result.slice(left, mid), result.slice(mid, right));
+      result.splice(left, merged.length, ...merged);
+    }
+  }
+
+  return result;
+}
+
+// ============================================================
+// Tests
+// ============================================================
+
+console.log(mergeSort([38, 27, 43, 3, 9, 82, 10]));
+// [3, 9, 10, 27, 38, 43, 82]
+
+console.log(mergeSort([5, 4, 3, 2, 1]));  // reversed
+// [1, 2, 3, 4, 5]
+
+console.log(mergeSort([1]));    // [1]
+console.log(mergeSort([]));     // []
+console.log(mergeSort([2, 1])); // [1, 2]
+
+console.log(mergeSortIterative([38, 27, 43, 3, 9, 82, 10]));
+// [3, 9, 10, 27, 38, 43, 82]
+
+// Stable sort: equal elements preserve original order
+console.log(mergeSort([3, 1, 4, 1, 5, 9, 2, 6]));
+// [1, 1, 2, 3, 4, 5, 6, 9]
+```
+
+### Step-by-Step Explanation
+1. **Divide**: `arr.slice(0, mid)` and `arr.slice(mid)` split the array. Each half is recursively sorted.
+2. **Base case**: An array of length 0 or 1 is already sorted -- no work needed.
+3. **Merge step**: Two sorted arrays `left` and `right` are merged with two pointers (l, r). Always take the smaller front element. When one side is exhausted, append all remaining elements from the other side.
+4. **Stability**: `left[l] <= right[r]` (note `<=` not `<`) ensures that equal elements from the left half come before equal elements from the right half, preserving their relative order (stable sort).
+5. **Space**: `slice` creates new arrays at each level. Total extra space is O(n) per level, but levels are reused during merge steps. Net space: O(n) auxiliary.
+6. **Why O(n log n)?**: There are O(log n) levels of division. At each level, all merges together process O(n) elements total. So total work = O(n) * O(log n) = O(n log n).
+
+### Complexity
+
+| Approach | Time | Space | Notes |
+|----------|------|-------|-------|
+| Recursive | O(n log n) | O(n) | O(log n) call stack + O(n) merge buffers |
+| Iterative | O(n log n) | O(n) | No recursion, same merge buffers |
+| Comparison | O(n log n) is optimal for comparison-based sorts (lower bound proof) | | |
+
+## Q154: Implement merge sort in JavaScript.
+
+### ELI5
+Merge sort uses "divide and conquer": split the array in half repeatedly until you have arrays of size 1 (which are trivially sorted). Then MERGE pairs of sorted arrays together -- this merge step is where the sorting actually happens. Two sorted arrays can always be merged into one sorted array in O(n) time by comparing the front elements and always taking the smaller one.
+
+### Visual Diagram
+```
+  Input: [38, 27, 43, 3, 9, 82, 10]
+
+  DIVIDE:
+  [38, 27, 43, 3, 9, 82, 10]
+  [38, 27, 43]     [3, 9, 82, 10]
+  [38] [27, 43]    [3, 9] [82, 10]
+  [38] [27] [43]   [3] [9] [82] [10]
+
+  MERGE (build back up, sorted):
+  [38] [27] -> [27, 38]     [3] [9] -> [3, 9]
+  [27, 38] [43] -> [27, 38, 43]    [3, 9] [82, 10] -> [3, 9, 10, 82]
+  wait: [82] [10] -> [10, 82]  then [3,9]+[10,82] -> [3,9,10,82]
+  [27,38,43] + [3,9,10,82] -> [3,9,10,27,38,43,82]
+
+  Merge two sorted arrays:
+  left=[27,38,43], right=[3,9,10,82]
+  compare 27 vs 3  -> take 3    result=[3]
+  compare 27 vs 9  -> take 9    result=[3,9]
+  compare 27 vs 10 -> take 10   result=[3,9,10]
+  compare 27 vs 82 -> take 27   result=[3,9,10,27]
+  compare 38 vs 82 -> take 38   result=[3,9,10,27,38]
+  compare 43 vs 82 -> take 43   result=[3,9,10,27,38,43]
+  left empty, append right=[82] -> [3,9,10,27,38,43,82]
+```
+
+### Code Example
+```javascript
+// ============================================================
+// merge: merges two sorted arrays into one sorted array
+// O(n) time, O(n) space
+// ============================================================
+function merge(left, right) {
+  const result = [];
+  let l = 0, r = 0;
+
+  while (l < left.length && r < right.length) {
+    if (left[l] <= right[r]) {
+      result.push(left[l++]);
+    } else {
+      result.push(right[r++]);
+    }
+  }
+
+  // Append remaining elements (at most one side will have leftover elements)
+  while (l < left.length)  result.push(left[l++]);
+  while (r < right.length) result.push(right[r++]);
+
+  return result;
+}
+
+// ============================================================
+// mergeSort: recursive divide-and-conquer
+// O(n log n) time, O(n) space
+// ============================================================
+function mergeSort(arr) {
+  // Base case: arrays of 0 or 1 are already sorted
+  if (arr.length <= 1) return arr;
+
+  const mid = Math.floor(arr.length / 2);
+
+  const left  = mergeSort(arr.slice(0, mid));  // sort left half
+  const right = mergeSort(arr.slice(mid));      // sort right half
+
+  return merge(left, right); // merge two sorted halves
+}
+
+// ============================================================
+// Bottom-up iterative merge sort (no recursion, same complexity)
+// ============================================================
+function mergeSortIterative(arr) {
+  const n = arr.length;
+  let result = [...arr]; // work on a copy
+
+  for (let size = 1; size < n; size *= 2) {
+    // Merge pairs of subarrays of length 'size'
+    for (let left = 0; left < n; left += size * 2) {
+      const mid   = Math.min(left + size, n);
+      const right = Math.min(left + size * 2, n);
+      const merged = merge(result.slice(left, mid), result.slice(mid, right));
+      result.splice(left, merged.length, ...merged);
+    }
+  }
+
+  return result;
+}
+
+// ============================================================
+// Tests
+// ============================================================
+
+console.log(mergeSort([38, 27, 43, 3, 9, 82, 10]));
+// [3, 9, 10, 27, 38, 43, 82]
+
+console.log(mergeSort([5, 4, 3, 2, 1]));  // reversed
+// [1, 2, 3, 4, 5]
+
+console.log(mergeSort([1]));    // [1]
+console.log(mergeSort([]));     // []
+console.log(mergeSort([2, 1])); // [1, 2]
+
+console.log(mergeSortIterative([38, 27, 43, 3, 9, 82, 10]));
+// [3, 9, 10, 27, 38, 43, 82]
+
+// Stable sort: equal elements preserve original order
+console.log(mergeSort([3, 1, 4, 1, 5, 9, 2, 6]));
+// [1, 1, 2, 3, 4, 5, 6, 9]
+```
+
+### Step-by-Step Explanation
+1. **Divide**: `arr.slice(0, mid)` and `arr.slice(mid)` split the array. Each half is recursively sorted.
+2. **Base case**: An array of length 0 or 1 is already sorted -- no work needed.
+3. **Merge step**: Two sorted arrays `left` and `right` are merged with two pointers (l, r). Always take the smaller front element. When one side is exhausted, append all remaining elements from the other side.
+4. **Stability**: `left[l] <= right[r]` (note `<=` not `<`) ensures that equal elements from the left half come before equal elements from the right half, preserving their relative order (stable sort).
+5. **Space**: `slice` creates new arrays at each level. Total extra space is O(n) per level, but levels are reused during merge steps. Net space: O(n) auxiliary.
+6. **Why O(n log n)?**: There are O(log n) levels of division. At each level, all merges together process O(n) elements total. So total work = O(n) * O(log n) = O(n log n).
+
+### Complexity
+
+| Approach | Time | Space | Notes |
+|----------|------|-------|-------|
+| Recursive | O(n log n) | O(n) | O(log n) call stack + O(n) merge buffers |
+| Iterative | O(n log n) | O(n) | No recursion, same merge buffers |
+| Comparison | O(n log n) is optimal for comparison-based sorts (lower bound proof) | | |
+
+## Q155: Maximum subarray sum (Kadane's algorithm).
+
+### ELI5
+Given an array of integers (can include negatives), find the contiguous subarray with the largest sum. Kadane's algorithm works by making one simple decision at each element: should I START a new subarray here, or EXTEND the existing subarray? If the running sum drops below 0, it is better to start fresh -- a negative running sum would only HURT any future elements we add. So we reset the current sum to 0 whenever it goes negative.
+
+### Visual Diagram
+```
+  nums = [-2, 1, -3, 4, -1, 2, 1, -5, 4]
+
+  idx:     0    1    2    3    4    5    6    7    8
+  nums:   -2    1   -3    4   -1    2    1   -5    4
+
+  curr=0, maxSum = -Infinity
+
+  i=0: curr = max(-2, 0 + -2) = -2   -> curr < 0, will reset next
+       maxSum = max(-inf, -2) = -2
+  i=1: curr = max(1,  -2 + 1) = 1    (start fresh: 1 > -1)
+       maxSum = max(-2, 1) = 1
+  i=2: curr = max(-3, 1 + -3) = -2   -> carry the -2
+       maxSum = max(1, -2) = 1
+  i=3: curr = max(4, -2 + 4) = 4     (start fresh: 4 > 2)
+       maxSum = max(1, 4) = 4
+  i=4: curr = max(-1, 4 + -1) = 3    (extend: 3 > -1)
+       maxSum = max(4, 3) = 4
+  i=5: curr = max(2, 3 + 2) = 5      (extend: 5 > 2)
+       maxSum = max(4, 5) = 5
+  i=6: curr = max(1, 5 + 1) = 6      (extend: 6 > 1)
+       maxSum = max(5, 6) = 6
+  i=7: curr = max(-5, 6 + -5) = 1    (extend: 1 > -5)
+       maxSum = max(6, 1) = 6
+  i=8: curr = max(4, 1 + 4) = 5      (extend)
+       maxSum = max(6, 5) = 6
+
+  Answer: 6  (subarray [4,-1,2,1])
+```
+
+### Code Example
+```javascript
+// ============================================================
+// Kadane's Algorithm -- O(n) time, O(1) space
+// ============================================================
+function maxSubArray(nums) {
+  let maxSum  = nums[0]; // initialize with first element (handles all-negative case)
+  let currSum = nums[0];
+
+  for (let i = 1; i < nums.length; i++) {
+    // Decision: extend current subarray OR start fresh at nums[i]
+    currSum = Math.max(nums[i], currSum + nums[i]);
+    maxSum  = Math.max(maxSum, currSum);
+  }
+
+  return maxSum;
+}
+
+// ============================================================
+// Variant: also return the subarray itself (track indices)
+// ============================================================
+function maxSubArrayWithIndices(nums) {
+  let maxSum   = nums[0];
+  let currSum  = nums[0];
+  let start    = 0;  // start of current subarray candidate
+  let maxStart = 0;  // start of best subarray found
+  let maxEnd   = 0;  // end of best subarray found
+
+  for (let i = 1; i < nums.length; i++) {
+    if (nums[i] > currSum + nums[i]) {
+      // Start fresh
+      currSum = nums[i];
+      start   = i;
+    } else {
+      // Extend
+      currSum += nums[i];
+    }
+
+    if (currSum > maxSum) {
+      maxSum   = currSum;
+      maxStart = start;
+      maxEnd   = i;
+    }
+  }
+
+  return {
+    maxSum,
+    subarray: nums.slice(maxStart, maxEnd + 1),
+    start: maxStart,
+    end: maxEnd,
+  };
+}
+
+// ============================================================
+// Tests
+// ============================================================
+
+console.log(maxSubArray([-2, 1, -3, 4, -1, 2, 1, -5, 4])); // 6
+console.log(maxSubArray([1]));                               // 1
+console.log(maxSubArray([-1]));                              // -1 (all negative)
+console.log(maxSubArray([-2, -1]));                          // -1
+console.log(maxSubArray([5, 4, -1, 7, 8]));                  // 23 (whole array)
+
+// With subarray
+const result = maxSubArrayWithIndices([-2, 1, -3, 4, -1, 2, 1, -5, 4]);
+console.log(result.maxSum);    // 6
+console.log(result.subarray);  // [4,-1,2,1]
+console.log(result.start);     // 3
+console.log(result.end);       // 6
+
+// All same value
+console.log(maxSubArray([3, 3, 3])); // 9
+
+// ============================================================
+// Variant: maximum subarray product (different algorithm)
+// ============================================================
+function maxProduct(nums) {
+  let maxP = nums[0];
+  let curMax = nums[0];
+  let curMin = nums[0]; // track min because negative*negative = positive
+
+  for (let i = 1; i < nums.length; i++) {
+    const candidates = [nums[i], curMax * nums[i], curMin * nums[i]];
+    curMax = Math.max(...candidates);
+    curMin = Math.min(...candidates);
+    maxP   = Math.max(maxP, curMax);
+  }
+  return maxP;
+}
+console.log(maxProduct([2, 3, -2, 4])); // 6  (2*3)
+console.log(maxProduct([-2, 0, -1]));   // 0
+```
+
+### Step-by-Step Explanation
+1. **Key decision at each step**: `Math.max(nums[i], currSum + nums[i])`. If `currSum` is negative, `nums[i]` alone is better than `currSum + nums[i]`. This is equivalent to: "if the running sum has gone negative, restart from here."
+2. **Why initialize with `nums[0]`**: If we initialize `maxSum` with 0 or `-Infinity`, the algorithm would incorrectly return 0 for all-negative arrays. Initializing with `nums[0]` handles the all-negative case correctly (returns the least-negative element).
+3. **O(1) space**: Unlike divide-and-conquer (O(n log n), O(n) space), Kadane's needs only two variables.
+4. **Tracking the subarray**: When we decide to "start fresh" (`nums[i] > currSum + nums[i]`), record the new start index. When we find a new maxSum, record start+end. The answer subarray is `arr[maxStart..maxEnd]`.
+5. **Does not work for product variant directly**: For maximum product, we must track both current max and current min (because multiplying two large negatives gives a large positive). See the `maxProduct` function above.
+
+### Complexity
+
+| | Time | Space | Notes |
+|-|------|-------|-------|
+| Kadane's | O(n) | O(1) | Single pass, 2 variables |
+| Divide & Conquer (alternative) | O(n log n) | O(log n) | Textbook, but worse than Kadane's |
+| Brute force | O(n^2) | O(1) | All pairs of start/end |
+
+## Q156: Lowest Common Ancestor (LCA) of two nodes in a binary tree.
+
+### ELI5
+The Lowest Common Ancestor of two nodes p and q in a tree is the deepest node that is an ancestor of BOTH p and q. Think of it as the first meeting point when you trace both nodes' paths up to the root -- whichever fork in the tree leads to both p and q separately is the LCA. The recursive approach: if the current node IS p or q, return it. Otherwise recursively search left and right. If both sides return non-null, the current node is the LCA (p is in one subtree, q is in the other).
+
+### Visual Diagram
+```
+         3
+        / \
+       5   1
+      / \ / \
+     6  2 0  8
+       / \
+      7   4
+
+  LCA(5, 1) = 3  (root -- 5 is left subtree, 1 is right subtree)
+  LCA(5, 4) = 5  (5 is ancestor of 4, so LCA is 5 itself)
+  LCA(6, 7) = 5  (both in left subtree of 3; 6 is direct left of 5, 7 is in right of 5)
+  LCA(7, 4) = 2  (both under 2)
+
+  Recursive logic at node 3 for LCA(6,7):
+  leftResult  = LCA(node=5, p=6, q=7)  -> returns 5 (finds both in its subtree)
+  rightResult = LCA(node=1, p=6, q=7)  -> returns null (neither found here)
+  Since only left returned non-null: return leftResult = 5
+
+  Recursive logic at node 5 for LCA(6,7):
+  leftResult  = LCA(node=6) -> node.val == p.val -> return node 6
+  rightResult = LCA(node=2) -> finds 7 in its subtree -> returns 7
+  BOTH sides are non-null: current node (5) is the LCA -> return 5
+```
+
+### Code Example
+```javascript
+class TreeNode {
+  constructor(val, left = null, right = null) {
+    this.val = val; this.left = left; this.right = right;
+  }
+}
+
+// ============================================================
+// LCA in a Binary Tree (not necessarily BST)
+// O(n) time, O(h) space (h = height of tree)
+// ============================================================
+function lowestCommonAncestor(root, p, q) {
+  // Base case: empty tree or found one of the target nodes
+  if (root === null) return null;
+  if (root === p || root === q) return root;
+
+  // Search both subtrees
+  const left  = lowestCommonAncestor(root.left,  p, q);
+  const right = lowestCommonAncestor(root.right, p, q);
+
+  // Both subtrees returned non-null: current node is the LCA
+  if (left !== null && right !== null) return root;
+
+  // Only one subtree found a target: propagate that result up
+  return left !== null ? left : right;
+}
+
+// ============================================================
+// LCA in a BST (Binary Search Tree) -- can use BST property
+// Faster average case for balanced BST
+// ============================================================
+function lcaBST(root, p, q) {
+  if (root === null) return null;
+
+  if (p.val < root.val && q.val < root.val) {
+    // Both nodes are in the LEFT subtree
+    return lcaBST(root.left, p, q);
+  }
+  if (p.val > root.val && q.val > root.val) {
+    // Both nodes are in the RIGHT subtree
+    return lcaBST(root.right, p, q);
+  }
+
+  // One is on the left, one is on the right (or one equals root)
+  // Current node IS the LCA
+  return root;
+}
+
+// ============================================================
+// Tests
+// ============================================================
+
+// Build the tree from diagram:
+//       3
+//      / \
+//     5   1
+//    / \ / \
+//   6  2 0  8
+//     / \
+//    7   4
+const n3 = new TreeNode(3);
+const n5 = new TreeNode(5);
+const n1 = new TreeNode(1);
+const n6 = new TreeNode(6);
+const n2 = new TreeNode(2);
+const n0 = new TreeNode(0);
+const n8 = new TreeNode(8);
+const n7 = new TreeNode(7);
+const n4 = new TreeNode(4);
+n3.left = n5; n3.right = n1;
+n5.left = n6; n5.right = n2;
+n1.left = n0; n1.right = n8;
+n2.left = n7; n2.right = n4;
+
+console.log(lowestCommonAncestor(n3, n5, n1).val); // 3
+console.log(lowestCommonAncestor(n3, n5, n4).val); // 5
+console.log(lowestCommonAncestor(n3, n6, n7).val); // 5
+console.log(lowestCommonAncestor(n3, n7, n4).val); // 2
+
+// LCA when one node is ancestor of the other
+console.log(lowestCommonAncestor(n3, n3, n5).val); // 3 (root itself)
+```
+
+### Step-by-Step Explanation
+1. **Base cases**: If we hit `null`, the node isn't here -- return null. If the current node IS p or q, return it immediately. We don't need to search further down this branch because even if the other node is below, the LCA must be this node or above.
+2. **Post-order traversal**: We first recurse left and right, THEN decide at the current node. This is why the LCA detection (`left && right !== null`) works -- by the time we check, we know what each subtree contains.
+3. **Both non-null**: If both left and right recursions returned non-null, it means p is in one subtree and q is in the other. The current node is therefore the SPLIT point -- it is the LCA.
+4. **One non-null**: If only one side returned non-null, it means both p and q are in that subtree (or only one of them exists). We propagate the non-null result up.
+5. **BST variant**: If the tree is a BST, we can use the ordering property: if both p and q are smaller than root, they're both in the left subtree. If both are larger, they're in the right. Otherwise, the root is the split point (LCA). This is O(h) where h is the height (O(log n) for balanced BST).
+
+### Complexity
+
+| Approach | Time | Space | Notes |
+|----------|------|-------|-------|
+| Binary tree (general) | O(n) | O(h) | Must visit all nodes in worst case |
+| BST | O(h) | O(h) | h = O(log n) for balanced, O(n) worst |
+
+## Q157: Level-order traversal of a binary tree using BFS.
+
+### ELI5
+Level-order traversal visits nodes level by level, left to right: root first, then all nodes at depth 2, then depth 3, etc. It is also called Breadth-First Search (BFS) on a tree. We use a QUEUE (FIFO) to process nodes in the right order: enqueue the root, then repeatedly dequeue a node, add its value to the result, and enqueue its children. The children are processed in the next "round" (level).
+
+### Visual Diagram
+```
+         3
+        / \
+       9   20
+          /  \
+         15   7
+
+  BFS using a queue:
+  Queue: [3]                result: []
+  Dequeue 3   -> push 9, 20 to queue
+  Queue: [9, 20]            result: [[3]]
+  Dequeue 9   -> no children
+  Dequeue 20  -> push 15, 7
+  Queue: [15, 7]            result: [[3],[9,20]]
+  Dequeue 15  -> no children
+  Dequeue 7   -> no children
+  Queue: []                 result: [[3],[9,20],[15,7]]
+
+  Level-order result: [[3],[9,20],[15,7]]
+
+  To group by level: track how many nodes are at each level
+  by saving queue.length at the START of each level loop.
+```
+
+### Code Example
+```javascript
+class TreeNode {
+  constructor(val, left = null, right = null) {
+    this.val = val; this.left = left; this.right = right;
+  }
+}
+
+// ============================================================
+// Level-order traversal: returns array of arrays (grouped by level)
+// O(n) time, O(w) space -- w = max width of tree
+// ============================================================
+function levelOrder(root) {
+  if (root === null) return [];
+
+  const result = [];
+  const queue  = [root];
+
+  while (queue.length > 0) {
+    const levelSize = queue.length; // number of nodes at THIS level
+    const level     = [];
+
+    for (let i = 0; i < levelSize; i++) {
+      const node = queue.shift(); // dequeue front node (FIFO)
+      level.push(node.val);
+
+      if (node.left)  queue.push(node.left);
+      if (node.right) queue.push(node.right);
+    }
+
+    result.push(level);
+  }
+
+  return result;
+}
+
+// ============================================================
+// Variation: flat array (no level grouping)
+// ============================================================
+function levelOrderFlat(root) {
+  if (!root) return [];
+  const result = [];
+  const queue  = [root];
+  while (queue.length > 0) {
+    const node = queue.shift();
+    result.push(node.val);
+    if (node.left)  queue.push(node.left);
+    if (node.right) queue.push(node.right);
+  }
+  return result;
+}
+
+// ============================================================
+// Variation: right-to-left (mirror BFS)
+// ============================================================
+function levelOrderRightToLeft(root) {
+  if (!root) return [];
+  const result = [];
+  const queue  = [root];
+  while (queue.length > 0) {
+    const levelSize = queue.length;
+    const level     = [];
+    for (let i = 0; i < levelSize; i++) {
+      const node = queue.shift();
+      level.push(node.val);
+      // Enqueue right first so right appears first in next level
+      if (node.right) queue.push(node.right);
+      if (node.left)  queue.push(node.left);
+    }
+    result.push(level);
+  }
+  return result;
+}
+
+// ============================================================
+// Variation: zigzag / spiral level order
+// Level 1: left->right, Level 2: right->left, alternating...
+// ============================================================
+function zigzagLevelOrder(root) {
+  if (!root) return [];
+  const result = [];
+  const queue  = [root];
+  let leftToRight = true;
+
+  while (queue.length > 0) {
+    const levelSize = queue.length;
+    const level     = new Array(levelSize);
+
+    for (let i = 0; i < levelSize; i++) {
+      const node = queue.shift();
+      // For right-to-left levels, fill from end of array
+      const idx = leftToRight ? i : levelSize - 1 - i;
+      level[idx] = node.val;
+      if (node.left)  queue.push(node.left);
+      if (node.right) queue.push(node.right);
+    }
+
+    result.push(level);
+    leftToRight = !leftToRight; // alternate direction
+  }
+
+  return result;
+}
+
+// ============================================================
+// Tests
+// ============================================================
+
+// Build tree:
+//     3
+//    / \
+//   9   20
+//       / \
+//      15   7
+const root = new TreeNode(3,
+  new TreeNode(9),
+  new TreeNode(20, new TreeNode(15), new TreeNode(7))
+);
+
+console.log(levelOrder(root));
+// [[3], [9, 20], [15, 7]]
+
+console.log(levelOrderFlat(root));
+// [3, 9, 20, 15, 7]
+
+console.log(zigzagLevelOrder(root));
+// [[3], [20, 9], [15, 7]]
+
+// Edge cases
+console.log(levelOrder(null));                        // []
+console.log(levelOrder(new TreeNode(1)));             // [[1]]
+
+// Larger tree
+//       1
+//      / \
+//     2   3
+//    / \ / \
+//   4  5 6  7
+const full = new TreeNode(1,
+  new TreeNode(2, new TreeNode(4), new TreeNode(5)),
+  new TreeNode(3, new TreeNode(6), new TreeNode(7))
+);
+console.log(levelOrder(full));
+// [[1], [2, 3], [4, 5, 6, 7]]
+```
+
+### Step-by-Step Explanation
+1. **Queue = FIFO**: BFS relies on a First-In-First-Out queue. Siblings are inserted left-then-right, so they are processed in that order before their children. This guarantees level-by-level processing.
+2. **Tracking level size**: Before the inner loop starts, `queue.length` gives the exact number of nodes at the current level. We process exactly `levelSize` nodes in the inner loop, then start the next iteration which processes the next level.
+3. **`queue.shift()` vs deque**: `Array.shift()` is O(n) because it re-indexes the array. For large trees, a proper queue (implemented with a linked list or circular buffer) would be O(1) per dequeue. In interview settings, `shift()` is fine.
+4. **Zigzag**: Instead of `push`-ing values to the result array in order, we place each value at a calculated index. For right-to-left levels, `idx = levelSize - 1 - i` fills the array from right to left.
+5. **Space**: The queue holds at most one full level of nodes at a time. For a complete binary tree, the last level has n/2 nodes, so worst-case queue size is O(n/2) = O(n). For a balanced tree, max width at any level is O(n/2).
+
+### Complexity
+
+| Operation | Time | Space | Notes |
+|-----------|------|-------|-------|
+| levelOrder | O(n) | O(w) | w = max width of tree |
+| zigzag | O(n) | O(w) | Same BFS, index math for direction |
+| Worst case space | O(n) | O(n) | Complete tree bottom level = n/2 nodes |
+
+--- End of Section 15 ---
+
+## Q157: Level-order traversal of a binary tree using BFS.
+
+### ELI5
+Level-order traversal visits nodes level by level, left to right: root first, then all nodes at depth 2, then depth 3, etc. It is also called Breadth-First Search (BFS) on a tree. We use a QUEUE (FIFO) to process nodes in the right order: enqueue the root, then repeatedly dequeue a node, add its value to the result, and enqueue its children. The children are processed in the next "round" (level).
+
+### Visual Diagram
+```
+         3
+        / \
+       9   20
+          /  \
+         15   7
+
+  BFS using a queue:
+  Queue: [3]                result: []
+  Dequeue 3   -> push 9, 20 to queue
+  Queue: [9, 20]            result: [[3]]
+  Dequeue 9   -> no children
+  Dequeue 20  -> push 15, 7
+  Queue: [15, 7]            result: [[3],[9,20]]
+  Dequeue 15  -> no children
+  Dequeue 7   -> no children
+  Queue: []                 result: [[3],[9,20],[15,7]]
+
+  Level-order result: [[3],[9,20],[15,7]]
+
+  To group by level: track how many nodes are at each level
+  by saving queue.length at the START of each level loop.
+```
+
+### Code Example
+```javascript
+class TreeNode {
+  constructor(val, left = null, right = null) {
+    this.val = val; this.left = left; this.right = right;
+  }
+}
+
+// ============================================================
+// Level-order traversal: returns array of arrays (grouped by level)
+// O(n) time, O(w) space -- w = max width of tree
+// ============================================================
+function levelOrder(root) {
+  if (root === null) return [];
+
+  const result = [];
+  const queue  = [root];
+
+  while (queue.length > 0) {
+    const levelSize = queue.length; // number of nodes at THIS level
+    const level     = [];
+
+    for (let i = 0; i < levelSize; i++) {
+      const node = queue.shift(); // dequeue front node (FIFO)
+      level.push(node.val);
+
+      if (node.left)  queue.push(node.left);
+      if (node.right) queue.push(node.right);
+    }
+
+    result.push(level);
+  }
+
+  return result;
+}
+
+// ============================================================
+// Variation: flat array (no level grouping)
+// ============================================================
+function levelOrderFlat(root) {
+  if (!root) return [];
+  const result = [];
+  const queue  = [root];
+  while (queue.length > 0) {
+    const node = queue.shift();
+    result.push(node.val);
+    if (node.left)  queue.push(node.left);
+    if (node.right) queue.push(node.right);
+  }
+  return result;
+}
+
+// ============================================================
+// Variation: right-to-left (mirror BFS)
+// ============================================================
+function levelOrderRightToLeft(root) {
+  if (!root) return [];
+  const result = [];
+  const queue  = [root];
+  while (queue.length > 0) {
+    const levelSize = queue.length;
+    const level     = [];
+    for (let i = 0; i < levelSize; i++) {
+      const node = queue.shift();
+      level.push(node.val);
+      // Enqueue right first so right appears first in next level
+      if (node.right) queue.push(node.right);
+      if (node.left)  queue.push(node.left);
+    }
+    result.push(level);
+  }
+  return result;
+}
+
+// ============================================================
+// Variation: zigzag / spiral level order
+// Level 1: left->right, Level 2: right->left, alternating...
+// ============================================================
+function zigzagLevelOrder(root) {
+  if (!root) return [];
+  const result = [];
+  const queue  = [root];
+  let leftToRight = true;
+
+  while (queue.length > 0) {
+    const levelSize = queue.length;
+    const level     = new Array(levelSize);
+
+    for (let i = 0; i < levelSize; i++) {
+      const node = queue.shift();
+      // For right-to-left levels, fill from end of array
+      const idx = leftToRight ? i : levelSize - 1 - i;
+      level[idx] = node.val;
+      if (node.left)  queue.push(node.left);
+      if (node.right) queue.push(node.right);
+    }
+
+    result.push(level);
+    leftToRight = !leftToRight; // alternate direction
+  }
+
+  return result;
+}
+
+// ============================================================
+// Tests
+// ============================================================
+
+// Build tree:
+//     3
+//    / \
+//   9   20
+//       / \
+//      15   7
+const root = new TreeNode(3,
+  new TreeNode(9),
+  new TreeNode(20, new TreeNode(15), new TreeNode(7))
+);
+
+console.log(levelOrder(root));
+// [[3], [9, 20], [15, 7]]
+
+console.log(levelOrderFlat(root));
+// [3, 9, 20, 15, 7]
+
+console.log(zigzagLevelOrder(root));
+// [[3], [20, 9], [15, 7]]
+
+// Edge cases
+console.log(levelOrder(null));                        // []
+console.log(levelOrder(new TreeNode(1)));             // [[1]]
+
+// Larger tree
+//       1
+//      / \
+//     2   3
+//    / \ / \
+//   4  5 6  7
+const full = new TreeNode(1,
+  new TreeNode(2, new TreeNode(4), new TreeNode(5)),
+  new TreeNode(3, new TreeNode(6), new TreeNode(7))
+);
+console.log(levelOrder(full));
+// [[1], [2, 3], [4, 5, 6, 7]]
+```
+
+### Step-by-Step Explanation
+1. **Queue = FIFO**: BFS relies on a First-In-First-Out queue. Siblings are inserted left-then-right, so they are processed in that order before their children. This guarantees level-by-level processing.
+2. **Tracking level size**: Before the inner loop starts, `queue.length` gives the exact number of nodes at the current level. We process exactly `levelSize` nodes in the inner loop, then start the next iteration which processes the next level.
+3. **`queue.shift()` vs deque**: `Array.shift()` is O(n) because it re-indexes the array. For large trees, a proper queue (implemented with a linked list or circular buffer) would be O(1) per dequeue. In interview settings, `shift()` is fine.
+4. **Zigzag**: Instead of `push`-ing values to the result array in order, we place each value at a calculated index. For right-to-left levels, `idx = levelSize - 1 - i` fills the array from right to left.
+5. **Space**: The queue holds at most one full level of nodes at a time. For a complete binary tree, the last level has n/2 nodes, so worst-case queue size is O(n/2) = O(n). For a balanced tree, max width at any level is O(n/2).
+
+### Complexity
+
+| Operation | Time | Space | Notes |
+|-----------|------|-------|-------|
+| levelOrder | O(n) | O(w) | w = max width of tree |
+| zigzag | O(n) | O(w) | Same BFS, index math for direction |
+| Worst case space | O(n) | O(n) | Complete tree bottom level = n/2 nodes |
+
+--- End of Section 15 ---
