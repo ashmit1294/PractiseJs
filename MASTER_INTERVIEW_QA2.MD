@@ -5318,3 +5318,3476 @@ function DeleteConfirmDialog({ onConfirm }) {
 ---
 
 ## End of Section: REACT — Patterns (Q18–Q24)
+
+---
+
+# REACT — Advanced (Q25–Q31)
+
+---
+
+## Q25: What is Isomorphic / Universal React? How does hydration work?
+
+### 🧒 ELI5
+Imagine a chef (server) prepares a beautiful cake and takes a photo of it (HTML). That photo is what you see instantly. Then the actual cake (JavaScript) arrives and you can now touch and eat it. **Hydration** is the moment the real cake arrives and matches the photo — everything becomes interactive.
+
+### 📊 Diagram
+
+```
+  ┌──────────────────────────────────────────────────────┐
+  │                    SERVER                            │
+  │  React renders components → produces HTML string     │
+  │  renderToString(<App />) → "<div class='app'>..."    │
+  └────────────────────┬─────────────────────────────────┘
+                       │  HTML sent over network (fast first paint)
+                       ▼
+  ┌──────────────────────────────────────────────────────┐
+  │                    BROWSER                           │
+  │  1. Receives HTML → paints immediately (no blank)    │
+  │  2. Downloads JS bundle                              │
+  │  3. React calls hydrateRoot(<App />)                 │
+  │     ├─ Walks existing DOM (doesn't re-create it)     │
+  │     ├─ Attaches event listeners to each node         │
+  │     └─ React takes control → app is now interactive  │
+  └──────────────────────────────────────────────────────┘
+
+  KEY DIFFERENCE vs CSR:
+  CSR: <div id="root"></div>  → JS runs → creates all DOM
+  SSR: Full HTML from server  → JS runs → attaches to DOM (hydration)
+```
+
+### 💻 Code Example
+
+```javascript
+// ── server.js (Node/Express) ────────────────────────────────────────
+import { renderToString } from 'react-dom/server';
+import App from './App';
+
+app.get('*', (req, res) => {
+  // Step 1: render React tree to static HTML string on the server
+  const html = renderToString(<App />);
+
+  res.send(`
+    <!DOCTYPE html>
+    <html>
+      <body>
+        <!-- Step 2: inject server-rendered HTML into the root div -->
+        <div id="root">${html}</div>
+
+        <!-- Step 3: ship the JS bundle to the browser -->
+        <script src="/bundle.js"></script>
+      </body>
+    </html>
+  `);
+});
+
+// ── client.js (runs in browser) ─────────────────────────────────────
+import { hydrateRoot } from 'react-dom/client';
+import App from './App';
+
+// Step 4: React walks the existing DOM and attaches event listeners
+// It does NOT tear down and rebuild — it reuses every node
+hydrateRoot(document.getElementById('root'), <App />);
+```
+
+### 🔍 Step-by-Step Explanation
+
+1. **`renderToString`** — React runs your component tree on the server (no browser APIs available); outputs a plain HTML string with `data-reactroot` markers.
+2. **HTML shipped to browser** — User sees real content immediately (good FCP/LCP score) before any JS runs.
+3. **JS bundle downloads** — This is the same `<App />` component code, now running in the browser.
+4. **`hydrateRoot`** — React walks the server-rendered DOM and compares it to what the virtual DOM would produce. If they match, it simply attaches event handlers. No re-painting.
+5. **Interactive** — After hydration, the app behaves like a normal CSR React app.
+
+### ⏱️ Complexity
+
+| Metric | Value | Reason |
+|--------|-------|--------|
+| Time to First Byte (TTFB) | Depends on server | Server must render before sending |
+| First Contentful Paint (FCP) | Fast | HTML arrives before JS |
+| Time to Interactive (TTI) | Slower than pure CSR | Must wait for JS + hydration pass |
+| Hydration pass | O(N) | N = number of DOM nodes |
+
+---
+
+## Q26: What causes a hydration mismatch and how do you fix it?
+
+### 🧒 ELI5
+If the cook's photo (server HTML) shows a chocolate cake but the actual cake (client render) is vanilla, there's a mismatch. React panics: "These don't match! I'll throw away the server work and rebuild from scratch." — That wastes all the SSR benefit.
+
+### 📊 Diagram
+
+```
+  COMMON MISMATCH SOURCES
+  ────────────────────────────────────────────────────────
+  1. Date/Time:
+     Server:  "Rendered at 10:00:00"
+     Client:  "Rendered at 10:00:01"   ← different!
+
+  2. window / localStorage access:
+     Server:  window is undefined → crashes or empty value
+     Client:  actual window object
+
+  3. Random values:
+     Server:  Math.random() === 0.42
+     Client:  Math.random() === 0.87
+
+  4. User locale / timezone:
+     Server:  running in UTC
+     Client:  user in UTC+5:30
+
+  ────────────────────────────────────────────────────────
+  REACT 18 BEHAVIOUR:
+  └─ In dev: throws hydration error with diff
+  └─ In prod: silently re-renders from client (defeats SSR)
+```
+
+### 💻 Code Example
+
+```javascript
+// ❌ BAD — causes mismatch
+function Timestamp() {
+  return <p>Loaded at: {new Date().toLocaleTimeString()}</p>;
+  // Server renders "10:00:00", client renders "10:00:01"
+}
+
+// ✅ FIX 1: useEffect — run only on client after hydration
+function Timestamp() {
+  const [time, setTime] = useState('');   // Step 1: empty string on both server and client first render
+
+  useEffect(() => {
+    // Step 2: runs ONLY in browser, after hydration — no mismatch
+    setTime(new Date().toLocaleTimeString());
+  }, []);
+
+  return <p>Loaded at: {time}</p>;        // Step 3: consistent initial render
+}
+
+// ✅ FIX 2: suppressHydrationWarning (for intentional differences)
+function ServerTime({ serverTime }) {
+  return (
+    // Step 1: suppress React's warning for this single element
+    <time suppressHydrationWarning>
+      {serverTime}
+    </time>
+  );
+  // Use sparingly — only when you KNOW the content will differ
+}
+
+// ✅ FIX 3: Next.js dynamic import with ssr:false (client-only component)
+import dynamic from 'next/dynamic';
+
+// Step 1: Next won't render this on server at all — no mismatch possible
+const ClientOnlyChart = dynamic(() => import('./Chart'), { ssr: false });
+
+// ✅ FIX 4: Explicit client-only guard
+function ThemeToggle() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
+
+  // Step 1: return null on server (no HTML for this) AND on first client paint
+  if (!mounted) return null;
+
+  // Step 2: only renders after hydration — reads localStorage safely
+  return <button>{localStorage.getItem('theme') === 'dark' ? '🌙' : '☀️'}</button>;
+}
+```
+
+### 🔍 Step-by-Step Explanation
+
+1. **Root cause** — Server and client execute the same render function but in different environments; any environment-specific value produces different output.
+2. **`useEffect` guard** — `useEffect` never runs on the server, so initialising state to a neutral value and setting it in `useEffect` guarantees server = client on first render.
+3. **`suppressHydrationWarning`** — Tells React "I know this element will differ, ignore it." Only applies to that element, not its children.
+4. **`ssr: false`** — Next.js skips SSR entirely for that component; it only mounts on the client. Safest for components that heavily depend on browser APIs.
+
+### ⏱️ Complexity
+
+| Scenario | Cost | Impact |
+|----------|------|--------|
+| Mismatch in dev | Warning + re-render | Developer overhead |
+| Mismatch in prod | Full client re-render | Loses all SSR benefit (O(N) wasted) |
+| `suppressHydrationWarning` | O(1) | Skips diff for one node |
+| `ssr: false` | No server render | Component not in initial HTML |
+
+---
+
+## Q27: What are React Server Components? How do they differ from SSR?
+
+### 🧒 ELI5
+SSR is like a restaurant that cooks your meal in the kitchen (server) but then ships the entire kitchen to your table so you can reheat later. RSC is like a restaurant that cooks the parts that never change in the kitchen — and only ships the interactive parts to your table. Much lighter delivery!
+
+### 📊 Diagram
+
+```
+  TRADITIONAL SSR
+  ─────────────────────────────────────────────────────
+  Server: renders HTML of ENTIRE app
+  Ships:  HTML + FULL JS bundle (every component)
+  Client: hydrates everything — even static content
+
+  REACT SERVER COMPONENTS (RSC)
+  ─────────────────────────────────────────────────────
+  Server Components (*.server.jsx / no "use client")
+  ├─ Run ONLY on server
+  ├─ Can be async — await fetch(), await db.query()
+  ├─ Zero JS sent to client
+  └─ Cannot use: useState, useEffect, event handlers
+
+  Client Components ("use client" directive)
+  ├─ Can use hooks, events, browser APIs
+  ├─ Hydrated on client
+  └─ JS IS sent to browser
+
+  COMPOSITION:
+  <Page>                      ← Server Component (0 KB to client)
+    <Sidebar />               ← Server Component (0 KB to client)
+    <ArticleBody />           ← Server Component (0 KB to client)
+    <LikeButton />            ← Client Component (JS shipped)
+    <CommentThread />         ← Server Component with async data
+  </Page>
+
+  RESULT: Only <LikeButton/> JS reaches the browser
+```
+
+### 💻 Code Example
+
+```javascript
+// ── app/page.tsx (Server Component — no "use client") ───────────────
+
+// Step 1: This function can be async — no useEffect needed
+export default async function BlogPost({ params }) {
+  // Step 2: Direct DB/API access on server — no fetch boilerplate in client
+  const post = await db.posts.findById(params.id);
+  const author = await db.users.findById(post.authorId);
+
+  // Step 3: Render — this HTML is sent to client; component code is NOT
+  return (
+    <article>
+      <h1>{post.title}</h1>
+      <p>By {author.name}</p>
+      <div dangerouslySetInnerHTML={{ __html: post.renderedMarkdown }} />
+
+      {/* Step 4: Client Component for interactivity — JS IS sent */}
+      <LikeButton postId={post.id} initialLikes={post.likes} />
+    </article>
+  );
+}
+
+// ── components/LikeButton.tsx (Client Component) ────────────────────
+'use client'; // Step 5: Marks this as a Client Component
+
+import { useState } from 'react';
+
+export default function LikeButton({ postId, initialLikes }) {
+  // Step 6: useState works here — runs on client
+  const [likes, setLikes] = useState(initialLikes);
+
+  async function handleLike() {
+    setLikes(l => l + 1);          // Step 7: optimistic update
+    await fetch(`/api/posts/${postId}/like`, { method: 'POST' });
+  }
+
+  return <button onClick={handleLike}>❤️ {likes}</button>;
+}
+```
+
+### 🔍 Step-by-Step Explanation
+
+1. **No `useEffect` data fetching** — RSC can be `async`; `await` directly in the component body. No loading states needed for initial data.
+2. **Zero bundle cost** — `BlogPost` component code never reaches the browser. The only JS shipped is `LikeButton`.
+3. **`"use client"` boundary** — Everything below this boundary in the component tree is a Client Component and will be hydrated.
+4. **Server Components can pass serialisable props to Client Components** — You cannot pass functions or class instances across the boundary.
+5. **RSC vs SSR** — SSR produces HTML on server but still hydrates full app JS. RSC additionally eliminates component code from the bundle entirely.
+
+### ⏱️ Complexity
+
+| Metric | SSR | RSC |
+|--------|-----|-----|
+| JS bundle size | Full app | Only client components |
+| Data fetching | `getServerSideProps` + client fetch | `async` component directly |
+| Interactivity | Hydrate everything | Hydrate only `"use client"` subtrees |
+| Component code to client | All components | Only client-marked components |
+
+---
+
+## Q28: What is an Error Boundary? Why must it be a class component?
+
+### 🧒 ELI5
+Imagine each section of a newspaper in a separate fireproof box. If one section catches fire, the box contains it — the rest of the newspaper is fine. An Error Boundary is React's fireproof box: it catches render errors inside it and shows a fallback instead of crashing the whole app.
+
+### 📊 Diagram
+
+```
+  WITHOUT ERROR BOUNDARY             WITH ERROR BOUNDARY
+  ──────────────────────             ──────────────────
+  <App>                              <App>
+    <Header />      ✅                <Header />        ✅
+    <Dashboard>                       <ErrorBoundary>
+      <Chart />     💥 throws           <Dashboard>
+        ↓                                 <Chart />     💥 throws
+    ENTIRE APP                              ↓
+    white screen                        ErrorBoundary catches it
+                                        Shows <FallbackUI />
+                                       </Dashboard>
+                                       </ErrorBoundary>
+                                    <Footer />        ✅
+                                   </App>
+                                   Rest of app still works!
+
+  WHAT IT CATCHES:              WHAT IT DOES NOT CATCH:
+  ─────────────────             ───────────────────────
+  • Render errors               • Event handlers (use try/catch)
+  • Constructor errors          • Async code (setTimeout, fetch)
+  • Lifecycle method errors     • Errors in the boundary itself
+  • Errors in child tree        • SSR errors
+```
+
+### 💻 Code Example
+
+```javascript
+import React from 'react';
+
+// Step 1: Must be a CLASS component — no functional equivalent exists
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    // Step 2: state tracks whether an error has been caught
+    this.state = { hasError: false, error: null };
+  }
+
+  // Step 3: static lifecycle — called during render phase when child throws
+  // Returns new state to trigger fallback render
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  // Step 4: called after render — use for logging/reporting
+  componentDidCatch(error, info) {
+    // info.componentStack shows which component threw
+    console.error('ErrorBoundary caught:', error, info.componentStack);
+    // Report to Sentry, Datadog, etc.
+    logErrorToService(error, info);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      // Step 5: render fallback UI — can use this.props.fallback for custom UI
+      return this.props.fallback ?? (
+        <div role="alert">
+          <h2>Something went wrong.</h2>
+          {/* Step 6: allow user to reset the boundary and retry */}
+          <button onClick={() => this.setState({ hasError: false, error: null })}>
+            Try Again
+          </button>
+        </div>
+      );
+    }
+
+    // Step 7: no error — render children normally
+    return this.props.children;
+  }
+}
+
+// Usage
+function App() {
+  return (
+    <ErrorBoundary fallback={<p>Chart failed to load</p>}>
+      <Chart data={data} />   {/* if this throws, boundary catches it */}
+    </ErrorBoundary>
+  );
+}
+```
+
+### 🔍 Step-by-Step Explanation
+
+1. **Why class?** — Two lifecycle methods required: `getDerivedStateFromError` (sync, during render) and `componentDidCatch` (after render, for side effects). React's hooks model runs synchronously during render and cannot replicate this two-phase behaviour. As of React 19, a `use` hook-based boundary is being explored but hasn't shipped.
+2. **`getDerivedStateFromError`** — Static (no `this`), pure function; React uses its return value to update state and trigger a re-render with the fallback.
+3. **`componentDidCatch`** — Has access to `this`; used for side effects (logging). Called in the "commit" phase.
+4. **Granularity** — Wrap individual widgets, not the entire app; lets healthy parts stay functional.
+5. **Libraries** — `react-error-boundary` package provides a functional-looking API that wraps the class internally.
+
+### ⏱️ Complexity
+
+| Operation | Complexity | Reason |
+|-----------|-----------|--------|
+| `getDerivedStateFromError` | O(1) | Sets state flag |
+| `componentDidCatch` | O(1) | Logs once per error |
+| Re-render fallback | O(1) | Replaces subtree with fallback |
+| Stack trace parsing | O(D) | D = component tree depth |
+
+---
+
+## Q29: What are React Portals? When would you use them?
+
+### 🧒 ELI5
+Your bedroom (React component tree) is inside a house. When you yell, your voice travels through the house's walls — that's React event bubbling. But a Portal is like a teleporter: it places your content directly in the garden (DOM body), while your voice still travels back through the house. Content is elsewhere in the DOM, events still flow through React.
+
+### 📊 Diagram
+
+```
+  WITHOUT PORTAL:
+  <App>                        DOM:
+    <Modal>                    <div id="root">
+      <div class="modal">        <div class="app">
+        Stuck inside               <div class="modal">   ← z-index issues
+        overflow:hidden            </div>               ← clipped by parent
+      </div>                     </div>
+    </Modal>                   </div>
+  </App>
+
+  WITH PORTAL:
+  <App>                        DOM:
+    <Modal>                    <div id="root">
+      createPortal(              <div class="app">
+        <div class="modal">,       ...no modal here...
+        document.body             </div>
+      )                        </div>
+    </Modal>                   <div class="modal">  ← sits at body level
+  </App>                         free from overflow/z-index constraints
+                               </div>
+
+  EVENT BUBBLING:
+  Click inside modal
+    → bubbles up through REACT tree (App → Modal → ...)  ✅
+    → NOT through DOM tree (body → ...)                  ✅
+```
+
+### 💻 Code Example
+
+```javascript
+import { createPortal } from 'react-dom';
+import { useEffect, useRef } from 'react';
+
+// Step 1: Modal component — lives in React tree but renders outside DOM root
+function Modal({ isOpen, onClose, children }) {
+  const overlayRef = useRef(null);
+
+  // Step 2: handle click-outside to close
+  function handleOverlayClick(e) {
+    // Only close if clicking the backdrop, not the inner content
+    if (e.target === overlayRef.current) onClose();
+  }
+
+  // Step 3: close on Escape key
+  useEffect(() => {
+    function onKeyDown(e) {
+      if (e.key === 'Escape') onClose();
+    }
+    if (isOpen) document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
+  // Step 4: createPortal renders JSX into a DIFFERENT DOM node
+  return createPortal(
+    <div
+      ref={overlayRef}
+      className="modal-overlay"
+      onClick={handleOverlayClick}
+      style={{
+        position: 'fixed', inset: 0,          // Step 5: covers full viewport
+        background: 'rgba(0,0,0,0.5)',
+        display: 'grid', placeItems: 'center',
+        zIndex: 1000,
+      }}
+    >
+      <div className="modal-content" role="dialog" aria-modal="true">
+        {children}
+      </div>
+    </div>,
+    document.body   // Step 6: target DOM node — outside #root
+  );
+}
+
+// Usage
+function App() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div style={{ overflow: 'hidden' }}>  {/* this would clip non-portal modals */}
+      <button onClick={() => setOpen(true)}>Open Modal</button>
+
+      {/* Portal escapes the overflow:hidden parent */}
+      <Modal isOpen={open} onClose={() => setOpen(false)}>
+        <h2>Hello from Portal!</h2>
+      </Modal>
+    </div>
+  );
+}
+```
+
+### 🔍 Step-by-Step Explanation
+
+1. **`createPortal(children, container)`** — First arg is JSX; second is any DOM node. React renders the JSX there instead of in the normal component location.
+2. **Event bubbling** — React events still bubble through the React component tree (not the DOM tree). An `onClick` on the portal content will bubble up through `<App>` as expected.
+3. **Use cases** — Modals, tooltips, dropdown menus, toast notifications — anything that needs to escape `overflow: hidden`, `transform`, or `z-index` stacking contexts of ancestors.
+4. **Context** — Portals remain inside the React tree; `useContext`, Redux store, etc. still work normally.
+
+### ⏱️ Complexity
+
+| Operation | Complexity | Reason |
+|-----------|-----------|--------|
+| `createPortal` | O(1) | Single DOM `appendChild` |
+| Event capture | O(D) | D = React tree depth (bubbling) |
+| Modal render | O(C) | C = children in modal |
+
+---
+
+## Q30: What is the difference between SSR, SSG, and ISR in Next.js?
+
+### 🧒 ELI5
+**SSG** = Print a newspaper once at 6am; everyone gets the same copy.
+**SSR** = Print a custom newspaper for each reader when they ask.
+**ISR** = Print a newspaper at 6am, but reprint individual articles when they go stale — without reprinting the whole paper.
+
+### 📊 Diagram
+
+```
+  SSG (Static Site Generation)
+  ─────────────────────────────────────────────────────
+  Build time:  React renders → saves as .html files
+  Request:     Serve static file from CDN (fastest!)
+  Revalidate:  Only on next `next build`
+  API:         getStaticProps / page.tsx with no dynamic
+
+  SSR (Server-Side Rendering)
+  ─────────────────────────────────────────────────────
+  Build time:  Nothing pre-rendered
+  Request:     Node server runs getServerSideProps → renders HTML
+  Revalidate:  Every single request (always fresh)
+  API:         getServerSideProps / route with dynamic = 'force-dynamic'
+
+  ISR (Incremental Static Regeneration)
+  ─────────────────────────────────────────────────────
+  Build time:  Pre-renders known pages (like SSG)
+  Request:     Serves stale HTML; triggers background rebuild
+  Revalidate:  After `revalidate` seconds (stale-while-revalidate)
+  API:         getStaticProps + revalidate: N  /  next: { revalidate: N }
+
+  ┌─────────┬──────────┬────────────┬──────────────────────┐
+  │         │ Freshness│  Speed     │ Use Case             │
+  ├─────────┼──────────┼────────────┼──────────────────────┤
+  │ SSG     │ Stale    │ Fastest    │ Docs, blogs, marketing│
+  │ SSR     │ Always   │ Slowest    │ User dashboards, auth │
+  │ ISR     │ Near-    │ Fast + CDN │ E-commerce, news      │
+  │         │ fresh    │            │                       │
+  └─────────┴──────────┴────────────┴──────────────────────┘
+```
+
+### 💻 Code Example
+
+```javascript
+// ── SSG: getStaticProps (Pages Router) ──────────────────────────────
+// Step 1: runs at BUILD TIME only; output is a static .html file
+export async function getStaticProps() {
+  const posts = await fetchAllBlogPosts();
+  return { props: { posts } };
+}
+
+// ── SSR: getServerSideProps (Pages Router) ──────────────────────────
+// Step 1: runs on EVERY REQUEST on the server
+export async function getServerSideProps(context) {
+  const user = await getUser(context.req.cookies.token); // Step 2: can read request
+  const data = await fetchPersonalisedDashboard(user.id);
+  return { props: { data } };
+}
+
+// ── ISR: getStaticProps + revalidate (Pages Router) ─────────────────
+export async function getStaticProps({ params }) {
+  const product = await fetchProduct(params.id);
+  return {
+    props: { product },
+    // Step 1: after 60 seconds, next request triggers background rebuild
+    // Visitor gets stale page; rebuilt page served to next visitor
+    revalidate: 60,
+  };
+}
+
+// ── App Router equivalents (Next.js 13+) ────────────────────────────
+
+// SSG: default behaviour — fetch is cached at build time
+async function Page() {
+  const data = await fetch('https://api.example.com/posts');  // cached
+  // ...
+}
+
+// SSR: opt out of caching
+async function Page() {
+  const data = await fetch('https://api.example.com/posts', {
+    cache: 'no-store',    // Step 1: fetch on every request
+  });
+}
+
+// ISR: revalidate after N seconds
+async function Page() {
+  const data = await fetch('https://api.example.com/posts', {
+    next: { revalidate: 60 },   // Step 1: stale-while-revalidate
+  });
+}
+```
+
+### 🔍 Step-by-Step Explanation
+
+1. **SSG** — Pages are HTML files in the `.next/static` folder after build. CDN caches them forever (until next deploy). Best performance, but data can be stale.
+2. **SSR** — Every request hits your Node server. Fresh data, but adds server latency. Don't cache on CDN (content is per-request).
+3. **ISR** — Uses stale-while-revalidate: serve the cached HTML immediately, then rebuild in the background if the revalidation window has passed. Best of both worlds for content that changes occasionally.
+4. **On-demand ISR** — `revalidatePath('/blog/[slug]')` or `revalidateTag('posts')` lets you purge the cache programmatically (e.g., on a CMS webhook).
+
+### ⏱️ Complexity
+
+| Strategy | TTFB | Server Load | Data Freshness |
+|----------|------|-------------|----------------|
+| SSG | < 10ms (CDN) | O(1) per request | Stale until rebuild |
+| SSR | 100–500ms | O(1) per request (but always runs) | Always fresh |
+| ISR | < 10ms (CDN hit) | O(1) background only | Stale by ≤ revalidate seconds |
+
+---
+
+## Q31: How does `Suspense` work for data fetching vs code splitting?
+
+### 🧒 ELI5
+`Suspense` is a "loading screen" instruction. For **code splitting** it says "wait until the code file downloads." For **data fetching** it says "wait until the data promise resolves." In both cases, the parent shows a spinner (fallback) and the child appears when ready.
+
+### 📊 Diagram
+
+```
+  CODE SPLITTING
+  ──────────────────────────────────────────────────────
+  React.lazy(() => import('./HeavyChart'))
+       │
+       ▼
+  <Suspense fallback={<Spinner />}>    ← shows while JS downloads
+    <HeavyChart />
+  </Suspense>
+       │
+  JS bundle chunk requested → downloaded → component mounts
+
+  DATA FETCHING (React 18 use() hook)
+  ──────────────────────────────────────────────────────
+  const promise = fetchUser(id);       ← starts outside render
+
+  function UserCard() {
+    const user = use(promise);         ← throws promise if pending
+  }                                    ← React catches the throw
+
+  <Suspense fallback={<Skeleton />}>   ← shows while data resolves
+    <UserCard />
+  </Suspense>
+       │
+  Promise resolves → React re-renders UserCard → shows data
+
+  NESTED SUSPENSE (waterfall avoidance)
+  ──────────────────────────────────────────────────────
+  <Suspense fallback={<PageSkeleton />}>      ← outer
+    <Header />
+    <Suspense fallback={<ArticleSkeleton />}> ← inner
+      <Article />                              
+    </Suspense>
+    <Suspense fallback={<SidebarSkeleton />}> ← inner
+      <Sidebar />                              ← loads in parallel
+    </Suspense>
+  </Suspense>
+```
+
+### 💻 Code Example
+
+```javascript
+import { Suspense, lazy, use } from 'react';
+
+// ── Code Splitting with React.lazy ───────────────────────────────────
+
+// Step 1: lazy() wraps a dynamic import — chunk is only loaded when needed
+const HeavyDashboard = lazy(() => import('./HeavyDashboard'));
+
+function App() {
+  const [show, setShow] = useState(false);
+
+  return (
+    <>
+      <button onClick={() => setShow(true)}>Load Dashboard</button>
+
+      {/* Step 2: fallback shown while JS chunk downloads */}
+      <Suspense fallback={<div>Loading dashboard...</div>}>
+        {show && <HeavyDashboard />}
+      </Suspense>
+    </>
+  );
+}
+
+// ── Data Fetching with React 18 use() hook ───────────────────────────
+
+// Step 1: create promise OUTSIDE the component (not inside useEffect)
+// This avoids creating a new promise on every render
+function fetchUser(id) {
+  return fetch(`/api/users/${id}`).then(r => r.json());
+}
+
+// Step 2: cache promises to avoid re-fetch on re-render
+const userCache = new Map();
+function getUserPromise(id) {
+  if (!userCache.has(id)) {
+    userCache.set(id, fetchUser(id));
+  }
+  return userCache.get(id);
+}
+
+// Step 3: Component uses use() — suspends until promise resolves
+function UserCard({ id }) {
+  // use() throws the promise if pending; React catches it with nearest Suspense
+  const user = use(getUserPromise(id));
+  return <div>{user.name}</div>;
+}
+
+// Step 4: Wrap in Suspense — handles both loading and error states
+function App() {
+  return (
+    <ErrorBoundary fallback={<p>Failed to load user</p>}>
+      <Suspense fallback={<p>Loading user...</p>}>
+        <UserCard id={42} />
+      </Suspense>
+    </ErrorBoundary>
+  );
+}
+
+// ── Server Components + Suspense (Next.js App Router) ────────────────
+// Step 5: async server components integrate naturally with Suspense
+async function SlowData() {
+  const data = await fetch('https://slow-api.example.com/data');
+  const json = await data.json();
+  return <pre>{JSON.stringify(json, null, 2)}</pre>;
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<p>Fetching slow data...</p>}>
+      <SlowData />   {/* Next.js automatically suspends async components */}
+    </Suspense>
+  );
+}
+```
+
+### 🔍 Step-by-Step Explanation
+
+1. **Mechanism** — Suspense works because React catches thrown Promises in the render phase. When a component throws a Promise, React renders the nearest `<Suspense>` fallback and subscribes to the Promise. When it resolves, React re-renders the suspended subtree.
+2. **Code splitting** — `React.lazy` wraps a dynamic `import()` which returns a Promise. The first render throws this Promise; Suspense shows the fallback; when the chunk downloads, React re-renders.
+3. **`use()` hook (React 18)** — `use(promise)` is the first hook that can be called conditionally. It reads the resolved value or throws the Promise if still pending.
+4. **Parallel loading** — Nested `<Suspense>` boundaries let siblings load in parallel. Each boundary independently handles its loading state.
+5. **Error handling** — Always pair `<Suspense>` with an `<ErrorBoundary>` above it; rejected promises propagate to the Error Boundary.
+6. **Old pattern (render-as-you-fetch)** — Libraries like SWR/React Query use their own Suspense mode (`suspense: true`). Under the hood they throw cached Promises.
+
+### ⏱️ Complexity
+
+| Scenario | Load Sequence | Complexity |
+|----------|--------------|-----------|
+| Sequential (no Suspense) | A then B then C | O(A+B+C) time |
+| Parallel Suspense boundaries | A, B, C in parallel | O(max(A,B,C)) time |
+| Code split chunk | O(bundle size / bandwidth) | Network bound |
+| `use()` re-render on resolve | O(subtree size) | Minimal |
+
+---
+
+## End of Section: REACT — Advanced (Q25–Q31)
+
+---
+
+# REACT — Ecosystem (Q32–Q38)
+
+---
+
+## Q32: What is the difference between `queryKey`, `staleTime`, and `cacheTime` in React Query?
+
+### 🧒 ELI5
+**`queryKey`** is the name tag on a jar in the fridge — it identifies what's inside so you can find it again. **`staleTime`** is "how long until the food is considered old" — while fresh, nobody goes back to the shop. **`cacheTime`** is "how long the empty jar stays on the shelf before being thrown away" — even after you stop using it, the data lingers for a while in case you need it again soon.
+
+### 📊 Diagram
+
+```
+  queryKey: ['todos', { status: 'open', page: 1 }]
+  ───────────────────────────────────────────────
+  • Unique cache key — every distinct key = independent cache entry
+  • Array form allows granular invalidation:
+      queryClient.invalidateQueries({ queryKey: ['todos'] })
+      → invalidates ALL queries whose key starts with ['todos']
+
+  staleTime (default: 0)
+  ───────────────────────────────────────────────
+  0ms ──▶ fresh ──▶ [staleTime ms] ──▶ stale
+  • While FRESH: component re-mount does NOT trigger a new network request
+  • Once STALE: next mount / window refocus / network reconnect → refetch
+  • staleTime: Infinity → never refetch automatically (static data, e.g. config)
+
+  cacheTime (TanStack v5: gcTime, default: 5 minutes)
+  ───────────────────────────────────────────────────
+  Query becomes inactive (no subscribers)
+       │
+       ▼ cacheTime timer starts
+  [cacheTime ms passes]
+       │
+       ▼ garbage collected from cache
+  
+  INTERACTION:
+  ┌──────────┬────────────┬────────────────────────────────────┐
+  │staleTime │ cacheTime  │ Behaviour                          │
+  ├──────────┼────────────┼────────────────────────────────────┤
+  │ 0        │ 5 min      │ Always refetch on mount, but cached│
+  │          │            │ data shown instantly (background)  │
+  ├──────────┼────────────┼────────────────────────────────────┤
+  │ 30s      │ 5 min      │ No refetch if mounted < 30s ago    │
+  ├──────────┼────────────┼────────────────────────────────────┤
+  │ Infinity │ Infinity   │ Fetch once, never refetch/GC       │
+  └──────────┴────────────┴────────────────────────────────────┘
+```
+
+### 💻 Code Example
+
+```javascript
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+
+// Step 1: queryKey as array — supports partial matching for invalidation
+const { data: todos } = useQuery({
+  queryKey: ['todos', { status: 'open', page: currentPage }],
+  queryFn: () => fetchTodos({ status: 'open', page: currentPage }),
+
+  // Step 2: staleTime — consider data fresh for 30 seconds
+  // Re-mounting this component within 30s won't trigger a network request
+  staleTime: 30_000,
+
+  // Step 3: gcTime (v5) / cacheTime (v4) — keep inactive cache for 10 minutes
+  // If no component subscribes for 10 min, the entry is garbage collected
+  gcTime: 10 * 60 * 1000,
+});
+
+// Step 4: targeted invalidation using partial key matching
+const queryClient = useQueryClient();
+
+function invalidateAllTodos() {
+  // Invalidates ['todos', { status: 'open' }] AND ['todos', { status: 'done' }]
+  // because they all start with ['todos']
+  queryClient.invalidateQueries({ queryKey: ['todos'] });
+}
+
+function prefetchNextPage() {
+  // Step 5: prefetch into cache before user navigates
+  queryClient.prefetchQuery({
+    queryKey: ['todos', { status: 'open', page: currentPage + 1 }],
+    queryFn: () => fetchTodos({ status: 'open', page: currentPage + 1 }),
+    staleTime: 30_000,
+  });
+}
+
+// Step 6: global defaults — set once in QueryClient
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60_000,   // 1 min default freshness
+      gcTime: 5 * 60_000,  // 5 min default GC
+      retry: 2,            // retry failed requests twice
+    },
+  },
+});
+```
+
+### 🔍 Step-by-Step Explanation
+
+1. **`queryKey`** — Serialised to a stable string internally. Two queries with identical keys share the same cache slot. Array format lets you group related queries by prefix for bulk invalidation.
+2. **`staleTime`** — Controls "do I need fresh data?" A high `staleTime` reduces network requests; good for reference data that rarely changes (country list, config).
+3. **`gcTime` / `cacheTime`** — Controls "how long to keep the data in memory after nobody is using it." Keeps the cache warm for quick navigation back to a page.
+4. **v5 rename** — TanStack Query v5 renamed `cacheTime` → `gcTime` to reduce confusion (because `staleTime` and `cacheTime` were commonly mixed up).
+
+### ⏱️ Complexity
+
+| Operation | Complexity | Reason |
+|-----------|-----------|--------|
+| Cache lookup by key | O(1) | Hash map internally |
+| Partial key invalidation | O(K) | K = number of cached queries |
+| GC sweep | O(K) | Iterates all inactive entries |
+
+---
+
+## Q33: How do you implement optimistic updates in React Query?
+
+### 🧒 ELI5
+You send a text message and your chat app shows it immediately (grey tick) before the server confirms. If the server fails, the message disappears with an error. That's an **optimistic update** — assume success, show the result instantly, roll back on failure.
+
+### 📊 Diagram
+
+```
+  USER ACTION: "Like this post"
+  ─────────────────────────────────────────────────────
+  1. onMutate:
+     ├─ Cancel in-flight fetches (avoid overwrite)
+     ├─ Snapshot current cache value
+     └─ Immediately update cache → UI shows liked ❤️
+
+  2. Network request fires in background
+
+  3a. onSuccess:
+     └─ Invalidate query → refetch real server value
+        (keeps cache in sync with truth)
+
+  3b. onError:
+     └─ Restore snapshot → UI reverts to not-liked 🤍
+        Show error toast
+
+  TIMELINE:
+  t=0  ── onMutate (instant UI update)
+  t=50 ── network request in flight
+  t=200 ── onSuccess → invalidate → background refetch
+         OR
+  t=200 ── onError → rollback to snapshot
+```
+
+### 💻 Code Example
+
+```javascript
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+
+function useLikePost() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (postId) => fetch(`/api/posts/${postId}/like`, { method: 'POST' }),
+
+    // Step 1: runs BEFORE the network request — optimistic update happens here
+    onMutate: async (postId) => {
+      // Step 2: cancel any outgoing refetches so they don't overwrite our optimistic update
+      await queryClient.cancelQueries({ queryKey: ['posts'] });
+
+      // Step 3: snapshot the current value so we can roll back on error
+      const previousPosts = queryClient.getQueryData(['posts']);
+
+      // Step 4: optimistically update the cache immediately
+      queryClient.setQueryData(['posts'], (old) =>
+        old.map((post) =>
+          post.id === postId
+            ? { ...post, likes: post.likes + 1, liked: true }
+            : post
+        )
+      );
+
+      // Step 5: return snapshot as context — onError will receive it
+      return { previousPosts };
+    },
+
+    // Step 6: if mutation fails, roll back to the snapshot
+    onError: (err, postId, context) => {
+      queryClient.setQueryData(['posts'], context.previousPosts);
+      toast.error('Failed to like post. Please try again.');
+    },
+
+    // Step 7: after success OR error, sync cache with server truth
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
+    },
+  });
+}
+
+// Usage in component
+function PostCard({ post }) {
+  const { mutate: likePost, isPending } = useLikePost();
+
+  return (
+    <button
+      onClick={() => likePost(post.id)}
+      disabled={isPending}  // prevent double-click
+    >
+      {post.liked ? '❤️' : '🤍'} {post.likes}
+    </button>
+  );
+}
+```
+
+### 🔍 Step-by-Step Explanation
+
+1. **`cancelQueries`** — Prevents a concurrent background refetch from stomping over our optimistic update with stale server data.
+2. **`getQueryData` snapshot** — We save what the cache looked like before our change so `onError` can restore it exactly.
+3. **`setQueryData`** — Directly writes to the cache synchronously — no network round-trip. React re-renders immediately with the new value.
+4. **`context`** — Whatever `onMutate` returns is passed as the third argument to `onError` and `onSettled`. This is the rollback mechanism.
+5. **`onSettled`** — Always fires (success or error). Invalidating here ensures eventual consistency by fetching the real server state.
+
+### ⏱️ Complexity
+
+| Step | Complexity | Reason |
+|------|-----------|--------|
+| `cancelQueries` | O(K) | K = matching active queries |
+| `setQueryData` | O(N) | N = items in the list |
+| Rollback | O(1) | Replace with snapshot reference |
+| Refetch on settle | O(N) | Server returns full list |
+
+---
+
+## Q34: How does React Query handle background refetching?
+
+### 🧒 ELI5
+Imagine a weather app that shows yesterday's forecast while quietly checking for today's update behind the scenes. When the new data arrives, the display updates — you never saw a loading spinner. That's background refetching.
+
+### 📊 Diagram
+
+```
+  TRIGGERS FOR BACKGROUND REFETCH:
+  ─────────────────────────────────────────────────────
+  1. refetchOnWindowFocus  (default: true)
+     User switches tab, comes back → stale queries refetch
+
+  2. refetchOnMount  (default: true)
+     Component mounts and data is stale → refetch in background
+
+  3. refetchOnReconnect  (default: true)
+     Internet comes back → refetch stale queries
+
+  4. refetchInterval  (polling)
+     refetchInterval: 5000 → refetch every 5 seconds
+
+  BEHAVIOUR DURING BACKGROUND REFETCH:
+  ─────────────────────────────────────────────────────
+  Cache has stale data
+       │
+       ├─ isLoading: false  ← NOT shown (data already exists)
+       ├─ isFetching: true  ← background fetch in progress
+       └─ data: <stale>     ← previous data shown immediately
+
+  Refetch completes
+       │
+       └─ data: <fresh>  ← UI updates silently
+
+  DEDUPLICATION:
+  Multiple components subscribe to same queryKey
+  → Only ONE network request fires
+  → All subscribers receive the same data simultaneously
+```
+
+### 💻 Code Example
+
+```javascript
+import { useQuery } from '@tanstack/react-query';
+
+function LiveStockPrice({ ticker }) {
+  const { data, isFetching, isLoading } = useQuery({
+    queryKey: ['stock', ticker],
+    queryFn: () => fetchStockPrice(ticker),
+
+    // Step 1: poll every 10 seconds for live prices
+    refetchInterval: 10_000,
+
+    // Step 2: stop polling when tab is in background (save resources)
+    refetchIntervalInBackground: false,
+
+    // Step 3: refetch on window focus — user comes back to tab
+    refetchOnWindowFocus: true,
+
+    // Step 4: treat data as stale after 5 seconds
+    staleTime: 5_000,
+  });
+
+  return (
+    <div>
+      <span>${data?.price}</span>
+
+      {/* Step 5: isFetching is true during background refetch */}
+      {/* isLoading is only true when there's NO cached data AND fetching */}
+      {isFetching && !isLoading && (
+        <span style={{ fontSize: '0.8em', color: 'grey' }}>↻ updating</span>
+      )}
+    </div>
+  );
+}
+
+// Step 6: manually trigger a background refetch
+function RefreshButton({ ticker }) {
+  const queryClient = useQueryClient();
+
+  return (
+    <button onClick={() => queryClient.invalidateQueries({ queryKey: ['stock', ticker] })}>
+      Force Refresh
+    </button>
+  );
+}
+
+// Step 7: disable background behaviour for static data
+useQuery({
+  queryKey: ['countries'],
+  queryFn: fetchCountries,
+  staleTime: Infinity,         // never go stale
+  refetchOnWindowFocus: false, // never background refetch
+  refetchOnMount: false,       // only fetch once
+});
+```
+
+### 🔍 Step-by-Step Explanation
+
+1. **`isFetching` vs `isLoading`** — `isLoading` is `true` only the very first time (no cached data). `isFetching` is `true` on every network request including background ones. Show a subtle indicator during `isFetching && !isLoading`.
+2. **Request deduplication** — If 10 components mount simultaneously with the same `queryKey`, React Query fires exactly one `queryFn` and distributes the result to all 10.
+3. **`refetchInterval`** — Polling. React Query manages the `setInterval` internally and clears it when the component unmounts or the query becomes inactive.
+4. **`refetchIntervalInBackground: false`** — Pauses polling when the document is hidden (browser tab in background), resuming when the tab becomes visible again.
+
+### ⏱️ Complexity
+
+| Feature | Cost | Reason |
+|---------|------|--------|
+| Request deduplication | O(1) extra | One request regardless of subscriber count |
+| `refetchInterval` | O(1) timer | Single interval per query |
+| Window focus listener | O(1) | One global event listener |
+| Subscriber notification | O(S) | S = number of subscribed components |
+
+---
+
+## Q35: What is the difference between `useForm` controlled vs uncontrolled in React Hook Form?
+
+### 🧒 ELI5
+**Controlled** is like a puppeteer pulling every string — React knows every keystroke. **Uncontrolled** (React Hook Form's default) is like giving the actor a script but letting them perform freely — the form manages its own values using native DOM, React only checks in when needed (submit, validate). RHF's approach means zero re-renders per keystroke.
+
+### 📊 Diagram
+
+```
+  CONTROLLED (standard React)
+  ────────────────────────────────────────────────────
+  User types "A" → onChange fires → setState("A")
+  → React re-renders → input shows "A"
+  User types "B" → onChange fires → setState("AB")
+  → React re-renders → input shows "AB"
+  ...every keystroke = 1 re-render
+
+  UNCONTROLLED (React Hook Form default)
+  ────────────────────────────────────────────────────
+  User types "AB" → native DOM holds value
+  → NO React re-renders during typing
+  User submits → RHF reads DOM values via ref
+  → validates → returns errors / data
+
+  register() returns:
+  { name, ref, onChange, onBlur }
+  └─ onChange: only triggers internal RHF validation
+  └─ ref: RHF reads value directly from DOM node
+
+  RE-RENDER COMPARISON:
+  ─────────────────────
+  Form with 10 fields, user types 50 chars:
+  Controlled:   ~500 re-renders
+  RHF default:  ~1-5 re-renders (only on error state change)
+```
+
+### 💻 Code Example
+
+```javascript
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+
+// Step 1: define validation schema with Zod
+const schema = z.object({
+  email: z.string().email('Invalid email'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+  age: z.coerce.number().min(18, 'Must be 18+'),
+});
+
+function LoginForm() {
+  const {
+    register,       // Step 2: uncontrolled — attaches ref + onChange to native input
+    control,        // Step 3: for controlled third-party components
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    resolver: zodResolver(schema),   // Step 4: RHF calls Zod on validate
+    defaultValues: { email: '', password: '', age: '' },
+    mode: 'onBlur',   // Step 5: validate on blur (not on every keystroke)
+  });
+
+  // Step 6: handleSubmit only fires if schema validation passes
+  const onSubmit = async (data) => {
+    await loginUser(data);
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+
+      {/* Step 7: register() — UNCONTROLLED: no useState, no value prop */}
+      <input
+        {...register('email')}  // spreads: name, ref, onChange, onBlur
+        placeholder="Email"
+      />
+      {errors.email && <p>{errors.email.message}</p>}
+
+      <input
+        {...register('password')}
+        type="password"
+        placeholder="Password"
+      />
+      {errors.password && <p>{errors.password.message}</p>}
+
+      {/* Step 8: Controller — CONTROLLED: for custom/third-party inputs */}
+      {/* Use when the component needs a value prop (e.g. Select, DatePicker) */}
+      <Controller
+        name="age"
+        control={control}
+        render={({ field }) => (
+          // field = { value, onChange, onBlur, ref }
+          <CustomAgeSelect {...field} />
+        )}
+      />
+      {errors.age && <p>{errors.age.message}</p>}
+
+      <button type="submit" disabled={isSubmitting}>
+        {isSubmitting ? 'Logging in...' : 'Login'}
+      </button>
+    </form>
+  );
+}
+```
+
+### 🔍 Step-by-Step Explanation
+
+1. **`register()`** — Returns `{ name, ref, onChange, onBlur }`. Spreaded onto a native `<input>`, RHF tracks the value via the `ref` (DOM reference), not React state. Zero re-renders while typing.
+2. **`Controller`** — Wraps components that require a `value` prop (controlled). RHF internally manages state for that field. Use it for custom UI libraries (MUI, Radix, etc.).
+3. **`mode`** — Controls when validation runs: `'onSubmit'` (default), `'onBlur'`, `'onChange'` (expensive), `'onTouched'`, `'all'`.
+4. **`zodResolver`** — `@hookform/resolvers/zod` bridges RHF and Zod. On submit/validate, RHF passes values to Zod's `parse`, errors are mapped back to field names.
+5. **`watch()`** — When you need to observe a field value reactively (e.g. conditional fields), `watch('fieldName')` returns the current value but does trigger a re-render for that field.
+
+### ⏱️ Complexity
+
+| Scenario | Re-renders | Reason |
+|----------|------------|--------|
+| Typing in `register()` field | 0 | DOM ref, no state update |
+| Typing in `Controller` field | 1 per keystroke | Controlled, RHF state update |
+| Blur validation (error appears) | 1 | `formState.errors` changes |
+| `handleSubmit` call | 1 | Updates `isSubmitting` state |
+
+---
+
+## Q36: How do you share Zod schemas between frontend validation and API validation?
+
+### 🧒 ELI5
+You write the rules for a board game once and put them in the box. Both players (frontend and backend) read from the same rulebook. If you change a rule, everyone plays by the new rule automatically — you don't have to hand-write two separate copies.
+
+### 📊 Diagram
+
+```
+  WITHOUT SHARED SCHEMA:
+  ─────────────────────────────────────────────────────
+  Frontend:  Yup schema { email: required, min 5 }
+  Backend:   Joi schema { email: required, min 3 }   ← diverged!
+  Result:    Frontend says valid, backend rejects → user confused
+
+  WITH SHARED ZOD SCHEMA (monorepo / shared package):
+  ─────────────────────────────────────────────────────
+  packages/shared/src/schemas/user.ts
+         │
+         ├─ Frontend imports → useForm + zodResolver
+         │   Client-side validation: instant feedback
+         │
+         └─ Backend imports → zod.parse() in API route
+             Server-side validation: authoritative check
+             TypeScript types inferred from same schema
+  
+  FLOW:
+  User fills form → Zod validates (frontend) → submit
+       → API receives data → Zod validates (backend)
+       → if server rejects → error response to client
+  
+  INFERRED TYPES:
+  type UserInput = z.infer<typeof userSchema>
+  → same type used in React component props AND Express handler
+```
+
+### 💻 Code Example
+
+```javascript
+// ── packages/shared/src/schemas/user.ts ─────────────────────────────
+import { z } from 'zod';
+
+// Step 1: define schema ONCE in a shared location
+export const createUserSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  password: z
+    .string()
+    .min(8, 'At least 8 characters')
+    .regex(/[A-Z]/, 'Must contain uppercase')
+    .regex(/[0-9]/, 'Must contain a number'),
+  age: z.coerce.number().int().min(18, 'Must be 18 or older'),
+});
+
+// Step 2: infer TypeScript type from schema — used in both FE and BE
+export type CreateUserInput = z.infer<typeof createUserSchema>;
+
+// ── Frontend: React + React Hook Form ───────────────────────────────
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { createUserSchema, type CreateUserInput } from '@myapp/shared';
+
+function RegisterForm() {
+  // Step 3: resolver automatically validates against shared schema
+  const { register, handleSubmit, formState: { errors } } = useForm<CreateUserInput>({
+    resolver: zodResolver(createUserSchema),
+  });
+
+  const onSubmit = async (data: CreateUserInput) => {
+    // Step 4: data is fully typed — CreateUserInput from shared schema
+    await fetch('/api/users', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers: { 'Content-Type': 'application/json' },
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <input {...register('email')} />
+      {errors.email && <p>{errors.email.message}</p>}
+      {/* ...other fields */}
+    </form>
+  );
+}
+
+// ── Backend: Express API route ───────────────────────────────────────
+import { createUserSchema } from '@myapp/shared';
+
+app.post('/api/users', async (req, res) => {
+  // Step 5: parse on server — rejects malformed/malicious payloads
+  const result = createUserSchema.safeParse(req.body);
+
+  if (!result.success) {
+    // Step 6: ZodError maps to structured field errors
+    return res.status(400).json({
+      errors: result.error.flatten().fieldErrors,
+    });
+  }
+
+  // Step 7: result.data is fully typed as CreateUserInput
+  const user = await db.users.create(result.data);
+  res.status(201).json(user);
+});
+```
+
+### 🔍 Step-by-Step Explanation
+
+1. **Single source of truth** — Schema lives in a shared package (`@myapp/shared`). Both sides import it. Any change to validation rules propagates to both environments automatically.
+2. **`z.infer<typeof schema>`** — Extracts the TypeScript type from the schema. No need to write a separate interface — the type is always in sync with validation constraints.
+3. **`safeParse` vs `parse`** — `parse` throws on failure; `safeParse` returns `{ success, data, error }` — better for API routes where you want to return 400, not crash.
+4. **`error.flatten()`** — Converts nested Zod errors into `{ fieldErrors: { email: ['Invalid email'] }, formErrors: [] }` — easy to map back to form fields.
+5. **Next.js Server Actions** — With RSC, you can call `createUserSchema.parse(formData)` directly inside a server action, sharing the same schema with the `<form>` component in the same file.
+
+### ⏱️ Complexity
+
+| Operation | Complexity | Reason |
+|-----------|-----------|--------|
+| `z.parse()` | O(F) | F = number of fields |
+| `z.infer` type extraction | O(0) | Compile-time only, no runtime cost |
+| `error.flatten()` | O(E) | E = number of validation errors |
+
+---
+
+## Q37: When would you choose Zustand over Redux Toolkit?
+
+### 🧒 ELI5
+**Redux Toolkit** is a city's traffic control centre — powerful, centralised, great for complex intersections, but you need a whole team to run it. **Zustand** is traffic lights on a quiet road — simple, gets the job done, no bureaucracy. Both move traffic; you pick based on how complex your roads are.
+
+### 📊 Diagram
+
+```
+  ZUSTAND
+  ────────────────────────────────────────────
+  • ~1KB bundle
+  • No providers, no boilerplate
+  • Single store or multiple stores
+  • Direct mutation via immer (optional)
+  • React hooks only — no connect(), no mapStateToProps
+  • No actions/reducers — just functions in the store
+
+  const useStore = create((set) => ({
+    count: 0,
+    increment: () => set(state => ({ count: state.count + 1 })),
+  }));
+
+  REDUX TOOLKIT (RTK)
+  ────────────────────────────────────────────
+  • Larger bundle, but battle-tested
+  • DevTools with time-travel debugging
+  • RTK Query = built-in data fetching + caching
+  • Standardised: slices, actions, reducers, selectors
+  • Better for large teams needing conventions
+  • Middleware ecosystem (redux-thunk, redux-saga)
+
+  DECISION MATRIX:
+  ┌────────────────────────────┬─────────┬─────────┐
+  │ Scenario                   │ Zustand │  RTK    │
+  ├────────────────────────────┼─────────┼─────────┤
+  │ Small/medium app UI state  │   ✅    │ overkill│
+  │ Time-travel debugging      │   ❌    │   ✅    │
+  │ Large team, many devs      │   ⚠️   │   ✅    │
+  │ Server state (API data)    │  RQ*    │ RTK Q   │
+  │ Minimal boilerplate        │   ✅    │   ❌    │
+  │ Complex async workflows    │   ⚠️   │   ✅    │
+  │ Bundle size matters        │   ✅    │   ⚠️   │
+  └────────────────────────────┴─────────┴─────────┘
+  * Use React Query for server state with either option
+```
+
+### 💻 Code Example
+
+```javascript
+// ── ZUSTAND ──────────────────────────────────────────────────────────
+import { create } from 'zustand';
+import { immer } from 'zustand/middleware/immer';
+import { persist } from 'zustand/middleware';
+
+// Step 1: define store with state + actions in one object
+const useCartStore = create(
+  persist(                    // Step 2: persist to localStorage automatically
+    immer((set, get) => ({    // Step 3: immer enables direct mutation syntax
+      items: [],
+      total: 0,
+
+      addItem: (product) => set((state) => {
+        // Step 4: immer draft — looks like mutation, produces immutable update
+        const existing = state.items.find(i => i.id === product.id);
+        if (existing) {
+          existing.quantity += 1;
+        } else {
+          state.items.push({ ...product, quantity: 1 });
+        }
+        state.total = state.items.reduce((s, i) => s + i.price * i.quantity, 0);
+      }),
+
+      removeItem: (id) => set((state) => {
+        state.items = state.items.filter(i => i.id !== id);
+        state.total = state.items.reduce((s, i) => s + i.price * i.quantity, 0);
+      }),
+
+      clearCart: () => set({ items: [], total: 0 }),
+    })),
+    { name: 'cart-storage' }  // localStorage key
+  )
+);
+
+// Step 5: subscribe to only what you need — component only re-renders
+// when items.length changes, not on any state change
+function CartIcon() {
+  const itemCount = useCartStore(state => state.items.length);
+  return <span>🛒 {itemCount}</span>;
+}
+
+// ── REDUX TOOLKIT (for comparison) ───────────────────────────────────
+import { createSlice, configureStore } from '@reduxjs/toolkit';
+
+// Step 6: RTK slice — much more structured, better for teams
+const cartSlice = createSlice({
+  name: 'cart',
+  initialState: { items: [], total: 0 },
+  reducers: {
+    addItem: (state, action) => {  // immer built-in to RTK
+      const existing = state.items.find(i => i.id === action.payload.id);
+      if (existing) existing.quantity += 1;
+      else state.items.push({ ...action.payload, quantity: 1 });
+    },
+  },
+});
+
+// Step 7: explicit action creators — easy to trace in DevTools / tests
+export const { addItem } = cartSlice.actions;
+```
+
+### 🔍 Step-by-Step Explanation
+
+1. **Choose Zustand when** — you want minimal boilerplate for UI state (modals, themes, wizard steps, shopping cart). Small-medium apps, or when you're already using React Query for server state.
+2. **Choose Redux Toolkit when** — you need time-travel debugging, have a large team that benefits from enforced conventions, you're maintaining a legacy Redux codebase, or need RTK Query's advanced caching features.
+3. **Don't use either for server state** — React Query / SWR handle async data fetching better than either. Global state should only hold client-side state (auth token, UI preferences, shopping cart).
+4. **Zustand selector granularity** — Pass a selector function to `useStore(selector)` to prevent re-renders when unrelated state changes.
+
+### ⏱️ Complexity
+
+| Operation | Zustand | Redux Toolkit |
+|-----------|---------|---------------|
+| Bundle size | ~1KB | ~10–40KB |
+| Boilerplate lines for a slice | ~10 | ~30–50 |
+| Selector re-render | O(1) per selector | O(1) per selector |
+| Middleware pipeline | Optional | Built-in (thunk) |
+
+---
+
+## Q38: How do you handle global error state in React Query?
+
+### 🧒 ELI5
+Instead of putting a fire alarm in every room of your house, you have one central alarm panel. In React Query, instead of writing `if (isError) toast(error)` in every component, you register one global error handler that fires for any failed query or mutation.
+
+### 📊 Diagram
+
+```
+  COMPONENT-LEVEL ERROR HANDLING:
+  ─────────────────────────────────────────────
+  <UserProfile>   → if (isError) showToast()   ← repeated in every component
+  <PostList>      → if (isError) showToast()
+  <Comments>      → if (isError) showToast()
+
+  GLOBAL ERROR HANDLING:
+  ─────────────────────────────────────────────
+  QueryClient (onError callback)
+       │
+       ├─ Any query fails → global handler fires
+       ├─ Any mutation fails → global handler fires
+       └─ Logs, toasts, redirects (e.g. 401 → login)
+
+  GRANULARITY OPTIONS:
+  ─────────────────────────────────────────────
+  1. QueryClient defaultOptions.queries.onError   ← all queries
+  2. QueryCache / MutationCache callbacks          ← recommended in v5
+  3. useQuery({ onError })                         ← per-query override
+  4. ErrorBoundary above <QueryClientProvider>     ← uncaught render errors
+```
+
+### 💻 Code Example
+
+```javascript
+import {
+  QueryClient,
+  QueryClientProvider,
+  QueryCache,
+  MutationCache,
+} from '@tanstack/react-query';
+import toast from 'react-hot-toast';
+
+// Step 1: attach global error handlers at QueryCache / MutationCache level
+// This is the recommended approach in TanStack Query v4/v5
+const queryClient = new QueryClient({
+  queryCache: new QueryCache({
+    // Step 2: fires whenever ANY query errors — receives error + query metadata
+    onError: (error, query) => {
+      // Step 3: only show toast for non-silent errors
+      // use query.meta to pass contextual flags from useQuery
+      if (query.meta?.silent) return;
+
+      if (error.status === 401) {
+        // Step 4: redirect to login on unauthorised
+        window.location.href = '/login';
+        return;
+      }
+
+      // Step 5: show user-friendly toast for other errors
+      const message = error.message ?? 'Something went wrong';
+      toast.error(message);
+    },
+  }),
+
+  mutationCache: new MutationCache({
+    // Step 6: fires whenever ANY mutation errors
+    onError: (error, variables, context, mutation) => {
+      if (mutation.meta?.silent) return;
+
+      toast.error(error.message ?? 'Action failed. Please try again.');
+    },
+  }),
+
+  defaultOptions: {
+    queries: {
+      retry: (failureCount, error) => {
+        // Step 7: don't retry 4xx errors — they won't fix themselves
+        if (error.status >= 400 && error.status < 500) return false;
+        return failureCount < 2;
+      },
+      staleTime: 60_000,
+    },
+  },
+});
+
+// Step 8: wrap app with provider
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <Router />
+    </QueryClientProvider>
+  );
+}
+
+// Step 9: per-query opt-out — mark as silent so global handler skips it
+function useOptionalUser(id) {
+  return useQuery({
+    queryKey: ['user', id],
+    queryFn: () => fetchUser(id),
+    meta: { silent: true },       // global onError will skip this
+    onError: (err) => {
+      // handle locally instead
+      setUserError(err);
+    },
+  });
+}
+
+// Step 10: combine with ErrorBoundary for render-phase errors
+function Root() {
+  return (
+    <ErrorBoundary fallback={<GlobalErrorPage />}>
+      <QueryClientProvider client={queryClient}>
+        <App />
+      </QueryClientProvider>
+    </ErrorBoundary>
+  );
+}
+```
+
+### 🔍 Step-by-Step Explanation
+
+1. **`QueryCache` / `MutationCache`** — The correct place for global error handling in v4/v5. The `onError` at `defaultOptions` level was deprecated in v5 because it ran per-observer (once per `useQuery` call), not per query — leading to duplicate toasts.
+2. **`query.meta`** — A freeform object you can attach to any query via `meta: { ... }`. Useful for flagging queries as silent, or tagging with a category for analytics.
+3. **HTTP status-based routing** — `401 → login redirect`, `403 → permission denied page`, `500 → generic error toast`. Centralise this logic instead of duplicating it.
+4. **`retry` function** — Don't retry client errors (4xx). Retry server errors (5xx) up to N times with exponential backoff (built-in to React Query).
+5. **Double coverage** — React Query's error handling catches async errors. Wrap with `<ErrorBoundary>` to catch synchronous render errors that slip through.
+
+### ⏱️ Complexity
+
+| Scenario | Cost | Reason |
+|----------|------|--------|
+| Global `onError` fires | O(1) | Single callback per failed request |
+| Duplicate toast prevention | O(1) | `meta.silent` flag check |
+| Retry logic | O(R) | R = number of retry attempts |
+| Error boundary catch | O(1) | Single error per boundary |
+
+---
+
+## End of Section: REACT — Ecosystem (Q32–Q38)
+
+---
+
+# NODE.JS — Core (Q39–Q47)
+
+---
+
+## Q39: Explain the Node.js event loop. What is the order of execution between `setTimeout`, `Promise.then`, and `process.nextTick`?
+
+### 🧒 ELI5
+Imagine a chef with several incoming orders labeled by urgency. `process.nextTick` orders go to the top of the pile right now, before the chef finishes the current dish. `Promise.then` orders go to a "hot queue" checked after each dish. `setTimeout` orders sit in a separate tray checked once per trip to the pass. The chef (event loop) clears the hot queue completely before going to the next tray.
+
+### 📊 Diagram
+
+```
+  NODE.JS EVENT LOOP — one tick
+  ──────────────────────────────────────────────────────────
+  START
+    │
+    ▼
+  ┌───────────────┐  nextTick queue drained first (recursive = stack overflow risk!)
+  │ nextTick Queue│  ← process.nextTick() callbacks
+  └───────┬───────┘
+          │ empty
+          ▼
+  ┌───────────────┐  microtask queue (Promises)
+  │ Microtask Q   │  ← Promise.then / .catch / .finally / await
+  └───────┬───────┘
+          │ empty
+          ▼
+  ┌─────────────────────────────────────────────────────┐
+  │ PHASES (macro tasks)                                │
+  │                                                     │
+  │  timers      → setTimeout / setInterval callbacks  │
+  │  pending I/O → deferred I/O callbacks               │
+  │  idle/prep   → internal                             │
+  │  poll        → wait for I/O events (blocks here     │
+  │                if nothing else pending)             │
+  │  check       → setImmediate callbacks               │
+  │  close       → socket.on('close') etc.              │
+  └─────────────────────────────────────────────────────┘
+          │
+          └─ after EACH phase: drain nextTick + microtask queues
+
+  PRIORITY ORDER:
+  process.nextTick  >  Promise.then  >  setImmediate  >  setTimeout(0)
+```
+
+### 💻 Code Example
+
+```javascript
+// Step 1: synchronous code runs first — always
+console.log('1 sync');
+
+// Step 2: nextTick queued — runs before any I/O or timer
+process.nextTick(() => console.log('2 nextTick'));
+
+// Step 3: Promise microtask — runs after nextTick queue is empty
+Promise.resolve().then(() => console.log('3 Promise.then'));
+
+// Step 4: setTimeout scheduled in timers phase — runs AFTER microtasks
+setTimeout(() => console.log('4 setTimeout'), 0);
+
+// Step 5: setImmediate fires in check phase — after poll phase
+setImmediate(() => console.log('5 setImmediate'));
+
+// Step 6: more sync — still part of current call stack
+console.log('6 sync');
+
+// OUTPUT ORDER:
+// 1 sync
+// 6 sync
+// 2 nextTick       ← nextTick queue drained before microtasks
+// 3 Promise.then   ← microtask queue
+// 4 setTimeout     ← timers phase (may swap with setImmediate outside I/O)
+// 5 setImmediate   ← check phase
+
+// ── DANGER: recursive nextTick starves the event loop ────────────────
+function starveLoop() {
+  process.nextTick(starveLoop);  // ❌ NEVER DO THIS — infinite nextTick
+}                                //    I/O, timers, Promises never run
+
+// ── ASYNC/AWAIT = Promise.then under the hood ─────────────────────────
+async function example() {
+  console.log('A sync inside async');
+  await Promise.resolve();
+  console.log('B after await');  // runs in microtask queue
+}
+example();
+console.log('C sync after call');
+// Output: A → C → B
+```
+
+### 🔍 Step-by-Step Explanation
+
+1. **Synchronous code** — Runs to completion on the call stack before the event loop checks any queue.
+2. **`process.nextTick`** — Queued in the "nextTick queue", drained completely after the current operation AND after each individual phase transition. Higher priority than Promises.
+3. **Promise microtasks** — Drained after the nextTick queue is empty, before any macro-task phase.
+4. **Timers phase** — `setTimeout(fn, 0)` fires here, but "0" means "at least 0ms" — the actual minimum is ~1ms. Phase runs its queued callbacks then moves on.
+5. **Check phase** — `setImmediate` fires here, always after poll. Inside an I/O callback, `setImmediate` reliably fires before `setTimeout(0)`.
+
+### ⏱️ Complexity
+
+| Queue | Priority | Draining |
+|-------|----------|----------|
+| `process.nextTick` | Highest | Fully drained before microtasks |
+| Promise microtasks | High | Fully drained before macro phases |
+| `setImmediate` | Medium | One per check phase |
+| `setTimeout(0)` | Medium | One per timers phase |
+| I/O callbacks | Low | Poll phase |
+
+---
+
+## Q40: What is the difference between `setImmediate` and `setTimeout(() => {}, 0)`?
+
+### 🧒 ELI5
+Both say "do this soon, but not right now." `setImmediate` says "do this after you finish checking your inbox (I/O)." `setTimeout(0)` says "do this after at least 0 milliseconds — check the clock first." When you're already inside an I/O callback, `setImmediate` always wins. Outside I/O, the order is unpredictable.
+
+### 📊 Diagram
+
+```
+  EVENT LOOP PHASES (simplified):
+  ─────────────────────────────────────────────────────
+  timers → I/O → poll → CHECK → close
+     ↑                    │
+     │                    └── setImmediate fires here
+     └── setTimeout(0) fires here
+
+  INSIDE I/O CALLBACK:
+  ─────────────────────────────────────────────────────
+  fs.readFile() callback fires (poll phase)
+       │
+       ├─ setTimeout(0) → back to timers phase (NEXT loop)
+       └─ setImmediate  → check phase (THIS loop, comes NEXT)
+  
+  → setImmediate ALWAYS fires before setTimeout(0) inside I/O
+
+  OUTSIDE I/O (top level):
+  ─────────────────────────────────────────────────────
+  setTimeout(0) and setImmediate race:
+  → Order is NON-DETERMINISTIC (depends on OS timer resolution)
+  → May see either order in practice
+```
+
+### 💻 Code Example
+
+```javascript
+const fs = require('fs');
+
+// ── OUTSIDE I/O — order is non-deterministic ─────────────────────────
+setTimeout(() => console.log('setTimeout'), 0);
+setImmediate(() => console.log('setImmediate'));
+// Could print either order — don't rely on this!
+
+// ── INSIDE I/O — setImmediate always wins ────────────────────────────
+fs.readFile(__filename, () => {
+  // Step 1: we are now inside the poll phase (I/O callback)
+  setTimeout(() => console.log('timeout inside I/O'), 0);
+  setImmediate(() => console.log('immediate inside I/O'));
+  // Always prints: "immediate inside I/O" then "timeout inside I/O"
+  // because check phase comes before timers in the SAME loop iteration
+});
+
+// ── PRACTICAL RULE ───────────────────────────────────────────────────
+// Use setImmediate when you want to:
+// - Schedule work after the current I/O events are processed
+// - Break up CPU-heavy work without blocking I/O
+// - Ensure code runs in the check phase (predictable in I/O context)
+
+// Use setTimeout(0) when you need:
+// - Compatibility with browser environments (setImmediate is Node-only)
+// - A minimum delay (even if effectively 0)
+
+// ── Breaking up CPU work with setImmediate ────────────────────────────
+function processLargeArray(items, callback) {
+  let index = 0;
+
+  function processNext() {
+    // Step 2: process a batch of 100 items
+    const end = Math.min(index + 100, items.length);
+    for (; index < end; index++) {
+      heavyComputation(items[index]);
+    }
+
+    if (index < items.length) {
+      // Step 3: yield to event loop via setImmediate — allows I/O between batches
+      setImmediate(processNext);
+    } else {
+      callback();
+    }
+  }
+
+  processNext();
+}
+```
+
+### 🔍 Step-by-Step Explanation
+
+1. **Phase positions** — `setTimeout` fires in the **timers** phase (first), `setImmediate` fires in the **check** phase (after poll). But the loop starts at timers — so outside I/O, which fires first depends on when the loop starts relative to timer registration.
+2. **Inside I/O** — The current loop is already past the timers phase when the I/O callback runs. The next opportunity for timers is the *next iteration*, but check phase is *this iteration* → `setImmediate` always wins.
+3. **CPU work chunking** — Using `setImmediate` between batches of heavy work lets the event loop process pending I/O between batches, keeping the server responsive.
+
+### ⏱️ Complexity
+
+| Scenario | When fires | Deterministic? |
+|----------|-----------|---------------|
+| Top-level `setImmediate` | Check phase | vs setTimeout: no |
+| Top-level `setTimeout(0)` | Timers phase | vs setImmediate: no |
+| `setImmediate` inside I/O | Check phase (same iteration) | Yes — before setTimeout |
+| `setTimeout(0)` inside I/O | Timers phase (next iteration) | Yes — after setImmediate |
+
+---
+
+## Q41: What are Streams in Node.js? Explain all 4 types.
+
+### 🧒 ELI5
+Imagine water flowing through pipes. You don't fill a giant tank first — you let water flow continuously from source to destination. Node.js Streams are the same: process data in chunks as it arrives, not all at once. This saves memory when handling large files, network responses, or database results.
+
+### 📊 Diagram
+
+```
+  4 STREAM TYPES:
+  ──────────────────────────────────────────────────────────
+
+  1. READABLE  — produces data (you consume it)
+     Source ──▶ [chunk][chunk][chunk] ──▶ your code
+     Examples: fs.createReadStream, http.IncomingMessage, process.stdin
+
+  2. WRITABLE  — consumes data (you write into it)
+     Your code ──▶ [chunk][chunk][chunk] ──▶ Destination
+     Examples: fs.createWriteStream, http.ServerResponse, process.stdout
+
+  3. DUPLEX    — both readable AND writable (independent channels)
+     Data ──▶ [  DUPLEX  ] ──▶ Data
+              [          ]
+     Examples: net.Socket (TCP socket), WebSocket connection
+
+  4. TRANSFORM — duplex where output is derived from input
+     Input ──▶ [TRANSFORM] ──▶ Modified Output
+     Examples: zlib.createGzip (compress), crypto.createCipher (encrypt),
+               csv-parser, through2
+
+  PIPELINE:
+  ReadStream ──▶ Transform (gunzip) ──▶ Transform (parse) ──▶ WriteStream
+  file.gz   ──▶ decompress          ──▶ uppercase         ──▶ file.txt
+```
+
+### 💻 Code Example
+
+```javascript
+const fs = require('fs');
+const zlib = require('zlib');
+const { Transform, pipeline } = require('stream');
+const { promisify } = require('util');
+
+const pipelineAsync = promisify(pipeline);
+
+// ── 1. READABLE: custom readable stream ──────────────────────────────
+const { Readable } = require('stream');
+
+// Step 1: create a readable that emits numbers 1–10
+const numberStream = new Readable({
+  objectMode: true,  // allows non-Buffer chunks
+  read() {}          // no-op; we push manually
+});
+
+for (let i = 1; i <= 10; i++) {
+  numberStream.push(i);
+}
+numberStream.push(null);  // Step 2: null signals end of stream
+
+// ── 2. WRITABLE: custom writable stream ──────────────────────────────
+const { Writable } = require('stream');
+
+const logWriter = new Writable({
+  objectMode: true,
+  // Step 3: _write called for each chunk
+  write(chunk, encoding, callback) {
+    console.log('Received:', chunk);
+    callback();  // Step 4: MUST call callback to signal "ready for next chunk"
+  },
+});
+
+// ── 3. TRANSFORM: uppercase transformer ──────────────────────────────
+const { Transform } = require('stream');
+
+const upperCase = new Transform({
+  // Step 5: receives input chunk, pushes transformed output
+  transform(chunk, encoding, callback) {
+    this.push(chunk.toString().toUpperCase());
+    callback();
+  },
+});
+
+// ── 4. Full pipeline: read file → gzip → write ───────────────────────
+async function compressFile(input, output) {
+  // Step 6: pipeline handles backpressure AND cleans up on error
+  await pipelineAsync(
+    fs.createReadStream(input),    // Readable
+    zlib.createGzip(),             // Transform (compress)
+    fs.createWriteStream(output),  // Writable
+  );
+  console.log('Compression complete');
+}
+
+compressFile('large.log', 'large.log.gz');
+
+// ── 5. Consuming a readable stream ───────────────────────────────────
+async function readLines(filePath) {
+  const rl = require('readline').createInterface({
+    input: fs.createReadStream(filePath),  // Step 7: stream, not readFileSync
+    crlfDelay: Infinity,
+  });
+
+  for await (const line of rl) {  // Step 8: async iteration over stream
+    console.log(line);
+  }
+}
+```
+
+### 🔍 Step-by-Step Explanation
+
+1. **Readable internal modes** — Flowing mode (data events push chunks automatically) and paused mode (you call `.read()` manually). `pipe()` and `for await` use flowing mode.
+2. **`callback()`** — In `_write` and `_transform`, calling `callback()` signals "I'm done processing this chunk, send the next one." Not calling it = stream stalls (backpressure mechanism).
+3. **`objectMode: true`** — By default streams operate on Buffers/strings. Object mode allows any JS value as a chunk — useful for streaming database rows.
+4. **`pipeline` vs `pipe`** — `pipeline` (Node 10+) automatically destroys all streams and handles errors. Raw `pipe` leaks streams on error. Always prefer `pipeline`.
+5. **Memory efficiency** — Reading a 10GB file with `createReadStream` uses ~64KB at a time. `readFileSync` loads all 10GB into RAM.
+
+### ⏱️ Complexity
+
+| Operation | Time | Space |
+|-----------|------|-------|
+| Stream 1GB file | O(N) | O(chunk) ≈ O(1) |
+| `readFileSync` 1GB | O(N) | O(N) — whole file in RAM |
+| Transform per chunk | O(C) | O(C) — C = chunk size |
+| Pipeline setup | O(1) | O(1) |
+
+---
+
+## Q42: What is backpressure in streams and how does `.pipe()` handle it?
+
+### 🧒 ELI5
+Imagine filling bottles on a conveyor belt. If bottles arrive faster than you can cap them, they pile up and eventually fall off. Backpressure is the signal: "slow down, I'm full!" `.pipe()` is a smart conveyor controller that automatically pauses the source when the destination is overwhelmed and resumes when it catches up.
+
+### 📊 Diagram
+
+```
+  WITHOUT BACKPRESSURE HANDLING:
+  ─────────────────────────────────────────────────────
+  ReadStream (fast) ──▶ WriteStream (slow)
+  Reads 100MB/s         Writes 10MB/s
+       │
+       └─ internal buffer fills up → memory bloat → OOM crash
+
+  WITH BACKPRESSURE (.pipe() / pipeline):
+  ─────────────────────────────────────────────────────
+  ReadStream ──▶ .pipe() ──▶ WriteStream
+      │              │
+      │   writable.write() returns false (buffer full)
+      │              │
+      │   .pipe() calls readable.pause() automatically
+      │              │
+      │   writable emits 'drain' (buffer flushed)
+      │              │
+      └── .pipe() calls readable.resume() automatically
+
+  MANUAL write() return value:
+  ─────────────────────────────────────────────────────
+  const ok = writable.write(chunk);
+  if (!ok) {
+    readable.pause();                    // stop reading
+    writable.once('drain', () => {
+      readable.resume();                 // safe to continue
+    });
+  }
+```
+
+### 💻 Code Example
+
+```javascript
+const fs = require('fs');
+const { pipeline, Transform } = require('stream');
+const { promisify } = require('util');
+
+// ── .pipe() — handles backpressure automatically ──────────────────────
+// Step 1: .pipe() wires up 'drain' and 'pause' internally
+fs.createReadStream('huge-file.txt')
+  .pipe(new Transform({
+    transform(chunk, enc, cb) {
+      // simulate slow processing
+      setTimeout(() => { this.push(chunk); cb(); }, 10);
+    }
+  }))
+  .pipe(fs.createWriteStream('output.txt'));
+
+// ── pipeline() — preferred: handles errors AND backpressure ───────────
+const pipelineAsync = promisify(pipeline);
+
+async function processFile() {
+  await pipelineAsync(
+    fs.createReadStream('huge-file.txt'),
+    new Transform({
+      transform(chunk, enc, cb) {
+        this.push(chunk.toString().toUpperCase());
+        cb();
+      },
+    }),
+    fs.createWriteStream('output.txt'),
+  );
+  // Step 2: all streams destroyed on completion or error — no leaks
+}
+
+// ── MANUAL backpressure (for custom streams) ──────────────────────────
+function safeCopy(readable, writable) {
+  readable.on('data', (chunk) => {
+    // Step 3: write returns false when internal buffer is full
+    const ok = writable.write(chunk);
+
+    if (!ok) {
+      // Step 4: pause the source — stop producing data
+      readable.pause();
+
+      // Step 5: once writable drains its buffer, resume reading
+      writable.once('drain', () => {
+        readable.resume();
+      });
+    }
+  });
+
+  readable.on('end', () => writable.end());
+  readable.on('error', (err) => writable.destroy(err));
+}
+
+// ── highWaterMark — controls buffer size ─────────────────────────────
+// Step 6: increase buffer for high-throughput scenarios (default: 16KB)
+const readStream = fs.createReadStream('file.txt', {
+  highWaterMark: 64 * 1024,  // 64KB chunks
+});
+```
+
+### 🔍 Step-by-Step Explanation
+
+1. **`highWaterMark`** — Each stream has an internal buffer. When it exceeds `highWaterMark`, `write()` returns `false` — the backpressure signal.
+2. **`.pipe()` magic** — Listens for `writable.write()` returning `false`, calls `readable.pause()`. Listens for `drain`, calls `readable.resume()`. This keeps memory bounded.
+3. **`.pipe()` error problem** — If a stream in the middle of a chain errors, `.pipe()` doesn't automatically destroy the other streams — you get leaks. `pipeline()` fixes this.
+4. **`pipeline`** — Node 10+ utility that wires up error handling AND backpressure for all streams in the chain. Always use `pipeline` over `.pipe()` for production code.
+
+### ⏱️ Complexity
+
+| Scenario | Memory | Reason |
+|----------|--------|--------|
+| No backpressure handling | O(N) | Buffer grows unbounded |
+| `.pipe()` / `pipeline` | O(highWaterMark) | Bounded buffer |
+| `highWaterMark: 64KB` | ~64KB peak | Fixed ceiling |
+
+---
+
+## Q43: What is the difference between Buffers and Streams? When would you use each?
+
+### 🧒 ELI5
+A **Buffer** is a bucket — you fill the whole bucket, carry it, and pour it out. A **Stream** is a hose — water flows continuously from tap to destination without filling a giant bucket first. Use a bucket for small amounts; use a hose for large volumes.
+
+### 📊 Diagram
+
+```
+  BUFFER
+  ─────────────────────────────────────────────────────
+  fs.readFile('movie.mp4', (err, data) => {
+    // 'data' is a Buffer — entire 4GB file in RAM!
+    process(data);
+  });
+
+  Memory: [====4GB====]  ← entire file loaded
+
+  STREAM
+  ─────────────────────────────────────────────────────
+  fs.createReadStream('movie.mp4').pipe(res);
+  // 64KB at a time flows from disk → network
+  
+  Memory: [=64KB=]  ← only current chunk in RAM
+
+  BUFFER USE CASES:           STREAM USE CASES:
+  ───────────────             ──────────────────
+  • Small files (<10MB)       • Large files (video, logs)
+  • Binary data manipulation  • Real-time data (audio, video)
+  • Crypto (hash, HMAC)       • HTTP responses (piped to client)
+  • Network protocol parsing  • Database result sets
+  • Image thumbnails          • File transformations
+  • JSON payloads             • Compression / encryption pipeline
+```
+
+### 💻 Code Example
+
+```javascript
+// ── BUFFER: binary data manipulation ────────────────────────────────
+const crypto = require('crypto');
+
+// Step 1: Buffer.from — create from string, array, or ArrayBuffer
+const buf = Buffer.from('Hello, World!', 'utf8');
+console.log(buf);           // <Buffer 48 65 6c 6c 6f ...>
+console.log(buf.length);    // 13 bytes
+console.log(buf.toString()); // 'Hello, World!'
+
+// Step 2: Buffer.alloc — fixed-size zeroed buffer (safe, use over allocUnsafe)
+const safeBuf = Buffer.alloc(16);  // 16 bytes, all zeros
+
+// Step 3: Buffer for crypto — HMAC needs binary data
+function signPayload(payload, secret) {
+  return crypto
+    .createHmac('sha256', secret)
+    .update(Buffer.from(JSON.stringify(payload)))
+    .digest('hex');
+}
+
+// Step 4: Buffer for image processing
+const sharp = require('sharp');
+app.post('/thumbnail', async (req, res) => {
+  // Buffer OK here — thumbnail is small enough to hold in memory
+  const thumbnail = await sharp(req.body)
+    .resize(200, 200)
+    .toBuffer();      // Step 5: returns Buffer with processed image
+  res.send(thumbnail);
+});
+
+// ── STREAM: large file serving ───────────────────────────────────────
+const fs = require('fs');
+
+// Step 6: stream file directly to HTTP response — never loads into RAM
+app.get('/video/:id', (req, res) => {
+  const { range } = req.headers;
+  const videoPath = `./videos/${req.params.id}.mp4`;
+  const stat = fs.statSync(videoPath);
+
+  if (range) {
+    // Step 7: range request for video seeking
+    const [start, end] = range.replace('bytes=', '').split('-').map(Number);
+    const chunkSize = (end || stat.size - 1) - start + 1;
+
+    res.writeHead(206, {
+      'Content-Range': `bytes ${start}-${end || stat.size - 1}/${stat.size}`,
+      'Content-Length': chunkSize,
+      'Content-Type': 'video/mp4',
+    });
+
+    fs.createReadStream(videoPath, { start, end: end || stat.size - 1 }).pipe(res);
+  } else {
+    res.writeHead(200, { 'Content-Length': stat.size, 'Content-Type': 'video/mp4' });
+    fs.createReadStream(videoPath).pipe(res);  // Step 8: stream, don't buffer
+  }
+});
+```
+
+### 🔍 Step-by-Step Explanation
+
+1. **`Buffer.alloc` vs `Buffer.allocUnsafe`** — `alloc` zeroes memory (safe, slight perf cost). `allocUnsafe` skips zeroing — old memory contents may be readable. Never use `allocUnsafe` for user-facing data.
+2. **Buffers in crypto** — Hash/HMAC functions operate on raw bytes. `Buffer.from(string)` converts to UTF-8 bytes which is what crypto expects.
+3. **Streams for HTTP responses** — `res.pipe()` lets Node write chunks as they're read from disk. Client starts receiving data immediately. No RAM penalty regardless of file size.
+4. **When buffers are fine** — Anything under a few MB that needs random access (indexing into bytes) or must be passed to an API requiring a complete buffer (most crypto, image APIs).
+
+### ⏱️ Complexity
+
+| Operation | Buffer | Stream |
+|-----------|--------|--------|
+| Memory for 1GB file | O(N) = 1GB RAM | O(chunk) ≈ 64KB |
+| First byte to client | After full read | Immediate |
+| Random byte access | O(1) | Not supported |
+| Transformation | Copy needed | In-place per chunk |
+
+---
+
+## Q44: How does the Node.js Cluster module work? How does it differ from Worker Threads?
+
+### 🧒 ELI5
+**Cluster** is like opening multiple identical restaurants on the same street — each is a full independent restaurant (process), and a manager (master) sends customers to whichever restaurant is free. **Worker Threads** is like one restaurant with multiple chefs at different stations — they share the same kitchen (memory) but work in parallel on different dishes.
+
+### 📊 Diagram
+
+```
+  CLUSTER MODULE
+  ─────────────────────────────────────────────────────
+  Master Process (PID 1000)
+  ├─ Listens on port 3000
+  ├─ Distributes connections round-robin
+  │
+  ├─ Worker 1 (PID 1001) — full Node.js process
+  ├─ Worker 2 (PID 1002) — full Node.js process
+  ├─ Worker 3 (PID 1003) — full Node.js process
+  └─ Worker 4 (PID 1004) — full Node.js process (= CPU cores)
+
+  Communication: IPC (inter-process communication) — slow for big data
+  Memory: SEPARATE — each worker has its own heap
+  Crash: One worker crash doesn't affect others
+
+  WORKER THREADS
+  ─────────────────────────────────────────────────────
+  Main Thread
+  ├─ SharedArrayBuffer ──┐ shared memory (fast!)
+  │                      │
+  ├─ Worker Thread 1 ────┤
+  ├─ Worker Thread 2 ────┤
+  └─ Worker Thread 3 ────┘
+
+  Communication: postMessage (structured clone) or SharedArrayBuffer
+  Memory: CAN SHARE via SharedArrayBuffer/Atomics
+  Use: CPU-bound tasks (image processing, crypto, ML)
+  
+  CHOOSING:
+  ┌──────────────────┬─────────────────┬──────────────────┐
+  │                  │ Cluster         │ Worker Threads   │
+  ├──────────────────┼─────────────────┼──────────────────┤
+  │ Best for         │ I/O-bound HTTP  │ CPU-bound tasks  │
+  │ Memory           │ Isolated        │ Shareable        │
+  │ Crash isolation  │ ✅              │ ❌ (crashes main)│
+  │ Setup complexity │ Simple          │ More complex     │
+  └──────────────────┴─────────────────┴──────────────────┘
+```
+
+### 💻 Code Example
+
+```javascript
+// ── CLUSTER: HTTP server across all CPU cores ─────────────────────────
+const cluster = require('cluster');
+const os = require('os');
+const http = require('http');
+
+if (cluster.isPrimary) {
+  const numCPUs = os.cpus().length;  // Step 1: one worker per CPU core
+  console.log(`Primary PID ${process.pid} — forking ${numCPUs} workers`);
+
+  for (let i = 0; i < numCPUs; i++) {
+    cluster.fork();  // Step 2: spawn worker processes
+  }
+
+  // Step 3: respawn crashed workers
+  cluster.on('exit', (worker, code, signal) => {
+    console.log(`Worker ${worker.process.pid} died — restarting`);
+    cluster.fork();
+  });
+
+} else {
+  // Step 4: each worker runs the same HTTP server code
+  // Cluster OS distributes incoming connections across workers
+  http.createServer((req, res) => {
+    res.end(`Handled by worker PID ${process.pid}`);
+  }).listen(3000);
+
+  console.log(`Worker ${process.pid} started`);
+}
+
+// ── WORKER THREADS: CPU-bound task ────────────────────────────────────
+// worker.js
+const { workerData, parentPort } = require('worker_threads');
+
+// Step 5: CPU-intensive task runs in separate thread (doesn't block event loop)
+function computeHash(data) {
+  const crypto = require('crypto');
+  return crypto.createHash('sha256').update(data).digest('hex');
+}
+
+parentPort.postMessage(computeHash(workerData));  // Step 6: send result back
+
+// main.js
+const { Worker } = require('worker_threads');
+
+function hashInWorker(data) {
+  return new Promise((resolve, reject) => {
+    // Step 7: spawn worker for CPU work — main event loop stays free
+    const worker = new Worker('./worker.js', { workerData: data });
+    worker.on('message', resolve);
+    worker.on('error', reject);
+    worker.on('exit', (code) => {
+      if (code !== 0) reject(new Error(`Worker exited with code ${code}`));
+    });
+  });
+}
+
+// Step 8: main thread stays responsive during hashing
+app.post('/hash', async (req, res) => {
+  const hash = await hashInWorker(req.body.data);
+  res.json({ hash });
+});
+```
+
+### 🔍 Step-by-Step Explanation
+
+1. **Cluster for I/O-bound** — HTTP servers spend most time waiting for I/O. Multiple processes each with their own event loop = linear throughput scaling across cores.
+2. **Worker Threads for CPU-bound** — Image resizing, video encoding, ML inference, or heavy cryptography blocks the event loop. Offload to a thread pool via Worker Threads.
+3. **Memory isolation** — Cluster workers are separate processes with separate heaps. A memory leak in one worker won't affect others. Worker Threads share the V8 heap — a bug can corrupt shared state.
+4. **`SharedArrayBuffer`** — Worker Threads can share a raw memory buffer. Use `Atomics` for synchronisation to avoid race conditions.
+5. **PM2** — In production, PM2's cluster mode wraps Node's `cluster` module with monitoring, log aggregation, and graceful reloads.
+
+### ⏱️ Complexity
+
+| Operation | Cluster | Worker Threads |
+|-----------|---------|----------------|
+| Spawn time | ~50–200ms (fork process) | ~5–20ms (thread) |
+| IPC message | O(M) copy | O(M) structured clone or O(1) shared buffer |
+| Memory per unit | Full heap (~50MB) | Shared heap + stack |
+| Max parallelism | CPU count | CPU count |
+
+---
+
+## Q45: What is `process.nextTick`? Why is it higher priority than Promises?
+
+### 🧒 ELI5
+`process.nextTick` is like tapping a coworker on the shoulder right now — before they can start their next task. Promise callbacks are like passing a note to be read after the current task finishes. The tap always gets attention faster than the note.
+
+### 📊 Diagram
+
+```
+  CURRENT OPERATION (call stack)
+         │
+         │  completes
+         ▼
+  ┌─────────────────────────┐
+  │  nextTick queue         │  ← ALL nextTick callbacks drained first
+  └─────────────────────────┘
+         │  empty
+         ▼
+  ┌─────────────────────────┐
+  │  Promise microtask queue│  ← then all Promise.then callbacks
+  └─────────────────────────┘
+         │  empty
+         ▼
+  next event loop phase (timers → I/O → poll → check → close)
+
+  WHY nextTick > Promises:
+  ─────────────────────────────────────────────────────
+  Historical: nextTick existed before Promises in Node.js
+  Design: nextTick is a "same-phase epilogue" — runs before phase transition
+  Promises are ECMAScript microtasks — added later as a separate queue
+  Node chose to keep nextTick higher-priority for backward compatibility
+```
+
+### 💻 Code Example
+
+```javascript
+// Step 1: demonstrate priority ordering
+Promise.resolve().then(() => console.log('Promise 1'));
+process.nextTick(() => console.log('nextTick 1'));
+Promise.resolve().then(() => console.log('Promise 2'));
+process.nextTick(() => console.log('nextTick 2'));
+
+// Output:
+// nextTick 1
+// nextTick 2
+// Promise 1
+// Promise 2
+
+// ── VALID USE CASE: emit event after constructor returns ──────────────
+const { EventEmitter } = require('events');
+
+class MyEmitter extends EventEmitter {
+  constructor() {
+    super();
+    // Step 2: if we emitted 'ready' synchronously here, callers who register
+    // listeners AFTER construction would miss it
+    // nextTick defers emission until after construction completes
+    process.nextTick(() => this.emit('ready'));
+  }
+}
+
+const emitter = new MyEmitter();
+// Step 3: listener registered AFTER constructor — still catches 'ready'
+emitter.on('ready', () => console.log('emitter is ready'));
+
+// ── VALID USE CASE: ensure async callback consistency ─────────────────
+function readData(id, callback) {
+  if (cache.has(id)) {
+    // Step 4: without nextTick, this is synchronous — inconsistent behaviour
+    // callers might experience both sync and async code paths
+    process.nextTick(() => callback(null, cache.get(id)));  // always async
+    return;
+  }
+  db.find(id, callback);
+}
+
+// ── DANGER: accidental recursion ─────────────────────────────────────
+// Step 5: recursive nextTick starves the event loop
+// NEVER do this:
+function badRecurse() {
+  process.nextTick(badRecurse);  // ❌ I/O never runs
+}
+
+// Use setImmediate for recursive deferral instead:
+function goodRecurse(items, index) {
+  if (index >= items.length) return;
+  process(items[index]);
+  setImmediate(() => goodRecurse(items, index + 1));  // ✅ yields to I/O
+}
+```
+
+### 🔍 Step-by-Step Explanation
+
+1. **Two queues** — Node.js maintains two microtask-like queues: the nextTick queue (internal V8/libuv) and the Promise queue (ECMAScript spec). The nextTick queue is drained first.
+2. **Consistency pattern** — Use `process.nextTick` to make a callback always asynchronous when it may sometimes be synchronous (cached value). This prevents "Zalgo" — the bug where a function is sometimes sync, sometimes async.
+3. **EventEmitter pattern** — Deferring `emit` to nextTick ensures all listeners can register before the event fires.
+4. **Avoid deep nextTick recursion** — Each nextTick callback is processed before any I/O. Recursive nextTick = starvation. Use `setImmediate` for iteration that should yield to I/O.
+
+### ⏱️ Complexity
+
+| Queue | Drains | Notes |
+|-------|--------|-------|
+| nextTick | Before microtasks | Can starve if recursive |
+| Promise microtask | After nextTick | Also drains fully each phase |
+| Combined queues | Before each macro phase | Both checked after each I/O event too |
+
+---
+
+## Q46: How do you handle `uncaughtException` and `unhandledRejection` in production?
+
+### 🧒 ELI5
+`uncaughtException` is your app's last-chance smoke alarm — it fires when something exploded and nobody caught it. `unhandledRejection` is when a Promise fails and nobody listened to the failure. Both need a proper response: log the disaster, alert someone, and exit safely — don't silently ignore them or your app will be in an unknown, corrupted state.
+
+### 📊 Diagram
+
+```
+  uncaughtException
+  ─────────────────────────────────────────────────────
+  throw new Error('oops')   → no try/catch around it
+         │
+         ▼
+  process.on('uncaughtException', handler)
+         │
+  handler runs  →  log  →  notify  →  process.exit(1)
+  ⚠️  App state is CORRUPT — exit is mandatory after complex errors
+
+  unhandledRejection
+  ─────────────────────────────────────────────────────
+  fetchData()   // returns Promise
+  // no .catch() and no await in try/catch
+         │
+         Promise rejects
+         │
+         ▼
+  process.on('unhandledRejection', handler)
+         │
+  In Node 15+: process exits with code 1 automatically
+  In Node 14-: just a warning (dangerous — silent failures)
+
+  BEST PRACTICE:
+  ─────────────────────────────────────────────────────
+  uncaughtException → log → graceful shutdown → exit(1)
+  unhandledRejection → log → optionally exit(1)
+  Both → alert on-call (PagerDuty, Datadog, Sentry)
+```
+
+### 💻 Code Example
+
+```javascript
+const Sentry = require('@sentry/node');
+
+Sentry.init({ dsn: process.env.SENTRY_DSN });
+
+// ── uncaughtException ─────────────────────────────────────────────────
+process.on('uncaughtException', (error, origin) => {
+  // Step 1: log with full context — error might reveal compromised state
+  console.error('UNCAUGHT EXCEPTION:', { error: error.message, origin, stack: error.stack });
+
+  // Step 2: report to error tracking before we exit
+  Sentry.captureException(error);
+
+  // Step 3: attempt graceful shutdown — close DB connections, HTTP server
+  // Wrap in timeout in case the shutdown itself hangs
+  gracefulShutdown().finally(() => {
+    // Step 4: MUST exit — process state is unknown after uncaught exception
+    // Do NOT continue running — this is the dangerous anti-pattern
+    process.exit(1);
+  });
+});
+
+// ── unhandledRejection ────────────────────────────────────────────────
+process.on('unhandledRejection', (reason, promise) => {
+  // Step 5: reason is the rejection value; promise is the rejected Promise
+  console.error('UNHANDLED REJECTION:', { reason, promise });
+  Sentry.captureException(reason);
+
+  // Step 6: in Node 15+ this exits automatically; be explicit for clarity
+  process.exit(1);
+});
+
+// ── Graceful shutdown helper ──────────────────────────────────────────
+async function gracefulShutdown() {
+  // Step 7: stop accepting new connections
+  await new Promise((resolve) => server.close(resolve));
+
+  // Step 8: drain in-flight requests (timeout after 5s)
+  await Promise.race([
+    drainConnections(),
+    new Promise((_, reject) => setTimeout(() => reject(new Error('Shutdown timeout')), 5000)),
+  ]);
+
+  // Step 9: close database pool
+  await db.end();
+}
+
+// ── PREVENTION: avoid unhandledRejection in the first place ──────────
+// Always await with try/catch or attach .catch():
+
+// ❌ BAD — fire and forget (unhandled rejection if this fails)
+sendEmail(user);
+
+// ✅ GOOD
+sendEmail(user).catch((err) => {
+  logger.warn('Email send failed, queuing for retry', err);
+  emailQueue.add(user);
+});
+
+// ✅ GOOD — Express async error handling
+app.get('/user/:id', async (req, res, next) => {
+  try {
+    const user = await db.findUser(req.params.id);
+    res.json(user);
+  } catch (err) {
+    next(err);  // Step 10: pass to Express error middleware
+  }
+});
+```
+
+### 🔍 Step-by-Step Explanation
+
+1. **Do NOT recover from `uncaughtException`** — The process state is unknown. Memory may be corrupted. Attempting to continue is a security and reliability risk. Log, notify, and exit.
+2. **`unhandledRejection` is a code bug** — Every Promise in production code must have error handling. Node 15+ was changed to exit on unhandled rejections to force developers to handle them.
+3. **Graceful shutdown** — Before exiting, stop accepting new connections, finish in-flight requests, and close DB pools. This prevents data corruption.
+4. **Restart with a process manager** — PM2, systemd, or Kubernetes will restart the process after `exit(1)`. This is the correct recovery mechanism — not catching and ignoring.
+5. **`origin` in `uncaughtException`** — The second argument (`'uncaughtException'` or `'unhandledRejection'`) helps distinguish the source.
+
+### ⏱️ Complexity
+
+| Operation | Cost | Notes |
+|-----------|------|-------|
+| `process.on` handler | O(1) | Single event listener |
+| Sentry capture | O(1) async | Non-blocking HTTP report |
+| Graceful shutdown | O(C) | C = in-flight connections |
+| `process.exit(1)` | O(1) | Immediate OS-level termination |
+
+---
+
+## Q47: What causes a memory leak in Node.js? How do you detect and fix it?
+
+### 🧒 ELI5
+Memory leaks are like never throwing away old mail. Over time, your desk (RAM) fills up. In Node.js, old mail = objects that are no longer needed but still have a reference somewhere, so the garbage collector can't throw them away. The garbage truck (GC) can't take what's still "claimed."
+
+### 📊 Diagram
+
+```
+  COMMON LEAK SOURCES:
+  ─────────────────────────────────────────────────────
+  1. Global variables / growing caches
+     global.cache = {};
+     setInterval(() => cache[Date.now()] = heavyObject, 1);
+     → cache grows forever, never cleared
+
+  2. Event listeners not removed
+     emitter.on('data', handler);   // added on every request
+     // handler holds closure over large object
+     // never emitter.off() → handler count grows
+
+  3. Closures over large objects
+     function createLeak() {
+       const bigArray = new Array(1000000).fill(0);
+       return () => bigArray[0]; // closure retains bigArray
+     }
+
+  4. Timers not cleared
+     setInterval(fn, 1000);  // created per request, never clearInterval'd
+
+  5. Circular references (less common — GC handles most)
+
+  DETECTION TOOLS:
+  ─────────────────────────────────────────────────────
+  • node --inspect → Chrome DevTools heap snapshot
+  • clinic.js doctor (npm i -g clinic)
+  • heapdump package
+  • process.memoryUsage() monitoring
+  • Datadog / New Relic APM
+```
+
+### 💻 Code Example
+
+```javascript
+// ── LEAK 1: unbounded cache ───────────────────────────────────────────
+// ❌ BAD — cache grows forever
+const cache = {};
+app.get('/data/:id', async (req, res) => {
+  if (!cache[req.params.id]) {
+    cache[req.params.id] = await fetchExpensiveData(req.params.id);
+  }
+  res.json(cache[req.params.id]);
+});
+
+// ✅ FIX — use LRU cache with size limit
+const LRU = require('lru-cache');
+const cache = new LRU({ max: 500, ttl: 1000 * 60 * 5 }); // 500 items, 5min TTL
+
+// ── LEAK 2: event listeners ───────────────────────────────────────────
+// ❌ BAD — new listener added every time, never removed
+class DataProcessor extends EventEmitter {
+  start() {
+    externalEmitter.on('data', this.processData.bind(this)); // grows per call!
+  }
+}
+// Step 1: save reference to bound handler so it can be removed
+class DataProcessor extends EventEmitter {
+  constructor() {
+    super();
+    this._handler = this.processData.bind(this); // Step 2: stable reference
+  }
+  start()  { externalEmitter.on('data', this._handler); }
+  stop()   { externalEmitter.off('data', this._handler); } // ✅ remove on stop
+}
+
+// ── LEAK 3: timer not cleared ─────────────────────────────────────────
+// ❌ BAD — interval created per WebSocket connection, never cleared
+wss.on('connection', (socket) => {
+  setInterval(() => socket.send(JSON.stringify(getMetrics())), 1000);
+  // socket closes but interval keeps firing, holding reference
+});
+
+// ✅ FIX
+wss.on('connection', (socket) => {
+  const id = setInterval(() => socket.send(JSON.stringify(getMetrics())), 1000);
+  socket.on('close', () => clearInterval(id)); // Step 3: clean up on disconnect
+});
+
+// ── DETECTION: memory usage monitoring ───────────────────────────────
+setInterval(() => {
+  const { heapUsed, heapTotal, rss } = process.memoryUsage();
+  console.log({
+    heapUsed: `${Math.round(heapUsed / 1024 / 1024)}MB`,
+    heapTotal: `${Math.round(heapTotal / 1024 / 1024)}MB`,
+    rss: `${Math.round(rss / 1024 / 1024)}MB`,
+  });
+  // Step 4: alert if heapUsed grows steadily over time
+}, 30_000);
+
+// ── DETECTION: heap snapshot via --inspect ────────────────────────────
+// Step 5: run with: node --inspect server.js
+// Open chrome://inspect → take heap snapshot → load test → take another
+// Compare: look for growing object counts (especially Strings, Arrays, closures)
+
+// ── WeakMap for safe caching of objects ──────────────────────────────
+// Step 6: WeakMap doesn't prevent GC — entry disappears when key is GC'd
+const nodeMetadata = new WeakMap();
+
+function annotateNode(node, data) {
+  nodeMetadata.set(node, data);  // when 'node' is GC'd, entry auto-removed
+}
+```
+
+### 🔍 Step-by-Step Explanation
+
+1. **GC can't collect reachable objects** — JavaScript's GC uses reachability: if any reference path from a root (global, stack) leads to an object, it stays alive. Leaks = unintended roots.
+2. **LRU cache** — An unbounded `{}` as a cache is the most common Node.js production leak. `lru-cache` evicts least-recently-used entries and supports TTL.
+3. **Event listener limit** — Node emits a MaxListenersExceededWarning at 10 listeners by default. Always `off()` listeners when the component/connection/server is torn down.
+4. **`process.memoryUsage()`** — `heapUsed` steadily increasing over hours/days (with constant load) is the signature of a leak. A single heap snapshot shows the count and size of retained objects.
+5. **`WeakMap` / `WeakRef`** — For caches keyed on objects, use `WeakMap`. Keys are held weakly — GC can collect them even if the WeakMap entry exists. No leak risk.
+6. **Heap snapshot workflow** — Take snapshot at baseline → run load test for 30 min → take another snapshot → compare retained objects. Look for unexpected counts of DOM-like objects, closures, or your own classes.
+
+### ⏱️ Complexity
+
+| Fix | Cost | Benefit |
+|-----|------|---------|
+| LRU cache | O(1) eviction | Bounded memory |
+| `off()` listener | O(1) | Removes reference |
+| `clearInterval` | O(1) | Releases timer + closure |
+| WeakMap key | O(1) | Auto-GC of entries |
+| Heap snapshot diff | O(H) | H = heap object count |
+
+---
+
+## End of Section: NODE.JS — Core (Q39–Q47)
+
+---
+
+# Section 7: NODE.JS � Express / Fastify (Q48�Q54)
+
+---
+
+## Q48: How does Express middleware chain work? What happens if you forget to call `next()`?
+
+### ?? ELI5
+Imagine a conveyor belt in a factory. Each worker (middleware) does their job, then **pushes the item along** by calling `next()`. If a worker forgets to push, the item just sits there forever � the customer (client) never gets their product.
+
+### ?? Visual Diagram
+```
+Incoming Request
+      �
+      ?
++-----------------+
+�  Middleware 1   �  (e.g., logging)
+�  calls next()   �
++-----------------+
+         �
+         ?
++-----------------+
+�  Middleware 2   �  (e.g., auth check)
+�  calls next()   �
++-----------------+
+         �
+         ?
++-----------------+
+�  Route Handler  �  (e.g., GET /users)
+�  calls res.send �
++-----------------+
+         �
+         ?
+      Response Sent
+
+If any middleware SKIPS next():
+      �
+      ?
++-----------------+
+�  Middleware 2   �  ? STUCK. No next() called.
+�  (no next call) �     Request hangs until timeout.
++-----------------+
+```
+
+### ?? Code Example
+```javascript
+const express = require('express');
+const app = express();
+
+// Step 1: Logging middleware � always calls next()
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+  next(); // ? MUST call this to pass control forward
+});
+
+// Step 2: Auth middleware � conditionally calls next or sends 401
+app.use((req, res, next) => {
+  const token = req.headers['authorization'];
+  if (!token) {
+    return res.status(401).json({ error: 'Unauthorized' }); // ? returns early
+  }
+  next(); // ? pass to next middleware/route
+});
+
+// Step 3: Route handler � terminal middleware (no next needed)
+app.get('/users', (req, res) => {
+  res.json({ users: ['Alice', 'Bob'] });
+});
+
+// Step 4: Error-handling middleware � 4 args signals Express it's an error handler
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Internal Server Error' });
+});
+
+app.listen(3000);
+```
+
+### ?? Step-by-Step Explanation
+1. **`app.use(fn)`** registers middleware that runs for EVERY request path.
+2. Each `(req, res, next)` function gets the request/response objects plus `next`.
+3. Calling `next()` ? moves to the next registered middleware or route.
+4. Calling `next(err)` ? skips all regular middleware and jumps to the error handler.
+5. **Forgetting `next()`**: the request just hangs � no response, no forwarding, client gets a timeout.
+6. Error handlers have signature `(err, req, res, next)` � 4 parameters.
+
+### ?? Complexity
+| Operation | Time | Space | Notes |
+|-----------|------|-------|-------|
+| Middleware chain lookup | O(M) | O(1) | M = number of middleware |
+| Each middleware execution | O(1)�O(N) | O(1)�O(N) | Depends on middleware logic |
+| Hanging request (no next) | 8 | O(1) | Keeps socket open until timeout |
+
+---
+
+## Q49: What is the difference between `app.use()` and `app.get()`?
+
+### ?? ELI5
+`app.use()` is like a security guard at the building entrance � everyone going in, no matter where they're headed, gets checked. `app.get()` is like a receptionist on the 3rd floor who only handles people going to the 3rd floor via the **front elevator** (GET method).
+
+### ?? Visual Diagram
+```
+All HTTP Methods (GET, POST, PUT, DELETE...)
+           �
+           ?
+    +------------------------------+
+    �   app.use('/api', mw)        �  ? catches ALL methods at /api/*
+    �   app.use(mw)                �  ? catches ALL methods at ALL paths
+    +------------------------------+
+           �
+           ?
+    +------------------------------+
+    �   app.get('/users', handler) �  ? ONLY GET at EXACT /users
+    �   app.post('/users', handler)�  ? ONLY POST at EXACT /users
+    �   app.put('/users/:id', h)   �  ? ONLY PUT at /users/:id
+    +------------------------------+
+
+Path matching:
+app.use('/api')    ? matches /api, /api/users, /api/v1/anything
+app.get('/api')    ? matches ONLY /api  (exact match)
+```
+
+### ?? Code Example
+```javascript
+const express = require('express');
+const app = express();
+app.use(express.json()); // parses JSON for ALL request methods
+
+// app.use() � runs on ANY method, path prefix matching
+app.use('/api', (req, res, next) => {
+  console.log('API request received:', req.method);
+  next();
+});
+
+// app.get() � runs ONLY on GET requests, exact path
+app.get('/api/users', (req, res) => {
+  res.json([{ id: 1, name: 'Alice' }]);
+});
+
+// app.post() � runs ONLY on POST requests, exact path
+app.post('/api/users', (req, res) => {
+  const { name } = req.body; // body available because of express.json() above
+  res.status(201).json({ id: 2, name });
+});
+
+// Difference in path matching:
+app.use('/items', (req, res, next) => {
+  // Matches: /items, /items/1, /items/sub/path
+  next();
+});
+
+app.get('/items', (req, res) => {
+  // Matches ONLY: /items  (not /items/1)
+  res.json([]);
+});
+```
+
+### ?? Step-by-Step Explanation
+| Feature | `app.use()` | `app.get()` / `app.post()` etc. |
+|---------|--------------|---------------------------------|
+| HTTP Methods | All methods | Specific method only |
+| Path matching | Prefix match | Exact match |
+| Use case | Middleware, parsers, auth | Route handlers |
+| Order matters? | Yes | Yes |
+| Can chain? | Yes (with `next()`) | Yes, but usually terminal |
+
+### ?? Complexity
+| Operation | Time | Space | Notes |
+|-----------|------|-------|-------|
+| Route lookup | O(R) | O(R) | R = registered routes |
+| Path match | O(P) | O(1) | P = path length |
+| Middleware execution | O(M) | O(1) | M = matching middleware count |
+
+---
+
+## Q50: How do you create a global error handling middleware in Express?
+
+### ?? ELI5
+Imagine your app is a restaurant kitchen. Every station can have accidents. Instead of each cook handling their own emergencies, there's one head chef (global error handler) who deals with ALL kitchen accidents in one place � so the service stays consistent.
+
+### ?? Visual Diagram
+```
+Route Handler throws Error
+          �
+          ?
+    next(err) called
+          �
+          ?
++---------------------------------+
+�      Regular Middleware         �  ? SKIPPED (has 3 args)
++---------------------------------+
+          �
+          ?
++---------------------------------+
+�   Error Handler Middleware      �  ? HAS 4 ARGS: (err, req, res, next)
+�   � Log the error               �
+�   � Map to HTTP status code     �
+�   � Send safe error response    �
++---------------------------------+
+          �
+          ?
+     Client gets JSON error response
+```
+
+### ?? Code Example
+```javascript
+const express = require('express');
+const app = express();
+app.use(express.json());
+
+// Step 1: Custom error class for structured errors
+class AppError extends Error {
+  constructor(message, statusCode) {
+    super(message);
+    this.statusCode = statusCode;
+    this.isOperational = true; // vs programmer errors
+  }
+}
+
+// Step 2: Route that may throw
+app.get('/users/:id', async (req, res, next) => {
+  try {
+    const user = await getUserById(req.params.id); // could throw
+    if (!user) throw new AppError('User not found', 404);
+    res.json(user);
+  } catch (err) {
+    next(err); // ? pass error to global handler
+  }
+});
+
+// Step 3: Async helper to avoid try/catch in every route
+const asyncHandler = (fn) => (req, res, next) =>
+  Promise.resolve(fn(req, res, next)).catch(next); // auto-catches promise rejections
+
+app.get('/posts', asyncHandler(async (req, res) => {
+  const posts = await getPosts(); // if this throws, next(err) called automatically
+  res.json(posts);
+}));
+
+// Step 4: Global error handler � MUST be last, MUST have 4 params
+app.use((err, req, res, next) => {
+  // Log for debugging (use a logger like Winston/Pino in production)
+  console.error(`[ERROR] ${err.message}`, { stack: err.stack });
+
+  // Operational errors (known, expected)
+  if (err.isOperational) {
+    return res.status(err.statusCode).json({ error: err.message });
+  }
+
+  // Programmer/unknown errors � don't leak internals
+  res.status(500).json({ error: 'Something went wrong' });
+});
+
+async function getUserById(id) { /* db call */ }
+async function getPosts() { /* db call */ }
+app.listen(3000);
+```
+
+### ?? Step-by-Step Explanation
+1. **4-parameter signature `(err, req, res, next)`** tells Express this is an error handler.
+2. Must be **registered last**, after all routes.
+3. `next(err)` in any route/middleware skips all regular middleware and jumps here.
+4. `AppError.isOperational` flag distinguishes expected errors (404, 401) from bugs (500).
+5. Never expose stack traces or internal details to the client in production.
+6. Use `asyncHandler` wrapper to avoid `try/catch` in every async route.
+
+### ?? Complexity
+| Operation | Time | Space | Notes |
+|-----------|------|-------|-------|
+| Error propagation via next() | O(M) | O(1) | Skips non-error middleware |
+| Error handler execution | O(1) | O(1) | Single function call |
+| Stack trace logging | O(S) | O(S) | S = stack depth |
+
+---
+
+## Q51: How do you implement rate limiting across multiple server instances using Redis?
+
+### ?? ELI5
+Imagine a nightclub with 3 doors. If each bouncer counts separately, a person could use all 3 doors to get in 30 times total when the limit is 10. With Redis as a **shared scoreboard**, all 3 bouncers check the same count � so the limit is enforced correctly across all doors.
+
+### ?? Visual Diagram
+```
+   Server 1        Server 2        Server 3
+   (instance)      (instance)      (instance)
+       �               �               �
+       +-------------------------------+
+                       �
+                       ?
+              +-----------------+
+              �   Redis Store   �
+              �  rate:user:123  �  ? Shared counter per IP/user
+              �    count: 7     �
+              �    TTL: 53s     �
+              +-----------------+
+
+Flow per request:
+ 1. Extract identifier (IP or user ID)
+ 2. INCR rate:<id> in Redis (atomic increment)
+ 3. SET expiry on first request (EXPIRE 60s)
+ 4. If count > limit ? 429 Too Many Requests
+ 5. Else ? allow request through
+```
+
+### ?? Code Example
+```javascript
+const express = require('express');
+const Redis = require('ioredis');
+
+const app = express();
+const redis = new Redis({ host: 'localhost', port: 6379 });
+
+// Step 1: Rate limiter config
+const WINDOW_SECONDS = 60; // 1-minute window
+const MAX_REQUESTS = 100;  // max 100 requests per window
+
+// Step 2: Custom Redis rate limiter middleware
+async function rateLimiter(req, res, next) {
+  // Step 2a: Use IP as identifier (use user ID if authenticated)
+  const identifier = req.ip;
+  const key = `rate:${identifier}`;
+
+  // Step 2b: Atomically increment counter in Redis
+  const current = await redis.incr(key);
+
+  // Step 2c: Set expiry only on first request (avoids resetting TTL every time)
+  if (current === 1) {
+    await redis.expire(key, WINDOW_SECONDS);
+  }
+
+  // Step 2d: Get remaining TTL for headers
+  const ttl = await redis.ttl(key);
+
+  // Step 2e: Set rate limit headers (best practice)
+  res.setHeader('X-RateLimit-Limit', MAX_REQUESTS);
+  res.setHeader('X-RateLimit-Remaining', Math.max(0, MAX_REQUESTS - current));
+  res.setHeader('X-RateLimit-Reset', Math.floor(Date.now() / 1000) + ttl);
+
+  // Step 2f: Reject if over limit
+  if (current > MAX_REQUESTS) {
+    return res.status(429).json({
+      error: 'Too Many Requests',
+      retryAfter: ttl
+    });
+  }
+
+  next();
+}
+
+// Step 3: Sliding window using sorted sets (more accurate)
+async function slidingWindowLimiter(req, res, next) {
+  const key = `slide:${req.ip}`;
+  const now = Date.now();
+  const windowStart = now - WINDOW_SECONDS * 1000;
+
+  // Remove old entries outside the window
+  await redis.zremrangebyscore(key, 0, windowStart);
+
+  // Count requests in window
+  const count = await redis.zcard(key);
+
+  if (count >= MAX_REQUESTS) {
+    return res.status(429).json({ error: 'Rate limit exceeded' });
+  }
+
+  // Add current request with timestamp as score
+  await redis.zadd(key, now, `${now}-${Math.random()}`);
+  await redis.expire(key, WINDOW_SECONDS);
+
+  next();
+}
+
+// Step 4: Apply rate limiter globally or per-route
+app.use(rateLimiter);
+
+app.get('/api/data', (req, res) => {
+  res.json({ data: 'success' });
+});
+
+app.listen(3000);
+```
+
+### ?? Step-by-Step Explanation
+1. **`INCR` is atomic** in Redis � safe across multiple Node processes/instances.
+2. **Fixed window** (`INCR` + `EXPIRE`): simple, but can burst 2� at window boundary.
+3. **Sliding window** (sorted set with timestamps): more accurate, slightly more expensive.
+4. `expire` only on `current === 1` prevents resetting TTL on every request.
+5. Use `ioredis` or `redis` package; `express-rate-limit` + `rate-limit-redis` for production.
+6. Always set `X-RateLimit-*` headers so clients know their limit/remaining/reset.
+
+### ?? Complexity
+| Strategy | Time | Space | Notes |
+|----------|------|-------|-------|
+| Fixed window (INCR) | O(1) | O(1) per key | Fastest, slight boundary burst |
+| Sliding window (ZSET) | O(log N) | O(N) per key | N = requests in window |
+| Redis network round-trip | O(1) | O(1) | ~1ms local, ~5ms cloud |
+
+---
+
+## Q52: What security headers does Helmet set and why do they matter?
+
+### ?? ELI5
+Think of your website as a house. Helmet adds **security locks and reinforced windows** � it prevents drive-by attacks where bad websites try to steal from yours, stops browsers from being tricked, and tells browsers to use the safest settings possible.
+
+### ?? Visual Diagram
+```
+Browser Request
+      �
+      ?
++--------------------------------------------+
+�            Helmet Middleware               �
+�                                            �
+�  Sets these response headers:              �
+�  +-------------------------------------+   �
+�  � Content-Security-Policy (CSP)       �   � ? prevents XSS
+�  � X-Frame-Options: DENY               �   � ? prevents clickjacking
+�  � X-Content-Type-Options: nosniff     �   � ? prevents MIME sniffing
+�  � Strict-Transport-Security (HSTS)    �   � ? forces HTTPS
+�  � X-XSS-Protection: 0                 �   � ? disables broken filter
+�  � Referrer-Policy: no-referrer        �   � ? hides referrer URL
+�  � Permissions-Policy                  �   � ? controls browser features
+�  � Cross-Origin-Opener-Policy          �   � ? isolates browsing context
+�  +-------------------------------------+   �
++--------------------------------------------+
+      �
+      ?
+   Secured Response to Browser
+```
+
+### ?? Code Example
+```javascript
+const express = require('express');
+const helmet = require('helmet');
+const app = express();
+
+// Step 1: Basic usage � enables sensible defaults for all headers
+app.use(helmet());
+
+// Step 2: Custom CSP � controls which scripts/styles/fonts can load
+app.use(
+  helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'"],                    // only same origin by default
+      scriptSrc: ["'self'", 'cdn.example.com'],  // allow scripts from CDN
+      styleSrc: ["'self'", "'unsafe-inline'"],   // allow inline styles (e.g., for CSS-in-JS)
+      imgSrc: ["'self'", 'data:', 'https:'],     // images from self, data URIs, or HTTPS
+      connectSrc: ["'self'", 'api.example.com'], // XHR/fetch calls allowed to
+      fontSrc: ["'self'", 'fonts.gstatic.com'],
+      objectSrc: ["'none'"],                     // disallow Flash/plugins
+      upgradeInsecureRequests: [],               // auto-upgrade HTTP to HTTPS
+    },
+  })
+);
+
+// Step 3: HSTS � forces browsers to use HTTPS for 1 year
+app.use(
+  helmet.strictTransportSecurity({
+    maxAge: 31536000,    // 1 year in seconds
+    includeSubDomains: true,
+    preload: true,       // submit to browser preload lists
+  })
+);
+
+// Step 4: Prevent clickjacking � disallow embedding in iframes
+app.use(helmet.frameguard({ action: 'deny' }));
+
+// Step 5: Prevent MIME type sniffing
+app.use(helmet.noSniff());
+
+// Step 6: Referrer policy � don't leak full URL to third parties
+app.use(helmet.referrerPolicy({ policy: 'strict-origin-when-cross-origin' }));
+
+app.get('/', (req, res) => res.send('Secure app'));
+app.listen(3000);
+```
+
+### ?? Step-by-Step Explanation
+| Header | Threat Prevented | Default Value |
+|--------|-----------------|---------------|
+| `Content-Security-Policy` | XSS, data injection | Conservative policy |
+| `X-Frame-Options` | Clickjacking | `SAMEORIGIN` |
+| `X-Content-Type-Options` | MIME sniffing attacks | `nosniff` |
+| `Strict-Transport-Security` | SSL stripping, HTTP downgrade | 180 days |
+| `X-XSS-Protection` | Old IE XSS filter (now disabled) | `0` (modern approach) |
+| `Referrer-Policy` | Referrer leakage | `no-referrer` |
+| `Permissions-Policy` | Camera/mic/geolocation abuse | Restrictive |
+| `Cross-Origin-Opener-Policy` | Spectre/side-channel attacks | `same-origin` |
+
+### ?? Complexity
+| Operation | Time | Space | Notes |
+|-----------|------|-------|-------|
+| `helmet()` middleware | O(1) | O(1) | Just sets response headers |
+| CSP parsing by browser | O(D) | O(D) | D = directive count |
+| Per-request overhead | ~0.1ms | O(1) | Negligible |
+
+---
+
+## Q53: How do you validate request body in Express using Zod?
+
+### ?? ELI5
+Zod is like a bouncer with a **checklist**. Before anyone (data) gets into the VIP area (your route handler), the bouncer checks: "Do you have a valid name? Is your age a number? Is your email format correct?" If not � they get turned away at the door with a clear rejection reason.
+
+### ?? Visual Diagram
+```
+POST /users   { name: "Alice", age: "not-a-number", email: "bad" }
+      �
+      ?
++-------------------------------------+
+�       Zod Validation Middleware     �
+�                                     �
+�  schema.safeParse(req.body)         �
+�       �                             �
+�  +---------+                        �
+�  � INVALID �--? 400 { errors: [...] }�
+�  +---------+                        �
+�       � VALID                       �
+�       ?                             �
+�  req.body = parsed (typed) data     �
++-------------------------------------+
+                 �
+                 ?
+         Route Handler (safe to use)
+```
+
+### ?? Code Example
+```javascript
+const express = require('express');
+const { z } = require('zod');
+const app = express();
+app.use(express.json());
+
+// Step 1: Define Zod schema for the request body
+const CreateUserSchema = z.object({
+  name: z.string().min(1, 'Name is required').max(100),
+  email: z.string().email('Invalid email format'),
+  age: z.number().int().min(0).max(150).optional(),
+  role: z.enum(['admin', 'user', 'moderator']).default('user'),
+});
+
+// Step 2: Generic validation middleware factory
+function validateBody(schema) {
+  return (req, res, next) => {
+    const result = schema.safeParse(req.body); // doesn't throw, returns result
+    if (!result.success) {
+      // Format Zod errors into readable format
+      const errors = result.error.issues.map((issue) => ({
+        field: issue.path.join('.'), // e.g., "email" or "address.city"
+        message: issue.message,
+      }));
+      return res.status(400).json({ errors });
+    }
+    req.body = result.data; // replace with parsed+coerced+defaulted data
+    next();
+  };
+}
+
+// Step 3: Route using validation middleware
+app.post('/users', validateBody(CreateUserSchema), (req, res) => {
+  // req.body is now fully typed and validated
+  const { name, email, age, role } = req.body;
+  // TypeScript would infer: { name: string, email: string, age?: number, role: 'admin'|'user'|'moderator' }
+  res.status(201).json({ id: 1, name, email, age, role });
+});
+
+// Step 4: Nested schema example
+const AddressSchema = z.object({
+  street: z.string(),
+  city: z.string(),
+  zip: z.string().regex(/^\d{5}(-\d{4})?$/, 'Invalid ZIP code'),
+});
+
+const UpdateUserSchema = z.object({
+  name: z.string().optional(),
+  address: AddressSchema.optional(),
+  tags: z.array(z.string()).max(10).optional(),
+});
+
+app.put('/users/:id', validateBody(UpdateUserSchema), (req, res) => {
+  res.json({ updated: true, data: req.body });
+});
+
+app.listen(3000);
+```
+
+### ?? Step-by-Step Explanation
+1. **`z.object()`** defines shape; fields are required by default unless `.optional()`.
+2. **`schema.safeParse()`** never throws � returns `{ success, data }` or `{ success, error }`.
+3. **Replacing `req.body`** with `result.data` ensures downstream code gets coerced/defaulted values.
+4. **`issue.path`** array gives the field path (supports nested: `['address', 'city']`).
+5. **Sharing schemas**: export the same Zod schema for frontend validation (via React Hook Form) and backend � single source of truth.
+6. Use `z.infer<typeof Schema>` in TypeScript to derive types from your schema automatically.
+
+### ?? Complexity
+| Operation | Time | Space | Notes |
+|-----------|------|-------|-------|
+| Zod parse (flat object) | O(F) | O(F) | F = field count |
+| Zod parse (nested/array) | O(N) | O(N) | N = total nodes |
+| Error formatting | O(E) | O(E) | E = number of errors |
+
+---
+
+## Q54: What is the difference between `jwt.sign()` and `jwt.verify()`? How do you implement refresh tokens?
+
+### ?? ELI5
+`jwt.sign()` is like **writing a signed letter** � you write the message, sign it with your secret stamp, and give it to someone. `jwt.verify()` is **reading the letter and checking the stamp** � if the stamp is valid, you trust the message. Refresh tokens are like **having a backup stamp** in a vault � when the main stamp expires, you go to the vault to get a new one, without asking the user to re-verify their identity.
+
+### ?? Visual Diagram
+```
+LOGIN FLOW:
+  User ? POST /auth/login  ?  Server
+                               �
+                    jwt.sign({ userId }, ACCESS_SECRET, { expiresIn: '15m' })
+                    jwt.sign({ userId }, REFRESH_SECRET, { expiresIn: '7d' })
+                               �
+                    ?-- { accessToken, refreshToken }
+
+API REQUEST FLOW:
+  User ? GET /api/data  ?  [Authorization: Bearer <accessToken>]
+                               �
+                    jwt.verify(token, ACCESS_SECRET)
+                               �
+                    ?-- 200 OK  (or 401 if expired)
+
+TOKEN REFRESH FLOW:
+  User ? POST /auth/refresh  ?  { refreshToken }
+                                  �
+                    jwt.verify(refreshToken, REFRESH_SECRET)
+                                  �
+                    jwt.sign(new accessToken, ACCESS_SECRET, { expiresIn: '15m' })
+                                  �
+                    ?-- { accessToken: newToken }
+
+   accessToken: short-lived (15m)  ? sent in Authorization header
+   refreshToken: long-lived (7d)   ? stored in httpOnly cookie
+```
+
+### ?? Code Example
+```javascript
+const express = require('express');
+const jwt = require('jsonwebtoken');
+const app = express();
+app.use(express.json());
+
+const ACCESS_SECRET = process.env.ACCESS_TOKEN_SECRET;   // store in env vars
+const REFRESH_SECRET = process.env.REFRESH_TOKEN_SECRET; // different secret!
+
+// Step 1: In-memory refresh token store (use Redis/DB in production)
+const validRefreshTokens = new Set();
+
+// Step 2: Helper to generate token pair
+function generateTokens(userId) {
+  const accessToken = jwt.sign(
+    { userId, type: 'access' },    // payload
+    ACCESS_SECRET,
+    { expiresIn: '15m' }           // short-lived � if stolen, expires soon
+  );
+  const refreshToken = jwt.sign(
+    { userId, type: 'refresh' },
+    REFRESH_SECRET,
+    { expiresIn: '7d' }            // long-lived � used only to get new access tokens
+  );
+  return { accessToken, refreshToken };
+}
+
+// Step 3: Login � issue both tokens
+app.post('/auth/login', (req, res) => {
+  const { username, password } = req.body;
+  // (omitting actual DB auth check for brevity)
+  const userId = 'user_123';
+
+  const { accessToken, refreshToken } = generateTokens(userId);
+  validRefreshTokens.add(refreshToken); // track in store
+
+  // httpOnly cookie prevents JS access (XSS protection)
+  res.cookie('refreshToken', refreshToken, {
+    httpOnly: true,
+    secure: true,        // HTTPS only
+    sameSite: 'strict',  // CSRF protection
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in ms
+  });
+
+  res.json({ accessToken }); // send access token in body
+});
+
+// Step 4: Auth middleware � verifies access token
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1]; // "Bearer <token>"
+
+  if (!token) return res.status(401).json({ error: 'No token provided' });
+
+  try {
+    const payload = jwt.verify(token, ACCESS_SECRET); // throws if expired/invalid
+    req.user = payload;
+    next();
+  } catch (err) {
+    if (err.name === 'TokenExpiredError') {
+      return res.status(401).json({ error: 'Token expired', code: 'TOKEN_EXPIRED' });
+    }
+    return res.status(403).json({ error: 'Invalid token' });
+  }
+}
+
+// Step 5: Protected route
+app.get('/api/data', authenticateToken, (req, res) => {
+  res.json({ data: 'secret stuff', userId: req.user.userId });
+});
+
+// Step 6: Refresh endpoint � issues new access token using refresh token
+app.post('/auth/refresh', (req, res) => {
+  const refreshToken = req.cookies.refreshToken; // from httpOnly cookie
+  if (!refreshToken) return res.status(401).json({ error: 'No refresh token' });
+  if (!validRefreshTokens.has(refreshToken)) {
+    return res.status(403).json({ error: 'Invalid refresh token' }); // rotated/revoked
+  }
+
+  try {
+    const payload = jwt.verify(refreshToken, REFRESH_SECRET);
+
+    // Rotate refresh token (prevents token reuse attacks)
+    validRefreshTokens.delete(refreshToken);
+    const { accessToken, refreshToken: newRefresh } = generateTokens(payload.userId);
+    validRefreshTokens.add(newRefresh);
+
+    res.cookie('refreshToken', newRefresh, {
+      httpOnly: true, secure: true, sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+    res.json({ accessToken });
+  } catch (err) {
+    res.status(403).json({ error: 'Refresh token expired or invalid' });
+  }
+});
+
+// Step 7: Logout � invalidate refresh token
+app.post('/auth/logout', (req, res) => {
+  const refreshToken = req.cookies.refreshToken;
+  validRefreshTokens.delete(refreshToken);
+  res.clearCookie('refreshToken');
+  res.json({ message: 'Logged out' });
+});
+
+app.listen(3000);
+```
+
+### ?? Step-by-Step Explanation
+| | `jwt.sign()` | `jwt.verify()` |
+|-|-------------|----------------|
+| Purpose | Creates signed token | Validates + decodes token |
+| Throws? | No | Yes (on invalid/expired) |
+| Returns | Token string | Decoded payload |
+| Secret used | Same secret (symmetric) or private key (asymmetric) | Same secret or public key |
+
+**Refresh Token Flow:**
+1. Access token = short-lived (15m) ? sent in `Authorization: Bearer` header.
+2. Refresh token = long-lived (7d) ? stored in `httpOnly` cookie (not accessible via JS).
+3. When access token expires (401), client automatically POSTs to `/auth/refresh`.
+4. Server verifies refresh token, **rotates it** (issues new one, invalidates old) ? reuse attack prevention.
+5. Client gets new access token and continues.
+
+**Security best practices:**
+- Use different secrets for access and refresh tokens.
+- Store refresh tokens in `httpOnly` + `secure` + `sameSite=strict` cookies.
+- Keep an allowlist/denylist of valid refresh tokens in Redis.
+- Rotate refresh tokens on every use.
+
+### ?? Complexity
+| Operation | Time | Space | Notes |
+|-----------|------|-------|-------|
+| `jwt.sign()` | O(P) | O(T) | P = payload size, T = token size |
+| `jwt.verify()` | O(T) | O(P) | HMAC/RSA verification |
+| Refresh token lookup (Set) | O(1) | O(N) | N = active sessions |
+| Refresh token lookup (Redis) | O(1) | O(N) | Preferred for multi-instance |
+
+---
+
+## End of Section: NODE.JS � Express / Fastify (Q48�Q54)
