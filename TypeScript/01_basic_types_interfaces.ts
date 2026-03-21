@@ -288,3 +288,80 @@ function getUserInput(): unknown { return "input"; }
 
 export type { User, Admin, Shape, Status, RGB, LogLevel, Route };
 export { Direction, Color, HttpMethod, Routes };
+
+
+// =============================================================================
+// User and UserAddress -- Schema definition and relationship patterns
+// =============================================================================
+
+// 1. Base address interface -- define the smaller shape first
+interface UserAddress {
+  id: string;
+  street: string;
+  city: string;
+  state: string;        // 2-letter code e.g. "CA"
+  zip: string;
+  country: string;
+  isPrimary: boolean;
+}
+
+// 2. User interface -- 1-to-1 composition (User HAS one address)
+interface UserWithAddress {
+  id: string;
+  name: string;
+  email: string;
+  address: UserAddress; // compose, do not embed raw fields
+  createdAt: Date;
+}
+
+// 3. Optional address variant (user hasn't filled it in yet)
+interface UserOptionalAddress {
+  id: string;
+  name: string;
+  email: string;
+  address?: UserAddress; // ? = may be undefined
+}
+
+// 4. One-to-many variant (multiple shipping / billing addresses)
+interface UserMultiAddress {
+  id: string;
+  name: string;
+  email: string;
+  addresses: UserAddress[];   // 1-to-many
+  primaryAddressId: string;   // FK-style pointer to the default
+}
+
+// 5. DTO types -- shape data at API boundaries without leaking internals
+type CreateUserDTO = Omit<UserWithAddress, 'id' | 'createdAt'>; // POST
+type UpdateUserDTO = Partial<Omit<UserWithAddress, 'id'>>;       // PATCH
+type UserSummary   = Pick<UserWithAddress, 'id' | 'name' | 'email'>; // list
+
+// 6. Readonly -- immutable after creation
+interface ImmutableUser {
+  readonly id: string;
+  readonly email: string;
+  address: UserAddress;
+}
+
+// Usage
+const user: UserWithAddress = {
+  id: 'u-1',
+  name: 'Alice',
+  email: 'alice@example.com',
+  address: {
+    id: 'a-1',
+    street: '123 Main St',
+    city: 'Springfield',
+    state: 'IL',
+    zip: '62701',
+    country: 'US',
+    isPrimary: true,
+  },
+  createdAt: new Date(),
+};
+
+// TypeScript catches wrong shapes at compile time:
+// user.address.zip = 12345; // Error: number not assignable to string
+
+export type { UserAddress, UserWithAddress, UserOptionalAddress,
+              UserMultiAddress, CreateUserDTO, UpdateUserDTO, UserSummary };

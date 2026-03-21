@@ -9591,3 +9591,201 @@ console.log(levelOrder(full));
 | Worst case space | O(n) | O(n) | Complete tree bottom level = n/2 nodes |
 
 --- End of Section 15 ---
+
+---
+
+## Q158: Define schema in TypeScript for User and UserAddress -- how will you relate them?
+
+### ELI5
+Think of a User as a person file and UserAddress as their home details. Instead of writing
+address fields directly inside the person file, you create a separate "home details" card
+and attach it to the person. TypeScript lets you define the shape of each card (interface
+or type) and then say "User has an address that looks like UserAddress". This is called
+COMPOSITION -- a User object CONTAINS a UserAddress object.
+
+### Visual Diagram
+```
++---------------------------+          +---------------------------+
+|        UserAddress        |          |           User            |
++---------------------------+          +---------------------------+
+| id        : string        |          | id        : string        |
+| street    : string        |<---------| name      : string        |
+| city      : string        |  nested  | email     : string        |
+| state     : string        |  (1:1)   | address   : UserAddress   |
+| zip       : string        |          | createdAt : Date          |
+| country   : string        |          +---------------------------+
+| isPrimary : boolean       |
++---------------------------+
+
+  One-to-many (multiple addresses):
+  +--------+     1       *     +---------------------------+
+  |  User  |-------------------->     UserAddress[]        |
+  +--------+                   +---------------------------+
+
+  Optional address (address may not exist yet):
+  User.address?: UserAddress   (the ? makes it optional)
+```
+
+### Code Example
+```typescript
+// ── 1. Base address interface ──────────────────────────────────────────────
+interface UserAddress {
+  id: string;
+  street: string;
+  city: string;
+  state: string;
+  zip: string;
+  country: string;
+  isPrimary: boolean;
+}
+
+// ── 2. User interface -- relates to UserAddress via composition ────────────
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  address: UserAddress;          // 1-to-1: User HAS one address
+  createdAt: Date;
+}
+
+// ── 3. Variant: optional address (user not yet added address) ──────────────
+interface UserWithOptionalAddress {
+  id: string;
+  name: string;
+  email: string;
+  address?: UserAddress;         // ? = may be undefined
+}
+
+// ── 4. Variant: one-to-many (user has multiple addresses) ─────────────────
+interface UserWithMultipleAddresses {
+  id: string;
+  name: string;
+  email: string;
+  addresses: UserAddress[];      // array = 1-to-many relationship
+  primaryAddressId: string;      // FK-style: points to one address
+}
+
+// ── 5. Using type alias instead of interface (identical behaviour here) ────
+type AddressType = {
+  street: string;
+  city: string;
+  country: string;
+};
+
+type UserType = {
+  id: string;
+  name: string;
+  address: AddressType;           // same composition via type alias
+};
+
+// ── 6. Readonly / Immutable variant ───────────────────────────────────────
+interface ReadonlyUser {
+  readonly id: string;           // cannot be reassigned after creation
+  readonly email: string;
+  address: UserAddress;
+}
+
+// ── 7. Utility types derived from the base interfaces ─────────────────────
+type CreateUserDTO = Omit<User, 'id' | 'createdAt'>;    // for POST body
+type UpdateUserDTO = Partial<Omit<User, 'id'>>;          // all fields optional
+type UserSummary  = Pick<User, 'id' | 'name' | 'email'>; // lightweight list
+
+// ── 8. Runtime validation with Zod (mirrors the TypeScript types) ──────────
+import { z } from 'zod';
+
+const UserAddressSchema = z.object({
+  id:        z.string().uuid(),
+  street:    z.string().min(1),
+  city:      z.string().min(1),
+  state:     z.string().length(2),    // e.g. "CA", "NY"
+  zip:       z.string().regex(/^\d{5}$/),
+  country:   z.string().default('US'),
+  isPrimary: z.boolean().default(false),
+});
+
+const UserSchema = z.object({
+  id:        z.string().uuid(),
+  name:      z.string().min(2).max(100),
+  email:     z.string().email(),
+  address:   UserAddressSchema,        // nested schema -- the relation
+  createdAt: z.date().default(() => new Date()),
+});
+
+// Zod infers TypeScript types automatically -- no duplication
+type UserFromZod    = z.infer<typeof UserSchema>;
+type AddressFromZod = z.infer<typeof UserAddressSchema>;
+
+// ── 9. Usage examples ─────────────────────────────────────────────────────
+const newUser: User = {
+  id: '123',
+  name: 'Alice',
+  email: 'alice@example.com',
+  address: {
+    id: 'addr-1',
+    street: '123 Main St',
+    city: 'Springfield',
+    state: 'IL',
+    zip: '62701',
+    country: 'US',
+    isPrimary: true,
+  },
+  createdAt: new Date(),
+};
+
+// TypeScript catches shape mismatches at compile time
+// newUser.address.zip = 12345; // Error: number not assignable to string
+
+const createDTO: CreateUserDTO = {
+  name: 'Bob',
+  email: 'bob@example.com',
+  address: { id: 'addr-2', street: '456 Oak Ave', city: 'Austin',
+             state: 'TX', zip: '73301', country: 'US', isPrimary: true },
+};
+```
+
+### Step-by-Step Explanation
+1. **Define the smaller shape first (UserAddress)**: Always build from the inside
+   out. UserAddress is self-contained and re-usable across many other entities
+   (Order, Invoice, etc.).
+
+2. **Compose, do not embed raw fields**: Instead of putting street/city/zip
+   directly on User, reference UserAddress as a named type. This keeps each
+   interface single-responsibility and lets you reuse UserAddress for billing,
+   shipping, etc.
+
+3. **interface vs type**: Both work equally for object shapes. Prefer interface
+   when you might extend/implement later (classes, inheritance). Prefer type when
+   you need union types, mapped types, or conditional types.
+
+4. **Optional (?) vs required**: Use ? for fields that may not exist at creation
+   time (e.g. a user who hasn't filled in their address yet). Avoid making
+   everything optional -- that defeats the purpose of strict typing.
+
+5. **1-to-1 vs 1-to-many**: Single object reference (address: UserAddress) for
+   1-to-1; array (addresses: UserAddress[]) for 1-to-many. Add a
+   primaryAddressId field to indicate the default when multiple addresses exist.
+
+6. **Utility types for DTOs**: Never expose your full entity at the API boundary.
+   Use Omit to strip server-managed fields (id, createdAt), Partial for PATCH
+   endpoints, and Pick for list/summary responses.
+
+7. **Zod for runtime safety**: TypeScript types are erased at runtime. Zod gives
+   you both the runtime schema and the TypeScript type from a single source of
+   truth (z.infer). Parse incoming request bodies with Zod before using them.
+
+8. **readonly for immutable IDs**: Mark id and other immutable fields readonly
+   so accidental reassignment is caught at compile time.
+
+### Complexity
+
+| Concept | When to use | Notes |
+|---------|-------------|-------|
+| interface | Object shapes, class contracts, extendable | Preferred for domain models |
+| type alias | Unions, intersections, mapped/conditional types | More flexible |
+| Composition (nested) | 1-to-1 relationship | address: UserAddress |
+| Array relation | 1-to-many relationship | addresses: UserAddress[] |
+| Optional (?) | Field may be absent | Avoids null/undefined errors |
+| Utility types | DTO shaping at boundaries | Omit/Partial/Pick/Required |
+| Zod schema | Runtime validation + TS type inference | Single source of truth |
+
+--- End of Q158 ---

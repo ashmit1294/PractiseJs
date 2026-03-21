@@ -3348,3 +3348,94 @@ class UserRepository implements Repository<User> { /* ... */ }
 class ProductRepository implements Repository<Product> { /* ... */ }
 // Each gets full type safety and IDE autocomplete for free
 ```
+
+---
+
+### Scenario 11: Defining Related Schemas -- User and UserAddress
+
+**Situation:** A colleague asks how to model a User with an address in TypeScript
+without coupling the address fields directly into the User interface.
+
+**Question:** Define TypeScript schemas for User and UserAddress and explain how
+to express the relationship between them.
+
+**Answer:**
+- Define UserAddress as its own interface first -- it is self-contained and
+  reusable across Order, Invoice, and other entities.
+- Compose it into User by referencing the type directly: `address: UserAddress`.
+  This is **composition**, not inheritance.
+- Use `address?: UserAddress` (optional) when the address may not exist yet.
+- Use `addresses: UserAddress[]` for a 1-to-many relationship (multiple shipping
+  or billing addresses), paired with a `primaryAddressId` field.
+- Never duplicate address field names (street, city, zip) across multiple
+  interfaces -- always reference the shared type.
+
+```typescript
+interface UserAddress {
+  id: string;
+  street: string;
+  city: string;
+  state: string;
+  zip: string;
+  country: string;
+  isPrimary: boolean;
+}
+
+// 1-to-1 (required)
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  address: UserAddress;     // composed -- not embedded fields
+  createdAt: Date;
+}
+
+// 1-to-many
+interface UserMultiAddress {
+  id: string;
+  name: string;
+  email: string;
+  addresses: UserAddress[]; // array relation
+  primaryAddressId: string;
+}
+
+// DTO utility types
+type CreateUserDTO = Omit<User, 'id' | 'createdAt'>;
+type UpdateUserDTO = Partial<Omit<User, 'id'>>;
+```
+
+- For **runtime safety**, mirror the TypeScript shape with a Zod schema.
+  `z.infer<typeof UserSchema>` derives the TypeScript type automatically,
+  giving a single source of truth for both compile-time and runtime validation.
+
+```typescript
+import { z } from 'zod';
+
+const UserAddressSchema = z.object({
+  id:        z.string().uuid(),
+  street:    z.string().min(1),
+  city:      z.string().min(1),
+  state:     z.string().length(2),
+  zip:       z.string().regex(/^\d{5}$/),
+  country:   z.string().default('US'),
+  isPrimary: z.boolean().default(false),
+});
+
+const UserSchema = z.object({
+  id:        z.string().uuid(),
+  name:      z.string().min(2).max(100),
+  email:     z.string().email(),
+  address:   UserAddressSchema,     // nested schema = the relationship
+  createdAt: z.date().default(() => new Date()),
+});
+
+type User    = z.infer<typeof UserSchema>;
+type Address = z.infer<typeof UserAddressSchema>;
+```
+
+**Relationship summary:**
+- `interface User { address: UserAddress }` -- 1-to-1 composition
+- `interface User { addresses: UserAddress[] }` -- 1-to-many
+- `address?: UserAddress` -- optional (address not yet provided)
+- Utility types (`Omit`, `Partial`, `Pick`) shape the data at API boundaries
+  without leaking internal fields.

@@ -4480,3 +4480,92 @@ This is a **behavioural** question. Use STAR format (Situation, Task, Action, Re
 
 > **New questions added (March 2026):** JS: Object join with Map, Deep merge, Debounce+Throttle React component, CAP Theorem | React: HMR, Diffing deep dive, Security checklist, WCAG A/AA/AAA, Lighthouse performance | Node.js: Web Workers vs Worker Threads, Race condition prevention, IRCTC 1000-user system design | Node.js cross-cutting: Socket.io polling types, Redis distributed lock, Backend performance checklist, Script local-vs-prod debugging, CI/CD pipeline (AWS + Azure), GitHub Actions syntax, Node.js/Express security checklist | MongoDB: Aggregation pipelines + $facet, Indexing advantages/disadvantages
 
+
+---
+
+## TypeScript
+
+### Q: Define schema in TypeScript for User and UserAddress -- how will you relate them?
+
+**Concept:** Composition -- a User object CONTAINS a UserAddress object as a named type.
+Define the smaller shape first (UserAddress), then reference it inside User.
+
+```typescript
+// 1. Address schema
+interface UserAddress {
+  id: string;
+  street: string;
+  city: string;
+  state: string;           // 2-letter code e.g. "CA"
+  zip: string;
+  country: string;
+  isPrimary: boolean;
+}
+
+// 2. User schema -- relates to UserAddress via composition
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  address: UserAddress;    // 1-to-1: User HAS one address
+  createdAt: Date;
+}
+
+// 3. Optional address (user hasn't added one yet)
+interface UserWithOptionalAddress {
+  id: string;
+  name: string;
+  email: string;
+  address?: UserAddress;   // ? = may be undefined
+}
+
+// 4. One-to-many: user has multiple addresses
+interface UserWithMultipleAddresses {
+  id: string;
+  name: string;
+  email: string;
+  addresses: UserAddress[];          // array relation
+  primaryAddressId: string;          // FK-style pointer
+}
+
+// 5. DTO types for API boundaries
+type CreateUserDTO  = Omit<User, 'id' | 'createdAt'>;    // POST body
+type UpdateUserDTO  = Partial<Omit<User, 'id'>>;          // PATCH body
+type UserSummary    = Pick<User, 'id' | 'name' | 'email'>; // list response
+
+// 6. Zod -- runtime validation + inferred TypeScript types (single source of truth)
+import { z } from 'zod';
+
+const UserAddressSchema = z.object({
+  id:        z.string().uuid(),
+  street:    z.string().min(1),
+  city:      z.string().min(1),
+  state:     z.string().length(2),
+  zip:       z.string().regex(/^\d{5}$/),
+  country:   z.string().default('US'),
+  isPrimary: z.boolean().default(false),
+});
+
+const UserSchema = z.object({
+  id:        z.string().uuid(),
+  name:      z.string().min(2).max(100),
+  email:     z.string().email(),
+  address:   UserAddressSchema,      // nested schema = the relation
+  createdAt: z.date().default(() => new Date()),
+});
+
+type UserFromZod    = z.infer<typeof UserSchema>;         // TS type auto-derived
+type AddressFromZod = z.infer<typeof UserAddressSchema>;
+```
+
+| Pattern | Code | Use case |
+|---------|------|----------|
+| 1-to-1 composition | `address: UserAddress` | User has one address |
+| Optional | `address?: UserAddress` | Address not yet provided |
+| 1-to-many | `addresses: UserAddress[]` | Multiple shipping/billing addresses |
+| DTO via utility types | `Omit`, `Partial`, `Pick` | API request/response shaping |
+| Zod schema | `z.object({ address: UserAddressSchema })` | Runtime validation + inferred types |
+
+**Key rule:** Always build inner types first, compose outward. Never embed raw address fields
+directly on User -- it breaks reusability (billing address, shipping address, invoice address
+all need the same shape).
