@@ -1,0 +1,229 @@
+## REACT — Core Hooks
+
+1. What is the difference between `useState` and `useReducer`? When would you choose one over the other?
+2. What happens if you don't pass a dependency array to `useEffect`?
+3. How do you handle race conditions in `useEffect` when fetching data?
+4. What is the difference between `useRef` for DOM access vs storing mutable values?
+5. Why does `useContext` cause performance issues and how do you fix it?
+6. What is stale closure in React hooks? Give a real example.
+7. How does React 18 batch state updates differently from React 17?
+8. What is `useTransition` and when would you use it over `useState`?
+9. What is `useDeferredValue` and how does it differ from debouncing?
+10. How do you implement `useDebounce` as a custom hook?
+
+***
+
+## REACT — Performance
+
+11. When does `React.memo` NOT prevent a re-render even when props look the same?
+12. What is the difference between `useMemo` and `useCallback`? Can you implement one using the other?
+13. How does React's reconciliation algorithm work? What role does the `key` prop play?
+14. What is virtualization? When would you use `@tanstack/react-virtual`?
+15. How does code splitting with `React.lazy()` and `Suspense` work under the hood?
+16. What causes unnecessary re-renders and how do you diagnose them using React DevTools?
+17. What is the difference between `React.memo` and `PureComponent`?
+
+***
+
+## REACT — Patterns
+
+18. Explain the Container/Presentational pattern. Is it still relevant with hooks?
+19. What is a Higher Order Component? Give a real production use case.
+20. How do Compound Components share state without prop drilling?
+21. What is the Render Props pattern? When would you still use it over hooks?
+22. How does the Provider pattern work? What are its performance pitfalls?
+23. What makes a good custom hook? How do you decide when to extract one?
+24. How would you implement a fully accessible modal using Compound Components?
+
+***
+
+## REACT — Advanced
+
+25. What is Isomorphic / Universal React? How does hydration work?
+26. What causes a hydration mismatch and how do you fix it?
+27. What are React Server Components? How do they differ from SSR?
+28. What is an Error Boundary? Why must it be a class component?
+29. What are React Portals? When would you use them?
+30. What is the difference between SSR, SSG, and ISR in Next.js?
+31. How does `Suspense` work for data fetching vs code splitting?
+
+***
+
+## REACT — Ecosystem
+
+32. What is the difference between `queryKey`, `staleTime`, and `cacheTime` in React Query?
+33. How do you implement optimistic updates in React Query?
+34. How does React Query handle background refetching?
+35. What is the difference between `useForm` controlled vs uncontrolled in React Hook Form?
+36. How do you share Zod schemas between frontend validation and API validation?
+37. When would you choose Zustand over Redux Toolkit?
+38. How do you handle global error state in React Query?
+
+***
+
+## NODE.JS — Core
+
+39. Explain the Node.js event loop. What is the order of execution between `setTimeout`, `Promise.then`, and `process.nextTick`?
+40. What is the difference between `setImmediate` and `setTimeout(() => {}, 0)`?
+41. What are Streams in Node.js? Explain all 4 types.
+42. What is backpressure in streams and how does `.pipe()` handle it?
+43. What is the difference between Buffers and Streams? When would you use each?
+44. How does the Node.js Cluster module work? How does it differ from Worker Threads?
+45. What is `process.nextTick`? Why is it higher priority than Promises?
+46. How do you handle `uncaughtException` and `unhandledRejection` in production?
+47. What causes a memory leak in Node.js? How do you detect and fix it?
+
+***
+
+## NODE.JS + EXPRESS
+
+48. How does Express middleware chain work? What happens if you forget to call `next()`?
+49. What is the difference between `app.use()` and `app.get()`?
+50. How do you create a global error handling middleware in Express?
+51. How do you implement rate limiting across multiple server instances using Redis?
+52. What security headers does Helmet set and why do they matter?
+53. How do you validate request body in Express using Zod?
+54. What is the difference between `jwt.sign()` and `jwt.verify()`? How do you implement refresh tokens?
+55. How do you implement the Repository pattern in a Node.js + Express application?
+56. How do you handle graceful shutdown in a Node.js server?
+57. What is the Service Layer pattern? How does it differ from putting logic in route handlers?
+
+***
+
+## NODE.JS — Auth & Security
+
+58. How does the OAuth 2.0 flow work? What is the difference between Authorization Code and Client Credentials flow?
+59. What is the difference between authentication and authorization?
+60. How do you implement RBAC (Role-Based Access Control) in a Node.js API?
+61. How did your Azure AD + Function App auth flow work end to end?
+62. What is the difference between bcrypt `hash()` and `compare()`? What are salt rounds?
+63. How do you prevent SQL injection in Node.js?
+64. What is CSRF? How do you prevent it in a REST API vs a web app?
+65. How do you securely store secrets in a Node.js production app?
+
+***
+
+## MONGODB
+
+66. When would you embed a document vs use a reference? Give a real example for each.
+67. What is the ESR rule for compound indexes? Why does field order matter?
+68. What is a covered query in MongoDB? How do you achieve it?
+69. How does `$lookup` work in aggregation? Write a query joining orders with users.
+70. What is the difference between `find()` with `skip()` vs cursor-based pagination? Why is `skip()` slow?
+71. How do you implement transactions in MongoDB? What are the limitations?
+72. What is a Change Stream in MongoDB? Give a real use case.
+73. What is a TTL index? When would you use it?
+74. What does `.lean()` do in Mongoose? When should you use it?
+75. How do Mongoose middleware (pre/post hooks) work? Give a use case for `pre('save')`.
+76. What is the aggregation pipeline? Write a pipeline to find the top 5 users by order count.
+77. How do you handle duplicate key errors (error code 11000) in Mongoose?
+78. What are Mongoose virtuals? When would you use them instead of storing computed data?
+79. How do you optimize a slow MongoDB query using `explain()`?
+80. What is the Bucket Pattern in MongoDB schema design?
+
+***
+
+## GRAPHQL
+
+81. What problem does GraphQL solve that REST doesn't?
+82. What is the N+1 problem in GraphQL? How does DataLoader solve it?
+83. What is the difference between a Query, Mutation, and Subscription in GraphQL?
+84. How do you implement authentication and authorization in GraphQL resolvers?
+85. What are GraphQL fragments and why are they important for frontend performance?
+86. What is the `@defer` directive? How does it improve perceived performance?
+87. What is the difference between `cache-first`, `network-only`, and `cache-and-network` fetch policies in Apollo?
+88. How do you handle optimistic updates with Apollo Client?
+89. What is Apollo Federation? When would you use it over a monolithic schema?
+90. How do persisted queries work and why do they improve performance?
+91. What is the difference between schema-first and code-first GraphQL development?
+92. How do you implement cursor-based pagination in GraphQL?
+
+***
+
+## SYSTEM DESIGN
+
+93. Walk me through designing a system to handle a flash sale — 1 item, 10,000 concurrent buyers.
+94. How does the CAP theorem apply when choosing between PostgreSQL and MongoDB?
+95. What is the difference between horizontal and vertical scaling? When does each make sense?
+96. How does a CDN work? What should and shouldn't you cache on a CDN?
+97. What is the Circuit Breaker pattern? What are its 3 states?
+98. What is the difference between optimistic and pessimistic locking? When would you use each?
+99. How would you design a real-time notification system for 50 million users?
+100. How does consistent hashing work in distributed caching?
+101. What is the Saga pattern? When would you use it over a traditional transaction?
+102. How do you implement idempotency in a payment API?
+103. What are the trade-offs between message queues (SQS) and event streams (Kafka)?
+104. How would you design a URL shortener that handles 10 billion redirects per day?
+
+***
+
+## AWS & DEVOPS
+
+105. What is the difference between ECS and EKS? When would you choose each?
+106. How does a Blue/Green deployment differ from a Canary deployment?
+107. How do you implement auto-scaling for an ECS service based on both CPU and queue depth?
+108. What is the difference between RTO and RPO in disaster recovery?
+109. How do you implement structured logging in Node.js for CloudWatch?
+110. What does AWS X-Ray trace and how does it help debug distributed systems?
+111. How do GitHub Actions environments with protection rules work?
+112. How do you handle secrets in a GitHub Actions CI/CD pipeline?
+113. What is a multi-stage Docker build? Why does it reduce image size?
+114. How do you implement automatic rollback after a failed deployment?
+115. What is the difference between `needs` and `if` in GitHub Actions jobs?
+
+***
+
+## SQL vs NoSQL
+
+116. What are the ACID properties? Give a real example of where each matters.
+117. When would you choose PostgreSQL over MongoDB for a new project?
+118. What is eventual consistency? Give a real scenario where it is acceptable.
+119. What is a database index? How does a B-tree index work?
+120. What is connection pooling? Why is it critical in a Node.js + PostgreSQL setup?
+121. How does Aurora Multi-AZ automatic failover work?
+122. What is read/write splitting? How do you implement it in Node.js?
+
+***
+
+## TYPESCRIPT
+
+123. What is the difference between `type` and `interface`? When do you use each?
+124. What is the difference between `any` and `unknown`? Why is `unknown` safer?
+125. Write a `DeepPartial<T>` utility type from scratch.
+126. Write a `DeepMerge<T, U>` function that is fully type-safe.
+127. What is a discriminated union? Give a real-world example using API state.
+128. What does the `infer` keyword do? Implement `ReturnType<T>` from scratch.
+129. What is the difference between `Partial`, `Required`, `Pick`, `Omit`, and `Record`?
+130. How do you make a function generic with constraints using `extends keyof`?
+131. What is `as const`? How do you derive a union type from a const array?
+132. What are mapped types? Write a `Getters<T>` mapped type.
+133. What are template literal types? Give a real use case.
+134. How do you implement a type-safe Builder pattern in TypeScript?
+135. How do you share types between a React frontend and Node.js backend in a monorepo?
+136. How does Zod infer TypeScript types from a schema? Why is this better than writing types manually?
+137. What is a Type Guard? Write a custom type guard for a `User` object.
+
+***
+
+## JS DSA
+
+138. Implement `debounce` from scratch without using any library.
+139. Implement `throttle` from scratch.
+140. Implement `deepClone` without using `JSON.parse/stringify`.
+141. Implement `Promise.all` from scratch.
+142. Implement an `EventEmitter` class with `on`, `off`, `emit`, and `once`.
+143. Implement an LRU Cache using a `Map`.
+144. Find two numbers in an array that sum to a target — O(n) solution.
+145. Find the longest substring without repeating characters.
+146. Reverse a linked list iteratively and recursively.
+147. Detect a cycle in a linked list using Floyd's algorithm.
+148. Find the maximum depth of a binary tree.
+149. Validate a Binary Search Tree.
+150. Implement binary search on a sorted array.
+151. Flatten a deeply nested array without using `Array.flat()`.
+152. Group anagrams from an array of strings.
+153. Find the top K frequent elements in an array.
+154. Implement `mergeSort` in JavaScript.
+155. Find the maximum subarray sum using Kadane's algorithm.
+156. Find the Lowest Common Ancestor of two nodes in a binary tree.
+157. Implement level-order traversal of a binary tree using BFS.
