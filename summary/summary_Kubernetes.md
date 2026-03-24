@@ -1,6 +1,6 @@
 ﻿# Kubernetes — Interview Revision Summary
 
-> **Target:** 7+ year Full Stack MERN Developer | **Files:** 9
+> **Target:** 7+ year Full Stack MERN Developer | **Files:** 19
 
 ## Table of Contents
 
@@ -14,6 +14,16 @@
 8. [08_helm_interview_qa.md — What is Helm?](#kubernetes-helm-interview-qa)
 9. [09_theory_advanced_qa.md — SECTION 1: BASIC](#kubernetes-theory-advanced-qa)
    - [Scenario-Based Questions](#kubernetes-scenarios)
+10. [10_architecture_internals.md — Real Internals & Failure Behaviour](#kubernetes-architecture-internals)
+11. [11_pod_lifecycle_probes.md — Pod Lifecycle & Probes](#kubernetes-pod-lifecycle)
+12. [12_scheduler_logic.md — Scheduler Logic & Node Selection](#kubernetes-scheduler-logic)
+13. [13_deployments_rollouts.md — Deployments & Rollout Strategy](#kubernetes-deployments-rollouts)
+14. [14_networking_deep_dive.md — Networking Deep Dive](#kubernetes-networking-deep-dive)
+15. [15_services_ingress.md — Services & Ingress Internals](#kubernetes-services-ingress)
+16. [16_resources_throttling.md — Resources, Throttling & QoS](#kubernetes-resources-throttling)
+17. [17_configmaps_secrets.md — ConfigMaps, Secrets & Propagation](#kubernetes-configmaps-secrets)
+18. [18_troubleshooting_observability.md — Troubleshooting & Observability](#kubernetes-troubleshooting)
+19. [19_statefulsets_storage.md — StatefulSets & Storage Internals](#kubernetes-statefulsets-storage)
 
 ---
 
@@ -3410,3 +3420,562 @@ resources:
 - **PodDisruptionBudget** to protect critical services from eviction.
 - **Node affinity / taints + tolerations** to physically separate workloads onto different node pools.
 - **RBAC** to limit what each team's service account can do.
+
+---
+
+<a id="kubernetes-architecture-internals"></a>
+## 10_architecture_internals.md — Architecture: Real Internals & Failure Behaviour
+
+### ELI5
+Kubernetes is a restaurant. **API Server** = head waiter (all orders go through here). **etcd** = the notebook with every order ever written. **Scheduler** = decides which chef (node) cooks each dish (pod). **Controller Manager** = floor manager who keeps checking "have we got enough chefs?". **Kubelet** = the individual chef who actually cooks and reports back.
+
+If the head waiter faints → new orders stop, but food already cooking keeps cooking.
+
+---
+
+### Key Component Behaviours
+
+| Component | What it does | Failure effect |
+|---|---|---|
+| **API Server** | Only entry point for all kubectl/controller/kubelet calls | kubectl fails; running pods UNAFFECTED |
+| **etcd** | Key-value store; source of truth. Uses Raft (majority quorum). | If quorum lost → API returns 503; pods keep running |
+| **Scheduler** | Watches pods with no nodeName; runs filter+score; binds pod to node | Down → new pods stuck in Pending forever |
+| **Controller Manager** | Runs ReplicaSet, Deployment, Node, Job controllers in one binary | Down → crashed pods not restarted; scale-out stops |
+| **Kubelet** | Node agent; reconciles desired pods vs actual containers every ~20s | Down → node goes NotReady after ~40s; running containers continue |
+
+### Failure Matrix
+
+| Failure | New Pods | Running Pods | kubectl | Node Detected |
+|---|---|---|---|---|
+| API Server down | ✗ | ✓ | ✗ | ✗ |
+| etcd quorum lost | ✗ | ✓ | ✗ (503) | ✗ |
+| Scheduler down | ✗ (Pending) | ✓ | ✓ | ✓ |
+| Controller Mgr down | Partial | ✓ | ✓ | ✓ delayed |
+| Kubelet down | ✗ on node | ✓ briefly | ✓ | ✓ after 40s |
+
+### Key Insights
+- **Pods don't talk to API server** — only kubelet does. Control plane death ≠ app death.
+- **etcd uses Raft**: 3-node → can lose 1; 5-node → can lose 2.
+- **etcd compaction**: without it, etcd grows forever → hits quota → cluster goes read-only. Run `etcdctl compact` + `defrag` periodically.
+- **Controller leader election**: multiple controller-manager instances run, only one is leader (via etcd Lease). If leader dies, re-election in ~15s.
+- **Static pods** bypass the scheduler — kubelet reads them from `/etc/kubernetes/manifests/`. This is how API server, etcd, and scheduler themselves run.
+
+---
+
+<a id="kubernetes-pod-lifecycle"></a>
+## 11_pod_lifecycle_probes.md — Pod Lifecycle & Probes
+
+### ELI5
+A pod is a new employee. **Pending** = HR setting up their desk. **Running** = at their desk. **Liveness probe** = manager checks "are you alive?" — fail 3× → fired and replaced. **Readiness probe** = "are you ready for customer calls?" — fail → calls go elsewhere (but not fired). **Startup probe** = "I know your laptop takes 5 min to boot — don't fire them during that time." **CrashLoopBackOff** = employee keeps quitting on day 1, HR keeps rehiring with longer waits.
+
+---
+
+### Pod Phases
+`Pending → Running → Succeeded / Failed / Unknown`
+
+> A pod in `Running` phase can still have `Ready: False` — it's alive but not serving traffic.
+
+### The Three Probes
+
+| Probe | Failure Action | Use For |
+|---|---|---|
+| **Liveness** | Kill + restart container | Deadlocks, corrupted state |
+| **Readiness** | Remove from Service endpoints (no restart) | Startup warm-up, DB connection |
+| **Startup** | Kill + restart; disables liveness while active | Slow-starting apps (JVM, ML models) |
+
+```
+startupProbe: failureThreshold: 30, periodSeconds: 10
+→ allows up to 30×10 = 5 minutes before liveness kicks in
+```
+
+### CrashLoopBackOff Patterns
+
+| Exit Code | Meaning | Fix |
+|---|---|---|
+| `137` | OOMKilled (128+SIGKILL) | Increase memory limit |
+| `1` | App error on startup | `kubectl logs --previous` |
+| `2` | Config/misuse error | Check env vars, secrets |
+
+**Backoff**: 10s → 20s → 40s → 80s → ... → 300s (5 min cap). Always running in background.
+
+**Liveness too aggressive** = common trap. Set `initialDelaySeconds` generously. Check `kubectl describe pod` for `"Liveness probe failed"` in Events.
+
+### Graceful Shutdown Sequence
+```
+kubectl delete pod → pod removed from endpoints → preStop hook → SIGTERM
+→ terminationGracePeriodSeconds countdown → SIGKILL
+```
+Steps 2 and 4 happen simultaneously — add `preStop: sleep 5` to drain in-flight requests.
+
+---
+
+<a id="kubernetes-scheduler-logic"></a>
+## 12_scheduler_logic.md — Scheduler Logic & Node Selection
+
+### ELI5
+The scheduler is a school assigning students (pods) to classrooms (nodes). **Filtering** = eliminate classrooms that are too small or have a "No Entry" sign the student can't override. **Scoring** = among remaining classrooms, pick the best one (most free seats, student's friend already there). **Taints** = "No Entry" signs. **Tolerations** = the student's pass to enter. **Affinity** = "I prefer the sunny classroom on floor 2."
+
+---
+
+### Two-Phase Algorithm
+**Phase 1 — Filter** (eliminate nodes that CANNOT run the pod):
+- Insufficient CPU/memory for requests
+- Taint not tolerated  
+- nodeSelector / required NodeAffinity not matched
+- Would violate Pod anti-affinity or TopologySpread
+- Node cordoned / NotReady
+
+**Phase 2 — Score** (rank surviving nodes 0–100):
+- `LeastRequestedPriority` — prefer nodes with more free capacity
+- `BalancedResourceAllocation` — prefer CPU% ≈ memory% (avoid lopsided nodes)
+- `ImageLocalityPriority` — prefer nodes that already have the image pulled
+- `NodeAffinityPriority` — score based on preferred affinity weights
+
+### Taints & Tolerations
+
+| Effect | New pods | Existing pods |
+|---|---|---|
+| `NoSchedule` | Rejected | Stay |
+| `PreferNoSchedule` | Avoid if possible | Stay |
+| `NoExecute` | Rejected | **Evicted** (unless tolerated) |
+
+`NoExecute` is what Kubernetes auto-applies when a node goes NotReady/Unreachable — pods evict after `tolerationSeconds` (default 300s).
+
+### Affinity Quick Reference
+
+```yaml
+# Hard node requirement (pod stays Pending if unmet):
+nodeAffinity:
+  requiredDuringSchedulingIgnoredDuringExecution: ...
+
+# Soft preference (weighted scoring):
+nodeAffinity:
+  preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 80   # 1–100
+      preference: ...
+
+# Spread replicas (never 2 on same node):
+podAntiAffinity:
+  requiredDuringSchedulingIgnoredDuringExecution:
+    - topologyKey: kubernetes.io/hostname
+```
+
+"IgnoredDuringExecution" = if node label changes after scheduling, pod is NOT evicted.
+
+### Key Interview Answer
+> "Why did the pod land on node-3?" → Scheduler filtered nodes by resources, taints, and affinity. From survivors, node-3 scored highest on `LeastRequestedPriority` and matched a preferred zone label. The pod was bound there.
+
+---
+
+<a id="kubernetes-deployments-rollouts"></a>
+## 13_deployments_rollouts.md — Deployments & Rollout Strategy
+
+### ELI5
+Deployment = fleet manager. ReplicaSet = "I always want 5 trucks." Deployment = "Let's swap the menu from burgers to tacos without shutting down all trucks at once." **Rolling update** = swap 1–2 trucks at a time. **Blue-Green** = run a full taco fleet in parallel, then flip the switch. **Canary** = send 5% of customers to one taco truck first. **Rollback** = "tacos were a disaster — bring back the burger fleet."
+
+---
+
+### What Happens After `kubectl apply`?
+
+```
+1. API server writes to etcd
+2. Deployment controller detects change via watch
+3. New ReplicaSet created (new pod-template-hash)
+4. Controller increments new RS, decrements old RS (respecting maxSurge/maxUnavailable)
+5. Scheduler assigns new pods → kubelet starts them → readiness probe fires
+6. Pod passes readiness → added to EndpointSlice → traffic flows
+7. Old pod removed from endpoints → SIGTERM → terminationGracePeriodSeconds → gone
+8. Complete when new RS = desired replicas, old RS = 0
+```
+
+### maxSurge & maxUnavailable (replicas=10)
+
+| Config | Max pods running | Min pods available |
+|---|---|---|
+| `maxSurge:2, maxUnavailable:1` | 12 | 9 |
+| `maxSurge:0, maxUnavailable:1` | 10 | 9 |
+| `maxSurge:1, maxUnavailable:0` | 11 | 10 (zero-downtime) |
+
+### Rollout Commands
+```bash
+kubectl rollout status deployment myapp      # watch progress
+kubectl rollout history deployment myapp     # see revisions
+kubectl rollout undo deployment myapp        # rollback to previous
+kubectl rollout undo deployment myapp --to-revision=2
+kubectl rollout pause / resume deployment myapp   # batch multiple changes
+```
+
+### Blue-Green vs Canary
+
+| Strategy | How | Rollback speed | Resource cost |
+|---|---|---|---|
+| **Rolling** | Swap pods gradually | Slow (undo) | Normal |
+| **Blue-Green** | 2 full deployments, flip Service selector | Instant | 2× |
+| **Canary** | Small new RS + main RS; ratio = traffic % | Fast (scale to 0) | Small overhead |
+
+Old ReplicaSets are **never deleted** during rollout — scaled to 0 and kept for rollback up to `revisionHistoryLimit` (default 10).
+
+---
+
+<a id="kubernetes-networking-deep-dive"></a>
+## 14_networking_deep_dive.md — Networking Deep Dive
+
+### ELI5
+Each pod has its own house address (IP). **CNI** = city planner that builds the roads. **kube-proxy** = post office that translates "myapp-service" into an actual pod address. **CoreDNS** = phone book. **MTU issues** = giant package that can't fit through the mail slot — either gets cut up (fragmentation) or dropped.
+
+---
+
+### The 3 Kubernetes Networking Rules
+1. Every pod gets a unique IP
+2. Pods communicate pod-to-pod WITHOUT NAT
+3. Node agents can reach all pods on that node
+
+### CNI Plugin Comparison
+
+| Plugin | Routing method | NetworkPolicy | Performance |
+|---|---|---|---|
+| Flannel | VXLAN overlay (encapsulated UDP) | No | Medium |
+| **Calico** | BGP (pure L3, no overhead) | Yes | High |
+| **Cilium** | eBPF (no iptables) | Yes + L7 | Very High |
+| AWS VPC CNI | Native VPC routing | Via SGs | Very High |
+
+### kube-proxy Modes
+
+| Mode | Mechanism | Scale |
+|---|---|---|
+| `userspace` | Kernel→userspace→kernel (slow) | Bad |
+| `iptables` (default) | DNAT in kernel; O(n) rules | OK up to ~5k services |
+| `ipvs` | Kernel hash table; O(1) lookup | Required for 10k+ services |
+
+### DNS & ndots Trap
+```
+Pod's /etc/resolv.conf: options ndots:5
+```
+Any hostname with < 5 dots triggers 5 search-domain attempts before going external. At scale this causes DNS lookup storms. Fix: use FQDNs (trailing dot) or reduce ndots.
+
+### MTU Mismatch
+```
+Physical NIC MTU:    1500 bytes
+VXLAN overhead:       -50 bytes  → effective pod MTU: 1450
+Container MTU wrong: 1500 bytes  → large packets dropped silently
+```
+**Symptoms**: small requests work; large payloads hang or fail (TCP handshake OK, data fails).
+**Test**: `ping -M do -s 1450 <pod-ip>` — if fails, MTU mismatch confirmed.
+
+### NetworkPolicy
+- Default: all pods can reach all pods (flat network)
+- NetworkPolicy = firewall rules. Enforced by CNI (Flannel alone cannot enforce them)
+- First apply `default-deny-all`, then whitelist required paths
+
+---
+
+<a id="kubernetes-services-ingress"></a>
+## 15_services_ingress.md — Services & Ingress Internals
+
+### ELI5
+Pods are employees in different rooms. **ClusterIP** = internal phone extension (internal only). **NodePort** = a direct number to the building on a specific port. **LoadBalancer** = company's main public number with a receptionist (cloud LB). **Ingress** = smart switchboard: `/api` → backend team, `/` → frontend team, and they handle the TLS certificates too.
+
+---
+
+### Service Types
+
+| Type | Reachable From | Mechanism |
+|---|---|---|
+| `ClusterIP` | Inside cluster only | Virtual IP via iptables DNAT |
+| `NodePort` | Any node IP + port (30000–32767) | NodePort → ClusterIP → pod |
+| `LoadBalancer` | Internet via cloud LB | Cloud LB → NodePort → ClusterIP → pod |
+| `ExternalName` | Inside cluster → external DNS | CNAME only, no proxying |
+
+**ClusterIP is VIRTUAL** — no process listens on it. It's purely an iptables DNAT rule.
+
+### EndpointSlice Flow
+```
+Service selector matches pod labels
+→ EndpointSlice controller builds list of ready pod IPs
+→ kube-proxy watches EndpointSlices → updates iptables per node
+```
+When a pod fails readiness → removed from EndpointSlice → iptables updated → no more traffic. This is why readiness probes = zero-downtime deployments.
+
+### Full Traffic Path: Internet → Pod
+```
+Internet → Cloud LB (public IP, port 443)
+  → NodePort on any cluster node
+  → kube-proxy DNAT → Ingress-nginx controller pod
+  → nginx matches host/path rule → proxies to Service ClusterIP
+  → kube-proxy DNAT → random healthy pod
+  → Application
+```
+
+### Common Failure Patterns
+
+| Symptom | Likely Cause |
+|---|---|
+| `kubectl get endpoints myapp` → `<none>` | Pod labels don't match Service selector |
+| Connection refused | Reached pod/node, nothing listening (wrong port, app crashed) |
+| Connection timed out | Packet dropped (NetworkPolicy, iptables issue, pod not scheduled) |
+
+`externalTrafficPolicy: Local` = route to pods on THIS node only (avoids extra hop; risks drop if no local pod).
+
+---
+
+<a id="kubernetes-resources-throttling"></a>
+## 16_resources_throttling.md — Resources, Throttling & QoS
+
+### ELI5
+Node = shared apartment. **Requests** = "I need at least this much space" (told to the scheduler). **Limits** = "You can't use more than this" (enforced by kernel). CPU over limit → **throttled** (slowed, survives). Memory over limit → **OOM killed** (process dies instantly). **Guaranteed** = VIP tenant, last to be evicted. **BestEffort** = squatter, first to go.
+
+---
+
+### Requests vs Limits
+
+| | Requests | Limits |
+|---|---|---|
+| Used by | Scheduler (fitting) + OOM eviction order | Kernel CFS (CPU) + cgroup (memory) |
+| Exceeding | Cannot — it's guaranteed | CPU: throttled; Memory: OOM killed |
+
+### CPU Throttling — The Hidden Killer
+Linux CFS budget: `cpu.limit × 100ms period`.
+```
+Limit = 500m → budget = 50ms per 100ms window
+Burst uses 50ms in 20ms → throttled for remaining 80ms
+Node CPU is 80% IDLE — doesn't matter. Budget is exhausted.
+```
+> **Average CPU looks fine → p99 latency is terrible → CPU throttling.**
+```bash
+kubectl exec -it pod -- cat /sys/fs/cgroup/cpu/cpu.stat
+# nr_throttled, throttled_time
+```
+
+### Memory OOM
+- Memory over limit → kernel OOM killer fires → exit code **137** (128+SIGKILL)
+- **No graceful shutdown**. No hooks. Instant death.
+- OOM is triggered by pod limit, NOT node free memory.
+
+### QoS Classes (eviction priority)
+
+| QoS | Requirements | Evicted |
+|---|---|---|
+| **Guaranteed** | All containers: limits == requests (both cpu+mem) | Last |
+| **Burstable** | At least one request or limit set | Middle |
+| **BestEffort** | No resources set at all | First |
+
+### Eviction Order (node MemoryPressure)
+1. BestEffort pods
+2. Burstable pods exceeding their requests
+3. Guaranteed pods (only as last resort)
+
+### Noisy Neighbour
+CFS shares only matter under contention. Pod A (requests=500m, using 1800m) and Pod B (requests=500m, needs 900m) compete: each gets 25% of contested CPU — Pod B's latency spikes even though Pod A is the hog.
+
+**Fix**: set limits ≈ requests (Guaranteed QoS); use LimitRange to cap namespaces; VPA to right-size.
+
+---
+
+<a id="kubernetes-configmaps-secrets"></a>
+## 17_configmaps_secrets.md — ConfigMaps, Secrets & Propagation
+
+### ELI5
+**ConfigMap** = public price list on the vending machine. **Secret** = locked cash drawer (base64 is NOT a lock — it's just a folded paper). **Env var injection** = price sticker printed at manufacturing time — won't change until you rebuild. **Volume mount** = live digital display that updates when the manager changes prices (eventually).
+
+---
+
+### Update Propagation — The Critical Difference
+
+| Method | ConfigMap updated → pod picks it up? |
+|---|---|
+| **Environment variables** | **NEVER automatically** — must restart pod |
+| **Volume mount** | **Yes, after ~60s** (kubelet sync period) — app must watch file |
+
+### Secret Security Reality
+- Base64 = encoding, not encryption
+- Default: stored in etcd as plaintext (base64)
+- **Real security**: enable `--encryption-provider-config` (AES, KMS) + RBAC
+- Production: use External Secrets Operator → AWS Secrets Manager / Vault / Azure Key Vault
+
+### Immutable ConfigMaps/Secrets
+```yaml
+immutable: true
+```
+- Prevents accidental changes
+- Kubelet stops watching → reduces API server load at scale
+- Forces versioned naming: `app-config-v2` instead of modifying `app-config`
+
+### Volume Mount Atomic Update
+Kubelet swaps a symlink atomically:
+```
+/etc/config/..data → new-timestamped-dir/
+```
+No partial reads. But app must `inotify`-watch the file (or restart) to react.
+
+### Edge Cases
+- Key doesn't exist + `optional: false` → pod fails to start
+- ConfigMap > 1MB → etcd rejects it (use volumes/init containers to fetch from S3)
+- Cross-namespace secret reference → not allowed; must copy or use ESO
+
+---
+
+<a id="kubernetes-troubleshooting"></a>
+## 18_troubleshooting_observability.md — Troubleshooting & Observability
+
+### ELI5
+Debugging Kubernetes is detective work. **Events** = witness statements (expire in 1 hour — collect fast). **Pod logs** = the victim's diary. **kubectl describe** = the full case file. **kubectl exec** = entering the crime scene. **Metrics** = surveillance footage. **Kubelet logs** = building security log. **CNI logs** = the plumber's notes.
+
+---
+
+### The Debug Framework
+```
+1. Scope: kubectl get pods -A | grep -v Running
+2. Is it pod or node? → kubectl describe node <node>
+3. Pod diagnosis → kubectl describe pod / kubectl logs --previous
+4. Live debug → kubectl exec -it pod -- sh
+5. Network → kubectl get endpoints / curl from debug pod
+6. Node/kubelet → ssh node; journalctl -u kubelet -n 200
+```
+
+### Common Event Reasons
+
+| Reason | Meaning | Next Action |
+|---|---|---|
+| `BackOff` | CrashLoopBackOff | `kubectl logs --previous` |
+| `OOMKilling` | Memory limit exceeded | Increase limit |
+| `FailedScheduling` | No node fits pod | Check resources, taints, affinity |
+| `Evicted` | Node pressure | Check node resources |
+| `Killing` | Liveness probe failed | Review probe config |
+| `FailedMount` | Volume not found | Check PVC/Secret exists |
+| `ErrImagePull` | Image/registry issue | Check image name, imagePullSecret |
+
+> Events expire after **1 hour**. If the crash was 2 hours ago, events are gone — use logs.
+
+### Key Debug Commands
+```bash
+kubectl logs pod --previous                  # logs before last crash
+kubectl describe pod pod                     # events + exit code + restart count
+kubectl get events --sort-by=.lastTimestamp  # chronological cluster events
+kubectl exec -it pod -- sh                   # live inspection
+
+# Node level
+journalctl -u kubelet -n 200                 # kubelet logs
+crictl ps / crictl logs <container-id>       # container runtime inspection
+
+# Network
+kubectl get endpoints svc-name              # if <none> → selector broken
+iptables -t nat -L | grep <clusterip>       # verify kube-proxy rules
+```
+
+### Key Prometheus Queries
+
+```promql
+# CPU throttling (>25% = problem)
+rate(container_cpu_cfs_throttled_seconds_total[5m])
+  / rate(container_cpu_cfs_periods_total[5m])
+
+# Memory near limit (>85% = OOM risk)
+container_memory_working_set_bytes / container_spec_memory_limit_bytes
+
+# Pod restarts
+rate(kube_pod_container_status_restarts_total[15m]) > 0
+
+# Pending pods
+kube_pod_status_phase{phase="Pending"} > 0
+```
+
+### Playbook: CrashLoopBackOff
+```
+Exit code 137 → OOMKilled → increase memory limit
+Exit code 1   → App error → kubectl logs --previous
+Exit code 2   → Config error → check env vars, configmap keys
+Liveness fail → check initialDelaySeconds vs actual startup time
+```
+
+### Playbook: Service Not Reachable
+```
+kubectl get endpoints <svc>
+  → <none>: pod labels ≠ service selector (fix selector or pod labels)
+  → IPs listed: test curl <clusterip> from inside pod
+    → works: DNS issue
+    → fails: kube-proxy/iptables issue or NetworkPolicy blocking
+```
+
+---
+
+<a id="kubernetes-statefulsets-storage"></a>
+## 19_statefulsets_storage.md — StatefulSets & Storage Internals
+
+### ELI5
+Deployment = hotel where guests get any available room. **StatefulSet** = high-end hotel where each guest has a permanent room number (`pod-0`, `pod-1`). If they leave and come back, their belongings (PVC) are still there. **PersistentVolume** = the physical room. **PVC** = the reservation. **StorageClass** = hotel tier (Budget HDD vs Premium SSD). **WaitForFirstConsumer** = don't book the room until we know which floor the guest is staying on (prevents AZ mismatch).
+
+---
+
+### StatefulSet vs Deployment
+
+| | Deployment | StatefulSet |
+|---|---|---|
+| Pod names | Random (`myapp-7d5f9b8c4-x8k2v`) | Stable ordinal (`myapp-0`, `myapp-1`) |
+| Pod restart | New name, new IP | Same name, same PVC, new IP |
+| Startup/deletion order | Parallel | Sequential (0→1→2) / Reverse (2→1→0) |
+| Storage | Shared or none | Per-pod PVC (from `volumeClaimTemplates`) |
+| DNS | Random | Stable: `pod-0.svc.namespace.svc.cluster.local` |
+| Use case | Stateless apps | DBs, Kafka, Zookeeper |
+
+**PVC orphan behaviour**: deleting a StatefulSet does NOT delete PVCs. Data is preserved. Manual cleanup required.
+
+### PV/PVC Binding Logic
+
+**Static provisioning** — admin creates PV manually, PVC binds to best match:
+1. accessModes must be compatible
+2. storage requested ≤ PV capacity  
+3. storageClassName must match
+4. PV not already bound
+→ Smallest satisfying PV wins. Remaining capacity is wasted (no partial binding).
+
+**Dynamic provisioning** — StorageClass provisions PV on demand:
+1. PVC created with `storageClassName`
+2. StorageClass calls provisioner (e.g., `ebs.csi.aws.com`)
+3. Cloud volume created → PV object created → PVC bound
+
+### volumeBindingMode — Critical
+
+| Mode | When PV is provisioned | Risk |
+|---|---|---|
+| `Immediate` | When PVC is created | PV may be in wrong AZ → pod can't mount |
+| `WaitForFirstConsumer` | When pod is scheduled | PV created in pod's AZ ✓ |
+
+Always use `WaitForFirstConsumer` for cloud block storage (EBS, Azure Disk, GCP PD).
+
+### Access Modes
+
+| Mode | Who can mount | Typical backend |
+|---|---|---|
+| `ReadWriteOnce` (RWO) | One **node** (multiple pods on same node OK) | EBS, Azure Disk, GCP PD |
+| `ReadOnlyMany` (ROX) | Many nodes, read-only | NFS |
+| `ReadWriteMany` (RWX) | Many nodes, read+write | NFS, CephFS, EFS, Azure Files |
+| `ReadWriteOncePod` (RWOP) | One **pod** cluster-wide | EBS (K8s 1.22+) |
+
+> **Trap**: RWO = one NODE, not one pod. Multiple pods on the same node CAN share it.
+
+### Reclaim Policy
+
+| Policy | PVC deleted → | Underlying disk |
+|---|---|---|
+| `Delete` | PV deleted | Storage destroyed |
+| `Retain` | PV enters Released state | Data preserved — manual reclaim needed |
+
+Use `Retain` for databases. Use `Delete` for ephemeral/test workloads.
+
+### Volume Expansion
+```bash
+kubectl patch pvc my-pvc -p '{"spec":{"resources":{"requests":{"storage":"200Gi"}}}}'
+```
+- StorageClass must have `allowVolumeExpansion: true`
+- Can only expand, never shrink
+- May show `FileSystemResizePending` until pod restarts (for online resize: CSI driver + OS support required)
+
+### StatefulSet Update Strategies
+```yaml
+updateStrategy:
+  type: RollingUpdate
+  rollingUpdate:
+    partition: 2    # only update pods with ordinal >= 2 (canary pattern)
+# type: OnDelete   # manual: only update when YOU delete the pod
+```
+Rolling order: reverse ordinal (pod-2 → pod-1 → pod-0) so the primary/leader is last.
