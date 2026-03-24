@@ -1,6 +1,6 @@
 # Full Stack MERN Developer — Interview Revision Reference
 
-**Level:** 7+ Years Full Stack (MERN)  |  **Topics:** 12  |  **Last Updated:** March 19, 2026
+**Level:** 7+ Years Full Stack (MERN / AI)  |  **Topics:** 13  |  **Last Updated:** March 25, 2026
 
 A single consolidated reference covering everything from JavaScript fundamentals and
 TypeScript to React, Node.js, Docker, Kubernetes, Azure, AWS, Next.js, GraphQL, MongoDB,
@@ -19,7 +19,7 @@ analysis, and direct interview question-and-answer material.
 - ✅ **Code Examples** and working implementations included
 - ✅ **Perfect for:** Quick reference, interview prep, teaching concepts
 
-**Tech covered:** JavaScript (19) → React (20) → Next.js (10) → Node.js (13) → MongoDB (9) → Docker (28) → AWS (20+) → Azure (20+)
+**Tech covered:** JavaScript (19) → React (20) → Next.js (10) → Node.js (13) → MongoDB (9) → Docker (28) → AWS (20+) → Azure (20+) → System Design (9)
 
 ---
 
@@ -39,13 +39,15 @@ All 28 interview questions organized by technology domain with flow diagrams:
 | 8 | **Azure** | Entra ID Authentication, RBAC, App Service, Key Vault, Azure DevOps Pipelines, Deployments | [Azure/08_interview_qa.md](Azure/08_interview_qa.md) | **Identity & DevOps** |
 | 9 | **TypeScript** | Q1-Q11 (generics, utility types, type guards, decorators, full-stack type safety with tRPC) | [TypeScript/09_theory_interview_qa.ts](TypeScript/09_theory_interview_qa.ts) | **11 Q&A** |
 | 10 | **GraphQL** | Q1-Q12 (schema design, resolvers, N+1 problem with DataLoaders, mutations, optimization patterns) | [GraphQL/09_theory_interview_qa.js](GraphQL/09_theory_interview_qa.js) | **12 Q&A** |
+| 11 | **System Design** | Microservices, Caching & Redis Pub/Sub, WebSockets/SSE, DB Design (indexing, sharding), Scalability (K8s, CI/CD), API Design (REST/GraphQL, rate limiting, JWT), Vector DBs & RAG, AI/LLM Orchestration, Multi-Tenancy | [SystemDesign/](SystemDesign/) | **9 STAR Q&A** |
 
 🎯 **Get Started:** 
 - Start with **JavaScript** for fundamentals
 - Move to **React/Next.js** for frontend depth
 - Continue with **Node.js** for backend
 - Then **MongoDB** for data modeling
-- Finish with **Docker, AWS, Azure** for DevOps/Cloud
+- **Docker, AWS, Azure** for DevOps/Cloud
+- Finish with **System Design** for architecture & senior-level interviews
 
 ---
 
@@ -94,6 +96,17 @@ All 28 interview questions organized by technology domain with flow diagrams:
    - Azure DevOps Pipelines, blue-green deployments, cost optimization
    - Best practices: Managed Identity, Key Vault integration, secrets management
 
+9. **[System Design - 9 Topics (STAR-based)](SystemDesign/)**
+   - [Microservices Architecture](SystemDesign/01_microservices_architecture.md): monolith vs microservices, stateless design, API Gateway, circuit breaker, service discovery
+   - [Caching & Message Queues](SystemDesign/02_caching_message_queues.md): Cache-Aside/Write-Through/Write-Behind, eviction policies, Redis Pub/Sub, cache failure patterns
+   - [Real-time Communication](SystemDesign/03_realtime_communication.md): WebSockets, SSE, Long Polling, Socket.IO with Redis adapter, horizontal scaling
+   - [Database Design](SystemDesign/04_database_design.md): SQL vs NoSQL, ESR indexing rule, sharding strategies, aggregation pipeline, read replicas
+   - [Scalability Patterns](SystemDesign/05_scalability_patterns.md): Docker multi-stage builds, K8s rolling updates, blue-green deployments, HPA, CI/CD with GitHub Actions
+   - [API Design](SystemDesign/06_api_design.md): REST vs GraphQL, token bucket/sliding window rate limiting, JWT access + refresh tokens, API versioning
+   - [Vector Databases & RAG](SystemDesign/07_vector_databases.md): embeddings, cosine similarity, RAG pipeline, Pinecone vs ChromaDB vs pgvector, chunking strategies
+   - [AI System Design](SystemDesign/08_ai_system_design.md): LLM gateway, model routing, structured output (Zod), prompt caching, context window management, LangChain.js agents
+   - [Multi-Tenancy Design](SystemDesign/09_multi_tenancy_design.md): schema-per-tenant vs shared DB + tenantId, RLS, tenant middleware, noisy neighbour prevention
+
 ---
 
 ## Overview (Full Table)
@@ -112,6 +125,7 @@ All 28 interview questions organized by technology domain with flow diagrams:
 | 10 | [GraphQL](summary/summary_GraphQL.md) | Schema, Resolvers, DataLoader, Federation, Apollo | 9 |
 | 11 | [MongoDB](summary/summary_MongoDB.md) | BSON, Schema Design, Indexing, Aggregation, Transactions, Sharding | 9 |
 | 12 | [Web Security](summary/summary_WebSecurity.md) | OWASP, Auth, XSS, CSRF, Injection, Best Practices | 1 |
+| 13 | [System Design](summary/summary_SystemDesign.md) | Microservices, Caching, WebSockets, DB Design, Scalability, API Design, Vector DBs, AI Design, Multi-Tenancy | 9 |
 
 ---
 
@@ -298,6 +312,18 @@ All 28 interview questions organized by technology domain with flow diagrams:
 
    1. [Theory interview qa](summary/summary_WebSecurity.md#web-security-theory-interview-qa)
    - [Scenario-Based Questions](summary/summary_WebSecurity.md#web-security-scenarios)
+
+### 13. System Design
+
+   1. [Microservices Architecture](summary/summary_SystemDesign.md#sd-microservices)
+   2. [Caching & Message Queues](summary/summary_SystemDesign.md#sd-caching)
+   3. [Real-time Communication](summary/summary_SystemDesign.md#sd-realtime)
+   4. [Database Design](summary/summary_SystemDesign.md#sd-databases)
+   5. [Scalability Patterns](summary/summary_SystemDesign.md#sd-scalability)
+   6. [API Design](summary/summary_SystemDesign.md#sd-api)
+   7. [Vector Databases & RAG](summary/summary_SystemDesign.md#sd-vectors)
+   8. [AI System Design](summary/summary_SystemDesign.md#sd-ai)
+   9. [Multi-Tenancy Design](summary/summary_SystemDesign.md#sd-multitenancy)
 
 ---
 
