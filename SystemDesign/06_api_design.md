@@ -300,6 +300,19 @@ function authenticate(req, res, next) {
 
 ---
 
+## ELI5: Actions Explained
+
+> Every action taken in the STAR story above, explained like you're 5 years old.
+
+| Action | ELI5 Explanation |
+|--------|-----------------|
+| **Layer 1 — Nginx rate limiting by IP (coarse protection)** | The first security guard at the car park barrier. "You've tried to enter 100 times in one minute — barrier stays down, come back later." It's a blunt check based on where you're calling from (IP address), not who you are. Fast and cheap, stops the most obvious abusers before they even reach your app code. |
+| **Layer 2 — Token-bucket rate limiting per API key with sliding window in Redis** | A smarter, personalised bouncer who tracks each specific customer (API key) using a bucket of tokens. Each request costs one token. Tokens refill steadily over time. You can send a quick burst of requests if you saved up tokens, but you cannot spam indefinitely — the bucket runs dry. Stored in Redis so all server instances share the same token count, no matter how many servers you run. |
+| **JWT stateless auth with short-lived access token + refresh token rotation** | Like a concert wristband (access token, expires in 15 minutes) plus a special re-entry ticket (refresh token). When your wristband expires, show your re-entry ticket to get a fresh wristband — and your old ticket is immediately cancelled and replaced by a new one. Even if someone steals the ticket, it only works once before becoming worthless. No central session storage needed — the wristband itself carries all the info. |
+| **GraphQL endpoint alongside REST with depth limiting and query complexity analysis** | Added a custom-order counter next to the fixed menu. Great for complex orders ("give me the user's name, their last 3 orders, and each order's items"). But added safety guards: if someone writes a query nested 20 levels deep (a burger inside a pizza inside a salad inside...), a complexity checker blocks it before it can crash the kitchen. |
+
+---
+
 ## ELI5 Complex Keywords Glossary
 
 | Term | ELI5 Explanation |

@@ -346,6 +346,20 @@ const messages = [
 
 ---
 
+## ELI5: Actions Explained
+
+> Every action taken in the STAR story above, explained like you're 5 years old.
+
+| Action | ELI5 Explanation |
+|--------|-----------------|
+| **LangChain.js orchestration with tool routing** | Built a smart telephone switchboard operator. When a customer call arrives, the operator reads the request — "is this a calendar question, a CRM lookup, or a knowledge base search?" — and connects it to the right specialist. LangChain is the operator who reads each request and routes it to the right tool, so the LLM doesn't have to handle everything blindly. |
+| **LLM gateway layer centralising all OpenAI calls (retry, fallback, cost tracking, logging)** | Created a single post room that all AI requests must pass through. Every letter in and out is stamped, logged, and costed. If the post office (OpenAI) is temporarily overloaded, the post room waits and retries automatically (retry). For simple FAQ questions, the post room uses the local economy courier (GPT-3.5) instead of the expensive international express (GPT-4o) — same delivery, much cheaper. |
+| **Prompt caching for stable system prompts** | The long introduction at the top of every conversation ("you are a helpful assistant that...") costs tokens every single API call. Caching tells OpenAI to remember this stable introduction — you only pay for it once, and every subsequent call references the cached version for free. Like handing in the same cover sheet to a teacher who's already read it and just asks for the new essay. |
+| **Structured output with Zod schemas and `zodResponseFormat`** | Told the AI: "don't give me an essay, fill in this specific form." Zod acts as the form validator — if a required field is missing, the wrong type, or the AI wrote prose where a number belongs, the response is rejected immediately and retried. No more JSON parse errors crashing downstream code. |
+| **Context window management — summarise older conversation turns** | As a conversation grows long, old messages eat into the expensive token budget. When the conversation approaches the limit, replace old turns with a one-paragraph summary: "so far, we discussed invoice #1234 and agreed on a refund." The AI keeps the substance of the history without every old word taking up space in the token limit. |
+
+---
+
 ## ELI5 Complex Keywords Glossary
 
 | Term | ELI5 Explanation |

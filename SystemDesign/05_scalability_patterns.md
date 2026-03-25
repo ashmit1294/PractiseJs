@@ -320,6 +320,19 @@ jobs:
 
 ---
 
+## ELI5: Actions Explained
+
+> Every action taken in the STAR story above, explained like you're 5 years old.
+
+| Action | ELI5 Explanation |
+|--------|-----------------|
+| **Containerised all services with Docker (multi-stage builds to keep images lean)** | Packed each service into a standard shipping container with everything it needs inside. The multi-stage part is like building a car in a messy factory (with all the heavy tools), then moving *only the finished car* into a clean, small delivery truck. The delivery truck doesn't need the factory — it's tiny. Every container opened on any computer runs identically, so "works on my machine" excuses disappear forever. |
+| **Orchestrated with Kubernetes: rolling updates, HPA, and readiness/liveness probes** | Hired an automated fleet manager (Kubernetes). Rolling updates swap old containers for new ones one at a time — traffic never stops. HPA watches busyness and opens new containers when the load rises, closes them when it drops. Probes are like health checks: a container that fails its check gets silently replaced before any user notices it was sick — only healthy containers receive traffic. |
+| **Set up GitHub Actions CI pipeline (lint → test → build image → push to ECR → `kubectl rollout`)** | Built an automated assembly line. Every time code is pushed, it automatically: checks code style, runs all tests, packs the app into a container, ships the container to the container warehouse (ECR), and tells Kubernetes to deploy it. A 45-minute manual SSH process became an 18-minute automated one-click pipeline. |
+| **Blue-green deployments for the public API** | Run two identical lanes at all times. Blue = the current live version (all users go here). Green = the new version waiting in the wings. Deploy to green, run smoke tests — all good? Flip the switch: all users now go to green in one instant. No downtime, no gradual rollout confusion. If green breaks, flip back to blue in seconds. |
+
+---
+
 ## ELI5 Complex Keywords Glossary
 
 | Term | ELI5 Explanation |

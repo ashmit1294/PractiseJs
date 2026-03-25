@@ -296,6 +296,19 @@ router.delete('/users/:id', auditMiddleware('DELETE', 'user'),   deleteUser);
 
 ---
 
+## ELI5: Actions Explained
+
+> Every action taken in the STAR story above, explained like you're 5 years old.
+
+| Action | ELI5 Explanation |
+|--------|-----------------|
+| **Chose shared-database, separate-schema strategy (schema-per-tenant)** | One apartment building (shared database), but each tenant gets their own locked flat with a complete set of rooms (tables). The building infrastructure is shared (cheaper than one house per person), but everything inside your flat belongs only to you. Onboarding a new tenant is just copying the flat blueprint — it takes 100 milliseconds, not hours of provisioning a new building. |
+| **Connection pool uses `SET search_path = tenant_{id}` before every query** | Like putting on a name badge when you enter the building that says which flat you belong to. Every door (database table) you try to open automatically sends you to your own floor. No code logic needed to "remember" to filter by tenant — the database connection itself is locked to the right scope. You *cannot* accidentally walk into a neighbour's flat. |
+| **Middleware extracts `tenantId` from JWT and sets it on the request context** | The doorman reads your wristband (JWT) the moment you walk in and stamps your hand with your tenant ID. Every action after that automatically carries the stamp. No part of the application can forget who you are or act on behalf of the wrong tenant — the stamp is on the hand from the first step. |
+| **Added Row-Level Security (RLS) as a defence-in-depth safety net** | Even if a bug somehow bypasses the `search_path` safeguard, Postgres itself enforces a rule at the database engine level: "this database user can only read or write rows where the `tenantId` column matches their identity." It's the deadbolt on the inside of the flat door — a last-resort backup you hope you never need, but it's there if everything else fails. |
+
+---
+
 ## ELI5 Complex Keywords Glossary
 
 | Term | ELI5 Explanation |

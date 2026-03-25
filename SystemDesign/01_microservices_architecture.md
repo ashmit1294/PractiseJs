@@ -230,6 +230,19 @@ const result = await breaker.fire(userId, amount);
 
 ---
 
+## ELI5: Actions Explained
+
+> Every action taken in the STAR story above, explained like you're 5 years old.
+
+| Action | ELI5 Explanation |
+|--------|-----------------|
+| **Split the monolith into stateless microservices (User, Order, Payment, Notification)** | Take one giant kitchen that does *everything* and separate it into food stalls — one stall makes burgers, another makes drinks, a third handles desserts. Each stall runs on its own. If the burger stall has a fire, the dessert stall keeps serving. You can also hire more burger cooks without touching the dessert stall. |
+| **Introduced an API Gateway for routing, JWT validation, and rate limiting** | Put a receptionist at the front door of the whole building. Every visitor (request) must check in here first. The receptionist checks your ID badge (JWT validation), makes sure you haven't visited too many times today (rate limiting), and then escorts you to the right stall (routing to the correct service). |
+| **Used Redis for shared session state so any instance could serve any request** | Instead of each waiter memorising their own table's orders in their head (stateful), everyone writes orders on a shared whiteboard (Redis) in the middle of the restaurant. Any waiter can serve any table because they all read the same whiteboard — even if the original waiter goes home. |
+| **Deployed via Kubernetes with HPA auto-scaling on CPU and RPS metrics** | Hired a smart fleet manager (Kubernetes) to watch how busy each food stall is. When the burger stall gets a lunch rush, the manager instantly opens extra burger stalls (HPA scales up). When the rush ends, it closes the extras to save money. All without you lifting a finger. |
+
+---
+
 ## ELI5 Complex Keywords Glossary
 
 | Term | ELI5 Explanation |

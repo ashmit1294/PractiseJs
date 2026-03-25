@@ -239,6 +239,19 @@ Single server: trivial. Multiple servers: a client connected to Server 1 won't r
 
 ---
 
+## ELI5: Actions Explained
+
+> Every action taken in the STAR story above, explained like you're 5 years old.
+
+| Action | ELI5 Explanation |
+|--------|-----------------|
+| **Migrated from long polling to Socket.IO (WebSocket with automatic fallback)** | Switched from sending a letter every second asking "anything new?" (polling) to making a phone call (WebSocket). The phone line stays open — either side can speak the instant something happens, no more waiting for letters. Socket.IO also has a backup plan: if phone lines are blocked (some corporate firewalls block WebSockets), it automatically falls back to very fast letters until a real call is possible. |
+| **Added Redis adapter (`@socket.io/redis-adapter`) for cross-instance event broadcast** | You have three phone operators and a customer could be connected to any one. When a dashboard update arrives, only one operator gets the task — but the customer may be connected to a different one. The Redis adapter is like a central megaphone: the operator who receives the update shouts it to *all* three operators via Redis, so the right one delivers it regardless of which server the customer is connected to. |
+| **Used rooms to scope updates per-user and per-dashboard** | Rooms are like group text threads. Dashboard A is its own chat group, Dashboard B is another. A message sent to Dashboard A's room only pings the people who opened that dashboard — no other dashboard is disturbed. You can be in multiple rooms simultaneously (same user, multiple tabs). |
+| **Added heartbeat + reconnect strategy to recover dropped connections** | Like a baby monitor that beeps every 10 seconds to confirm the connection is alive. If 3 beeps are missed (ping timeout), the client knows the line is dead and automatically dials back in. No user action needed, no stale disconnected tabs — the reconnect happens silently in the background. |
+
+---
+
 ## ELI5 Complex Keywords Glossary
 
 | Term | ELI5 Explanation |

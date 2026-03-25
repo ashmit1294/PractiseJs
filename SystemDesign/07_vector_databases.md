@@ -285,6 +285,20 @@ console.log(results.documents[0]);       // top 5 matching chunks
 
 ---
 
+## ELI5: Actions Explained
+
+> Every action taken in the STAR story above, explained like you're 5 years old.
+
+| Action | ELI5 Explanation |
+|--------|-----------------|
+| **Chunked documents into 512-token overlapping segments** | Cut each long document into bite-sized pieces (like cutting a chapter into 2-page sections). Added overlap between pieces — the last sentence of chunk 1 is also the first sentence of chunk 2. That overlap makes sure no important idea falls silently into the gap between two chunks and gets lost. |
+| **Generated embeddings with `text-embedding-ada-002` and stored in Pinecone / ChromaDB** | Converted every 2-page chunk into a set of GPS coordinates (1,536 numbers) that represent its *meaning* in idea-space. "How do I cancel my order?" becomes a specific location on the meaning-map. All 10,000 document chunks now have their coordinates filed in a special map-database (Pinecone) optimised for finding nearby locations in milliseconds. |
+| **At query time: embed the user query, cosine similarity search top-k=5** | When a user asks a question, convert the question to its own GPS coordinates. Then find the 5 stored document chunks whose coordinates are closest on the meaning-map. These 5 chunks are most likely to contain the answer — even if they use completely different words to describe the same thing. |
+| **Injected retrieved chunks into GPT-4o context as grounding evidence** | Gave the AI an open-book exam instead of a closed-book one. "Here are the 5 most relevant pages from the knowledge base — answer the question using ONLY what's written on these pages." The AI can't make anything up because it's working from evidence you provided, not from its own memory. |
+| **Added metadata filters (document type, date range) to scope retrieval** | Added shelf labels to the library before the search even starts. "Only look in the Finance shelf, published after 2024." Instead of checking all 10,000 documents' coordinates, the search is scoped to only the relevant subset — faster and more accurate. |
+
+---
+
 ## ELI5 Complex Keywords Glossary
 
 | Term | ELI5 Explanation |

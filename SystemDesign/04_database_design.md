@@ -230,6 +230,19 @@ await new Order(data).save();
 
 ---
 
+## ELI5: Actions Explained
+
+> Every action taken in the STAR story above, explained like you're 5 years old.
+
+| Action | ELI5 Explanation |
+|--------|-----------------|
+| **Profiled with `explain("executionStats")` to identify missing indexes** | Put a GPS tracker on your slow queries to see exactly what route they took through the data. Did the query read every single file in the cabinet (full scan = bad)? Or did it jump straight to the right drawer using the labels (index = good)? The `explain` report shows you the map of the journey so you know exactly where to add signposts. |
+| **Added compound indexes in ESR order (Equality → Sort → Range)** | Like building a super-organised filing cabinet. First group files by customer name (equality = exact match), then sort each customer's files by date (sort), then allow filtering within that date shelf (range). If you put the labels in the wrong order, the cabinet becomes nearly as slow as having no labels at all — the order matters. |
+| **Pre-aggregated daily totals into a `daily_summaries` collection** | Instead of recounting every apple sold this year every time a manager asks, you write down the daily total on a chalkboard at midnight. When the manager asks "what was my revenue last month?", you just add up 30 numbers from the chalkboard — not 8 million individual apple records. The dashboard reads 365 numbers instead of walking through millions of rows. |
+| **Added read replicas, routing analytical queries to secondary via `readPreference: 'secondary'`** | Make a photocopy of the library's most popular reference book. Readers who just want to look things up use the copy — the original is reserved for new additions (writes). The primary server stops doing double duty, its CPU drops from 78% to 31%, and both the writers and the readers get faster service. |
+
+---
+
 ## ELI5 Complex Keywords Glossary
 
 | Term | ELI5 Explanation |

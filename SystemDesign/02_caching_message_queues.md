@@ -274,6 +274,19 @@ sub.on('message', (channel, message) => {
 
 ---
 
+## ELI5: Actions Explained
+
+> Every action taken in the STAR story above, explained like you're 5 years old.
+
+| Action | ELI5 Explanation |
+|--------|-----------------|
+| **Implemented Cache-Aside pattern with Redis (1-hour TTL, `del` on write)** | Keep a sticky note (Redis) for frequently asked questions: "What's John's profile?" First check the sticky note. If it's there, use it. If not, look it up in the big filing cabinet (DB) and write a new sticky note. The note self-destructs after 1 hour so it stays fresh. When John changes his name, you tear up the old sticky note immediately so nobody reads the wrong answer. |
+| **Added cache stampede protection with a Redis `SET NX` mutex for hot keys** | Imagine 1,000 students all notice the sticky note is gone at the same moment and sprint to the filing cabinet at once — that's a stampede. Fix: the first student to notice puts a "FETCHING, PLEASE WAIT" sign on the board (SET NX = set only if not exists). Everyone else sees the sign and waits. Only one student fetches from the cabinet, writes the new note, and removes the sign. |
+| **Used Redis Pub/Sub for cross-instance cache invalidation** | You have three servers, each with their own sticky notes. When a user updates their profile, one server changes its note — but the other two still have the old one. Pub/Sub is a school PA announcement: "Attention all servers — throw away your sticky note for user #42." All three hear it, all three act immediately. |
+| **Used Bull queues backed by Redis with retry logic and dead-letter queue** | Async jobs (send welcome email, fire webhook) go on a post-office conveyor belt (Bull queue). Workers pick jobs off the belt one at a time. If a job fails (email server down), it goes back on the belt and tries again up to 3 times. After 3 failures, it falls into a "broken parcels" bin (DLQ) for a human to inspect later — it's never silently lost. |
+
+---
+
 ## ELI5 Complex Keywords Glossary
 
 | Term | ELI5 Explanation |
