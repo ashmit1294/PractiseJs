@@ -317,3 +317,32 @@ jobs:
 
 **Q: What's the risk of HPA if you set it too aggressively?**
 > Flapping: rapid scale-up/scale-down cycles that waste resources and cause instability. Fix: set `stabilizationWindowSeconds` to prevent scale-down for at least 5 minutes after a scale-up, and ensure CPU requests are accurately set (HPA uses requests as the denominator for utilization math).
+
+---
+
+## ELI5 Complex Keywords Glossary
+
+| Term | ELI5 Explanation |
+|------|-----------------|
+| **Container (Docker)** | A lightweight, sealed box that contains your app and everything it needs to run (code, libraries, settings). Open the box on any computer and it runs identically — no more "works on my machine." |
+| **Docker Image** | A blueprint/snapshot for creating containers. Like a cookie cutter — stamped from the same mould, every cookie looks the same. You build the image once and run it anywhere. |
+| **Multi-stage Docker Build** | Building a Docker image in multiple phases. Phase 1: compile and build (big, messy tools included). Phase 2: copy only the final output into a clean, tiny image. Result: a small production image instead of dragging in all the build tools. |
+| **Kubernetes (K8s)** | A system that manages your containers at scale. It decides where to run them, restarts crashed ones, scales them up/down, and rolls out updates — like an air traffic controller for your containers. |
+| **Pod** | The smallest deployable unit in Kubernetes. A pod is one or more containers running together on the same machine. Usually one container per pod. If a pod crashes, Kubernetes automatically replaces it. |
+| **Deployment** | A Kubernetes object that describes the desired state — "I want 6 replicas of this container, using this image." Kubernetes continuously works to make reality match that description. |
+| **Rolling Update** | Replacing old pods with new ones gradually, one at a time. At no point are all pods offline — new pods come up and pass health checks before old ones are removed. Zero downtime. |
+| **Blue-Green Deployment** | Running two identical environments: "blue" (live) and "green" (new version). Once green is ready and tested, you switch all traffic from blue to green in one instant. Instant rollback by switching back. |
+| **Readiness Probe** | A health check Kubernetes uses to decide if a pod is ready to receive traffic. If a pod is still warming up (loading cache, connecting to DB), the probe fails and the load balancer skips it. |
+| **Liveness Probe** | A health check Kubernetes uses to decide if a pod needs to be restarted. If your app is stuck in a deadlock and not responding, the liveness probe fails and Kubernetes kills and replaces the pod. |
+| **HPA (Horizontal Pod Autoscaler)** | A Kubernetes robot that watches CPU/memory usage. If your app gets too busy, it automatically spins up more pods. When traffic drops, it scales back down to save money. |
+| **Flapping (HPA)** | When HPA rapidly scales up then immediately scales down, then up again — wasting resources and causing instability. Prevented with a cooldown window (stabilizationWindowSeconds). |
+| **ECR (Elastic Container Registry)** | Amazon's private Docker image storage. You push your built images here, and Kubernetes pulls them when deploying. Like a private app store for your container images. |
+| **CI/CD (Continuous Integration / Continuous Delivery)** | CI: automatically test every code change. CD: automatically deploy passing changes. Together they replace manual "someone SSH into the server and pull the latest code" with a fully automated pipeline. |
+| **GitHub Actions** | GitHub's built-in automation tool. You write YAML workflows that run on code events (e.g. push to main) — run tests, build Docker images, deploy to Kubernetes, send notifications. |
+| **kubectl** | The command-line tool for talking to Kubernetes. `kubectl rollout undo` rolls back a deployment instantly. `kubectl get pods` shows running pods. It's SSH for your Kubernetes cluster. |
+| **EKS (Elastic Kubernetes Service)** | Amazon's managed Kubernetes. AWS runs the control plane (the brain of Kubernetes) for you — you just manage your worker nodes and deployments. Reduces ops burden vs self-hosted K8s. |
+| **Environment Parity** | Making development, staging, and production environments as identical as possible. Containers solve "works on my machine" — everyone runs the same Docker image, so environment differences disappear. |
+| **Smoke Test** | A quick sanity check after a deployment: "is the app basically working?" — hit the main endpoints, check response codes, verify critical paths. Not exhaustive — just enough to know it's not broken before sending real traffic. |
+| **Resource Requests/Limits** | Kubernetes settings per container. Requests: the minimum resources guaranteed. Limits: the maximum it can use. HPA uses requests as the denominator when calculating CPU utilization percentage. |
+| **Rollback** | Reverting a deployment to the previous working version. With `kubectl rollout undo`, Kubernetes switches back to the old image in seconds — far faster than a manual revert. |
+| **Zero-Downtime Deployment** | Updating your app without any moment where users see an error or unavailability. Achieved with rolling updates or blue-green — traffic always flows to at least some healthy pods. |

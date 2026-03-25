@@ -293,3 +293,33 @@ router.delete('/users/:id', auditMiddleware('DELETE', 'user'),   deleteUser);
 
 **Q: How does onboarding a new tenant work end-to-end?**
 > (1) User signs up → record created in global `tenants` table with status `provisioning`; (2) Background job creates Postgres schema, runs all migrations (~100ms); (3) Status updated to `active`; (4) First JWT issued with `tenantId` claim. No new database, no new server, no config deploy needed. Offboarding: schema renamed to `archived_` prefix (retained for 30 days per GDPR data retention policy), then dropped.
+
+---
+
+## ELI5 Complex Keywords Glossary
+
+| Term | ELI5 Explanation |
+|------|-----------------|
+| **Multi-Tenancy** | One application serving multiple separate customers (tenants) on shared infrastructure. Like one apartment building with many tenants — everyone shares the pipes and electricity, but each flat is their own private space. |
+| **Tenant** | One customer organisation using your SaaS platform. Company A is one tenant, Company B is another. Each should only ever see their own data. |
+| **Single-Tenant** | Each customer gets their own dedicated infrastructure (their own database, their own servers). Maximum isolation. Maximum cost. Like every customer having their own private house. |
+| **Database-per-Tenant** | Each tenant has a completely separate database. Ultimate isolation — a bug in one tenant's DB can't affect another. But: operationally painful and expensive to run hundreds of databases. |
+| **Schema-per-Tenant** | All tenants share one database, but each gets their own named "schema" (a folder/namespace inside the DB) with its own copy of all tables. One DB, many isolated namespaces. Good balance of cost and isolation. |
+| **Shared DB + tenantId Column** | All tenants' data is in the same tables. Every row has a `tenant_id` column. Cheapest to operate. Riskiest — a missing `WHERE tenant_id = ?` in one query leaks data across tenants. |
+| **Postgres Schema** | A namespace within a Postgres database. `tenant_abc.users` and `tenant_xyz.users` are completely separate tables even though they're in the same database. Changing the `search_path` changes which schema your queries see. |
+| **search_path** | A Postgres setting that controls which schema is searched when you write `SELECT * FROM users` (without specifying a schema). Set `search_path = tenant_abc` and every query is automatically scoped to that tenant's tables. |
+| **RLS (Row-Level Security)** | A Postgres feature that enforces access rules at the database level. Even if application code has a bug and forgets the `tenant_id` filter, the database itself blocks the query from returning rows from the wrong tenant. Defence-in-depth. |
+| **Defence-in-Depth** | Using multiple layers of security so that no single mistake causes a disaster. Application code filters by tenant, AND row-level security filters by tenant, AND schema isolation filters by tenant — three independent barriers. |
+| **Connection Pool** | A pre-established pool of reusable database connections. Opening a new DB connection is slow (~100ms). A pool keeps connections open and lends them out quickly — like a parking garage of ready connections. |
+| **Tenant Middleware** | An Express middleware function that runs on every request to extract the tenant's identity from the JWT, look up their account status, and attach it to the request object so all downstream handlers know which tenant they're serving. |
+| **Repository Layer** | A code abstraction that wraps all database queries. Instead of scattering `tenantQuery(tenantId, ...)` everywhere, you instantiate a `UserRepository(tenantId)` and call `.findAll()`. Tenant scoping is baked in once — every method inherits it. |
+| **Tenant Provisioning** | The automated process of setting up a new tenant's isolated environment when they sign up: create their schema, run migrations to create tables, create their first admin user. Should take milliseconds, not hours. |
+| **Noisy Neighbour** | When one tenant's heavy usage (large queries, bulk uploads) slows down the database for all other tenants sharing the same infrastructure. Mitigated with statement timeouts, per-tenant connection limits, and routing heavy queries to replicas. |
+| **Statement Timeout** | A Postgres setting that automatically kills a query if it runs longer than N milliseconds. Prevents one tenant's accidental full-table-scan from locking resources for everyone. |
+| **Feature Flag (per-tenant)** | A setting that enables or disables specific features for a particular tenant based on their plan. Free plan: basic reports only. Enterprise plan: advanced reports, API access, custom branding. Enforced by middleware. |
+| **Audit Log** | A permanent record of every action taken: who did what, to which resource, at what time. Required for compliance (GDPR, SOC2). In multi-tenant systems, every audit entry includes the `tenantId` so activity can be scoped per customer. |
+| **GDPR (General Data Protection Regulation)** | European law requiring companies to protect personal data and give users the right to access or delete their data. In SaaS: you must be able to export or delete all of one tenant's data on request. |
+| **SaaS (Software as a Service)** | Delivering software as a subscription service over the internet. The vendor runs the infrastructure; customers access it via browser or API. Salesforce, Slack, and GitHub are all SaaS. Multi-tenancy is the standard architecture. |
+| **JWT Claim (tenantId)** | The `tenantId` embedded inside the user's JWT token at login time. Every API request includes the JWT, so every handler can instantly know which tenant the request belongs to without an extra database lookup. |
+| **B2B (Business-to-Business)** | Selling software to companies rather than individual consumers. In B2B SaaS, each company is a tenant — Company X has its own users, data, and configuration, all isolated from Company Y. |
+| **Schema Migration** | A script that alters the database structure (add table, add column, add index). For schema-per-tenant, migrations must be run against every tenant's schema when upgrading the platform — automated with a loop through all active schemas. |

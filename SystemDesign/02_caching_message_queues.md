@@ -271,3 +271,32 @@ sub.on('message', (channel, message) => {
 
 **Q: Cache-Aside vs Write-Through — which did you use?**
 > Cache-Aside for user profiles and query results — read-heavy, acceptable stale window. Write-Through for session tokens and feature flags — must always reflect latest state.
+
+---
+
+## ELI5 Complex Keywords Glossary
+
+| Term | ELI5 Explanation |
+|------|-----------------|
+| **Cache** | A fast scratchpad that stores answers you already looked up. Instead of going back to the slow filing cabinet (database) every time, you check your notes first. |
+| **Cache-Aside (Lazy Loading)** | Your app is responsible for checking the cache. If the answer isn't there, go get it, write it on your scratchpad, then use it. "Lazy" because you only cache things when someone actually asks for them. |
+| **Write-Through** | Every time you update data, you update both the cache AND the database at the same time. The cache is always current, but every save takes twice as long. |
+| **Write-Behind (Write-Back)** | Update only the cache first (super fast), and let a background worker quietly save it to the database later. Like jotting a note and filing it properly at end of day — risky if you lose the note before filing. |
+| **Cache Hit / Cache Miss** | Hit = the answer was in the cache (fast!). Miss = it wasn't there, so you had to go to the database (slow). A good system has a high hit rate. |
+| **Eviction Policy** | The rule for what gets deleted from the cache when it's full. LRU = delete the thing used least recently. LFU = delete the thing used least frequently. Like a full fridge — you throw out the oldest leftovers. |
+| **LRU (Least Recently Used)** | Evict whatever hasn't been touched in the longest time. The assumption is: if you haven't needed it recently, you probably won't soon. |
+| **TTL (Time To Live)** | An expiry timer on cached data. After X seconds, the data is automatically deleted so you don't serve stale information. Like a "best before" date on a post-it note. |
+| **Cache Stampede (Thundering Herd)** | 1000 users ask for the same thing at the same moment it expires. All 1000 miss the cache and all 1000 hit the database simultaneously, potentially crashing it. A mutex lock (one person fetches it, others wait) prevents this. |
+| **Cache Penetration** | Someone repeatedly asks for something that doesn't exist (fake user IDs). Every request misses the cache and hits the database because there's nothing to cache. Fix: cache the "not found" result with a short TTL. |
+| **Cache Avalanche** | Tons of cache entries all expire at exactly the same time, causing a flood of database requests at once. Fix: add random jitter to TTLs so they don't all expire together. |
+| **Pub/Sub (Publish/Subscribe)** | Like a radio station. The publisher broadcasts a message on a channel. Every subscriber tuned to that channel receives it simultaneously. Nobody "owns" a message — everyone gets a copy. |
+| **Message Queue** | A to-do list shared between a producer and worker(s). One message goes in, exactly one worker picks it up and processes it. Tasks don't get lost, and you can have multiple workers for parallel processing. |
+| **Dead Letter Queue (DLQ)** | A holding area for messages that failed to process after several retries. Instead of losing them, they go here so you can inspect what went wrong and retry or discard manually. |
+| **AOF Persistence (Append Only File)** | A Redis setting that logs every write operation to disk. If Redis crashes and restarts, it replays the log to rebuild its memory state — so you don't lose data. |
+| **Bull Queue** | A Node.js job queue library built on top of Redis. You add jobs to it, it processes them reliably with retries, priority, and scheduling — like a smart task manager backed by Redis. |
+| **Redis Streams** | A more powerful version of Pub/Sub in Redis. Messages are stored persistently, consumers can acknowledge them, and you can replay old messages. More like Kafka, less like a fire-and-forget broadcast. |
+| **Consumer Group** | A way to split a stream of messages across multiple workers. Each message goes to only one worker in the group. Useful for scaling — add more workers to the group to process faster. |
+| **Mutex (SET NX)** | A lock that only one process can hold at a time. `SET NX` means "set only if Not eXists." Used to prevent the stampede — the first requester grabs the lock and fetches data while others wait. |
+| **Horizontal Scaling** | Running more copies of the same app (more instances) to handle more traffic. Like opening more checkout lanes at a supermarket instead of making one lane super fast. |
+| **Idempotent Consumer** | A message processor that gives the same result whether it processes a message once or ten times. Critical so retries don't cause duplicate actions like charging a customer twice. |
+| **At-Most-Once / At-Least-Once** | Delivery guarantees. At-most-once: message might be lost, never duplicated. At-least-once: message will arrive but might come more than once. Most systems prefer at-least-once + idempotent consumers. |

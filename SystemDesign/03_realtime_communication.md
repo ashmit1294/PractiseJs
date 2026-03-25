@@ -236,3 +236,29 @@ Single server: trivial. Multiple servers: a client connected to Server 1 won't r
 
 **Q: What happens to WebSocket messages during a server restart?**
 > Connections drop. Clients with reconnection logic re-establish within 1–5 seconds depending on backoff. Any messages emitted during that window are lost unless you buffer them server-side (Redis list, SQS) and replay on reconnect. We used a `lastEventId` pattern so clients could request missed events on reconnect.
+
+---
+
+## ELI5 Complex Keywords Glossary
+
+| Term | ELI5 Explanation |
+|------|-----------------|
+| **WebSocket** | A phone call between your browser and the server. After a quick setup handshake, the line stays open indefinitely. Either side can talk at any moment without asking first — unlike HTTP where you always have to call the server and wait for it to answer. |
+| **Full-Duplex** | Both sides can send and receive at the same time, independently. Like a phone call (both can talk). The opposite is half-duplex — like walkie-talkies where you say "over" before the other person can speak. |
+| **HTTP Upgrade (101 Switching Protocols)** | The initial handshake where the browser politely asks the server: "Can we switch from HTTP to WebSocket?" If the server says yes (code 101), the connection is transformed into a persistent WebSocket tunnel. |
+| **TCP** | The underlying internet protocol that makes sure data packets arrive in order and without corruption. WebSockets are built on top of TCP — TCP does the reliable delivery, WebSocket adds the framing layer. |
+| **Socket.IO** | A library that wraps WebSockets and adds superpowers: automatic fallback to polling if WebSockets are blocked, rooms, namespaces, reconnection, and middleware. It's a more user-friendly and production-ready WebSocket wrapper. |
+| **Room (Socket.IO)** | A named group of connected clients. You can broadcast a message to a room and only the sockets in that room receive it. Like a group chat — say something in "Room 42" and only people in that group see it. |
+| **Namespace (Socket.IO)** | A virtual partition within the Socket.IO server. Like having multiple separate apps on the same server — `/chat` and `/notifications` can be completely independent channels on the same port. |
+| **Redis Adapter** | A plug-in that makes Socket.IO work across multiple server instances. When Server A emits an event, it publishes to Redis; all other servers (B, C, D) see it and forward it to their connected clients. Lets you scale horizontally. |
+| **SSE (Server-Sent Events)** | A one-way stream from the server to the browser over a normal HTTP connection. The browser opens one long-lived request and the server keeps writing data to it. Think of it as a live Twitter feed — server pushes, client just listens. |
+| **Long Polling** | A hacky workaround before WebSockets. The client sends a request; the server holds it open without responding until there's new data. Once it responds, the client immediately sends a new request. High overhead, but works everywhere. |
+| **Heartbeat / Ping-Pong** | A keep-alive mechanism. The server periodically sends a "ping" to the client; the client replies with "pong." If the server doesn't hear back, it knows the connection is dead and cleans it up. |
+| **Reconnection / Backoff** | When a WebSocket connection drops, the client automatically tries to reconnect after a delay. Exponential backoff means: wait 1s, then 2s, then 4s, etc. — so thousands of clients don't all slam the server simultaneously after a restart. |
+| **Sticky Sessions** | A load balancer setting that always sends the same user to the same server. Needed for WebSockets (because the connection is stateful) when you don't have a Redis adapter — the load balancer uses a cookie or IP hash to "stick" the user. |
+| **Fan-out** | Broadcasting one message to many recipients. Redis Pub/Sub does fan-out — one PUBLISH reaches all subscribers. A WebSocket server fan-out sends one event to all clients in a room. |
+| **Horizontal Scaling (WebSockets)** | Running multiple identical WebSocket server instances. Hard because WebSocket connections are stateful — a client connected to Server A can't receive events emitted on Server B without a shared message bus (Redis). |
+| **Frame** | The unit of data sent over a WebSocket connection. After the initial handshake, communication happens in small framed packets (not full HTTP requests) — very low overhead compared to repeated HTTP calls. |
+| **Latency** | How long it takes for a message to travel from sender to receiver. Sub-second latency means less than 1000ms. WebSockets achieve ~60–100ms end-to-end because the connection is already open and there's no HTTP handshake overhead per message. |
+| **`lastEventId` Pattern** | A technique to recover missed events after a reconnection. The client tells the server "the last event I received had ID 42" and the server replays everything after ID 42 — like picking up a newspaper from where you left off. |
+| **Proxy / Corporate Firewall** | Network infrastructure that some companies use to inspect traffic. Some proxies block WebSocket upgrades. SSE and long polling use standard HTTP so they pass through freely — a key reason to have fallback options. |

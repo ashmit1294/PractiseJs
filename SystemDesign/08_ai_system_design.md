@@ -343,3 +343,35 @@ const messages = [
 
 **Q: How do you handle hallucination in a production LLM system?**
 > Grounding: RAG ensures the model answers from retrieved text, not memory. Structured output: forces the model to return a typed response, which makes it harder to "make up" fields. Temperature=0 for factual tasks: deterministic decoding reduces creative deviation. Validation layer: after getting a response, validate claims against source data where possible (e.g., order numbers should actually exist in the DB).
+
+---
+
+## ELI5 Complex Keywords Glossary
+
+| Term | ELI5 Explanation |
+|------|-----------------|
+| **LLM (Large Language Model)** | A very powerful AI trained on massive amounts of text. It can write, summarise, answer questions, and reason. Examples: GPT-4o, Claude, Gemini. It predicts the most likely next word, over and over, to generate a response. |
+| **Orchestration** | The system you build *around* the LLM to make it production-ready: routing to different models, retrying failures, caching prompts, validating outputs, and chaining multiple steps together. Like building a factory around a powerful machine. |
+| **LLM Gateway** | A single code layer that all LLM API calls flow through. It adds logging, cost tracking, retries, fallbacks, and rate limit handling in one place — so every part of your app benefits automatically. |
+| **Model Routing** | Sending different types of queries to different AI models based on complexity. Simple FAQ questions → cheap/fast model (GPT-3.5). Complex reasoning → smart/expensive model (GPT-4o). Cuts costs dramatically. |
+| **Token** | The basic unit of text for LLMs. Roughly 4 characters or ¾ of a word. LLMs charge per token. A 1000-word essay ≈ ~1300 tokens. Shorter prompts = lower cost. |
+| **Prompt** | The input text you send to an LLM. It includes a system instruction ("you are a helpful assistant"), conversation history, retrieved context, and the user's question. Crafting good prompts is called prompt engineering. |
+| **System Prompt** | The instruction at the start of a conversation that sets the LLM's behaviour and persona. "You are a helpful customer support agent. Only answer from the documentation below." It sets the rules the model follows. |
+| **Prompt Caching** | OpenAI remembers the first part of your prompt if it's identical across requests. The cached portion costs 50% less. Move static content (product catalogue, policy text) to the start of the prompt so it gets cached on every request. |
+| **Context Window** | The total amount of text the LLM can read at once (system prompt + conversation history + retrieved documents + user message). GPT-4o supports ~128,000 tokens. Once you exceed it, old messages must be summarised or dropped. |
+| **Context Window Management** | Strategies to keep the conversation within the context limit. Keep only the most recent messages in full, summarise older ones. Like keeping your whiteboard recent and erasing old notes to free space. |
+| **Structured Output** | Forcing the LLM to return data in a specific JSON shape (via a schema). Instead of "The intent is billing, urgency is high", you get `{ "intent": "billing", "urgency": "high" }` — validated and typed. |
+| **Zod Schema** | A TypeScript library for defining and validating data shapes. You define what you expect (`{ name: string, age: number }`), and Zod validates that the data matches — throws an error if the LLM returned the wrong shape. |
+| **Function Calling / Tool Use** | An LLM feature where the model can say "I want to call `lookup_order(ORD-123)`" instead of making something up. Your code runs the function, returns the result, and the model continues with real data. |
+| **Agent** | An LLM system that decides what to do next based on results. You give it tools (lookup order, search knowledge base, check calendar) and it figures out which to call and in what order until the task is done. Flexible but harder to predict. |
+| **Chain** | A fixed sequence of LLM steps defined in code: prompt → LLM → parse → next prompt → LLM. Predictable and debuggable. Use when you know exactly what steps are needed. |
+| **LangChain.js** | A popular JavaScript framework for building LLM applications. It provides abstractions for chains, agents, tool use, memory, and connecting to vector databases — so you don't write the scaffolding from scratch. |
+| **AgentExecutor** | The runner that executes an agent loop — sends messages to the LLM, handles tool calls, feeds results back to the LLM, and keeps going until the agent says it's done. |
+| **Exponential Backoff** | When a request fails (e.g., API rate limit), wait 1s, then 2s, then 4s, then 8s before retrying. The wait doubles each time. Prevents hammering the API after a failure and making things worse. |
+| **429 Rate Limit** | The HTTP error code OpenAI returns when you've sent too many requests too fast. Your gateway should catch this and retry with exponential backoff rather than crashing immediately. |
+| **Prompt Drift** | When prompts change gradually over time and no one notices the outputs have gotten worse. Prevented by versioning prompts in code and running automated evaluations ("evals") against a golden test set after every change. |
+| **Evals (LLM Evaluations)** | Automated or human tests that measure LLM output quality. You build a test set of questions with expected answers, run the pipeline, score the results. Like unit tests for LLM behaviour — catches regressions when models or prompts change. |
+| **Golden Set** | A curated collection of test inputs with known-correct expected outputs. Used to evaluate whether a new model, prompt, or pipeline change maintains or improves quality. |
+| **Streaming** | Sending LLM output token-by-token as it's generated, instead of waiting for the full response. The user sees words appearing immediately (like ChatGPT's typing effect) rather than a 5-second blank wait before anything shows. |
+| **Sliding Window (Context)** | A context management strategy where you always keep the most recent N messages in full and discard the oldest ones when the context limit approaches. Like a sliding frame over the conversation history. |
+| **CRM (Customer Relationship Management)** | A system that stores customer data, interactions, and history (e.g., Salesforce, HubSpot). An LLM agent can call a CRM tool to look up a customer's account details before answering. |

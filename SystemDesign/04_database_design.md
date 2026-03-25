@@ -227,3 +227,36 @@ await new Order(data).save();
 
 **Q: How do compound indexes work with sort?**
 > MongoDB can use an index to satisfy both a filter AND a sort in one pass — but only if the index prefix matches the filter fields and the sort direction matches the index direction. Mismatched sort directions force an in-memory sort (SORT stage) which has a 100MB memory limit before it fails.
+
+---
+
+## ELI5 Complex Keywords Glossary
+
+| Term | ELI5 Explanation |
+|------|-----------------|
+| **Index** | A shortcut for finding data quickly. Without an index, the database reads every row (like reading a whole book to find one word). With an index, it jumps straight to the right page — like a book's index at the back. |
+| **Compound Index** | An index built on multiple fields together. Like an alphabetically ordered phonebook sorted by last name, then first name — perfect for lookups that use both fields. |
+| **COLLSCAN (Collection Scan)** | The slow path — the database reads every single document to find matches. Like searching for a name by reading every page of the phonebook. You want to avoid this with proper indexes. |
+| **IXSCAN (Index Scan)** | The fast path — the database uses an index to jump directly to matching records. Like using the phonebook's alphabetical tabs to find the right section instantly. |
+| **ESR Rule** | A recipe for ordering fields in a compound index: Equality fields first, Sort fields second, Range fields last. Following this order makes queries as fast as possible. |
+| **B-tree** | The data structure used internally by database indexes. Like a family tree of sorted values — you start at the root and follow branches to find what you need in O(log n) steps instead of scanning everything. |
+| **Aggregation Pipeline** | A series of transformation steps applied to your data one after another, like an assembly line. Each stage (filter, group, sort, reshape) processes the output of the previous stage. |
+| **$match** | A pipeline stage that filters documents — like a WHERE clause in SQL. Only documents satisfying the condition pass through to the next stage. |
+| **$group** | A pipeline stage that groups documents and computes summaries — like GROUP BY in SQL. Groups all orders by date and sums up the revenue. |
+| **$merge** | A pipeline stage that writes the aggregation result into another collection (upsert). Used to pre-compute summaries into a separate "summary" collection. |
+| **Sharding** | Splitting a database across multiple servers (shards) horizontally. Like splitting a giant phonebook into regional volumes (A–H on server 1, I–P on server 2). Allows write scale beyond one machine. |
+| **Shard Key** | The field used to decide which shard a document lives on. Choose poorly and all writes go to one shard (hot shard). Choose a high-cardinality, evenly distributed key like a hashed userId. |
+| **Hot Shard** | When one shard gets far more traffic than others because the shard key is poorly chosen. Like all new orders going to the same server because you sharded by date and today's date is always on one shard. |
+| **Hashed Shard Key** | MongoDB hashes the shard key value before assigning the document to a shard. This spreads documents evenly — even if the key values are sequential. |
+| **mongos (Query Router)** | The entry point to a sharded MongoDB cluster. It receives queries, figures out which shard(s) have the relevant data, and combines the results — transparent to your app. |
+| **Read Replica** | A copy of the database that accepts only read queries. Offloads reporting and analytics from the primary database. Like a photocopy of the official record — everyone can read the copy, only authorized people update the original. |
+| **Read Preference (secondary)** | A setting that tells your MongoDB driver to send read queries to a replica (secondary) instead of the primary. Reduces load on the primary, which is busy with writes. |
+| **Primary Node** | The main database server that accepts all write operations. In a replica set there's exactly one primary at any time — it's the source of truth. |
+| **Replica Set** | A group of MongoDB servers that keep identical copies of the data. One is primary (accepts writes), others are secondaries (replicate and serve reads). If the primary dies, a secondary is automatically elected as the new primary. |
+| **ACID** | Four guarantees for database transactions: Atomicity (all or nothing), Consistency (valid state before and after), Isolation (concurrent transactions don't interfere), Durability (committed data survives crashes). |
+| **Eventual Consistency** | A weaker guarantee than ACID — all nodes will *eventually* agree on the same value, but there might be a short window where different nodes show different data. Acceptable for things like view counts, not for bank balances. |
+| **Pre-aggregation** | Computing expensive summaries in advance (e.g. daily revenue totals) and storing the results. Dashboard reads the small pre-computed table (365 rows) instead of crunching 8 million raw records on every page load. |
+| **explain("executionStats")** | A MongoDB command that shows exactly how a query was executed — did it use an index? How many docs were examined vs returned? Essential for diagnosing slow queries before adding indexes. |
+| **Partial Index** | An index that only covers a subset of documents matching a filter (e.g. only active users). Smaller, faster, and cheaper to maintain than a full index when you only query a subset. |
+| **TTL Index** | A special index that automatically deletes documents after a set time period (e.g. 24 hours). Perfect for session data, temporary logs, or anything with a natural expiry. |
+| **Denormalization** | Deliberately storing duplicated data to avoid expensive JOINs. Instead of a separate "author" table, you embed the author's name inside each post document. Faster reads, but updates must touch multiple places. |

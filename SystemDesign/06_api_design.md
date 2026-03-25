@@ -297,3 +297,34 @@ function authenticate(req, res, next) {
 
 **Q: What's the difference between token bucket and leaky bucket?**
 > Token bucket: a bucket holds N tokens, refills at a fixed rate, each request consumes one token. Allows bursting up to bucket size. Leaky bucket: requests enter a queue, drain at a fixed rate — no bursting, output is perfectly smooth. Use leaky bucket when you need strictly even traffic (e.g., outbound API calls to a third-party with a hard rate limit).
+
+---
+
+## ELI5 Complex Keywords Glossary
+
+| Term | ELI5 Explanation |
+|------|-----------------|
+| **REST (Representational State Transfer)** | A style of API design where you have URLs representing resources (nouns) and use HTTP methods (GET, POST, PATCH, DELETE) as the verbs. "GET /users/1" means "fetch user 1." Simple, predictable, and works great with caching. |
+| **GraphQL** | A query language for APIs where the client tells the server exactly what data it wants. Instead of the server returning a fixed shape, the client writes a query like "give me the user's name and their last 3 orders" and gets back precisely that. |
+| **Overfetching** | When an API returns more data than you need. REST `/users/1` might return 20 fields when you only needed the name. GraphQL eliminates this — you declare exactly the fields you want. |
+| **Underfetching / N+1 Problem** | When one API call isn't enough. To show a list of posts with author names, REST might need: 1 call for posts + 1 call per author = N+1 calls. GraphQL resolves all nested data in one round trip. |
+| **Rate Limiting** | A throttle on how many requests a client can make in a time window. Like a nightclub bouncer: "You've been in 100 times this hour, come back later." Protects the server from abusive clients. |
+| **Token Bucket** | A rate limiting algorithm. You have a bucket with N tokens. Each request uses a token. Tokens refill at a fixed rate. You can burst up to the full bucket size before being throttled. Like using saved-up coins. |
+| **Sliding Window** | A rate limiting strategy that tracks each request timestamp. It counts requests in the rolling last 60 seconds (not a fixed time block). More accurate than fixed windows — prevents spikes at window boundaries. |
+| **Fixed Window Rate Limiting** | Count requests in rigid time blocks (e.g., 0–60s, 60–120s). Problem: a client can make double their limit by sending requests at the end of one window and start of the next. |
+| **Leaky Bucket** | A rate limiting algorithm where requests queue up and are processed at a fixed drain rate — perfectly smooth output. No bursting. Like water dripping out of a bucket at a constant speed regardless of how fast water goes in. |
+| **JWT (JSON Web Token)** | A small, signed digital ID card. Contains user info (ID, role) in a tamper-proof format. The server verifies the signature without hitting the database — stateless and fast. Like a passport: self-contained proof of identity. |
+| **Access Token** | A short-lived JWT (e.g., 15 minutes) sent with every API request in the Authorization header. Short-lived so that if stolen, the attacker's window is small. |
+| **Refresh Token** | A long-lived token stored in a secure HTTP-only cookie. Used only to get a new access token when the old one expires. Never sent to the API directly — stays in the browser's cookie jar, protected from JavaScript. |
+| **Refresh Token Rotation** | Every time you use a refresh token, it's deleted and a new one is issued. If a stolen token is used, the original user's next request detects the mismatch and invalidates all sessions — like changing locks when you detect a key might be copied. |
+| **httpOnly Cookie** | A browser cookie that JavaScript cannot read (no `document.cookie` access). This is where refresh tokens live — safe from XSS attacks that steal localStorage tokens. |
+| **XSS (Cross-Site Scripting)** | A security attack where malicious JavaScript is injected into a page and runs in a victim's browser. If tokens are in localStorage, XSS can steal them. httpOnly cookies are immune. |
+| **SameSite Cookie** | A cookie attribute that prevents the browser from sending the cookie on cross-site requests. Protects against CSRF (forged requests from another website). `Strict` means the cookie only goes with same-origin requests. |
+| **CSRF (Cross-Site Request Forgery)** | An attack where a malicious site tricks your browser into making a request to another site using your existing cookies. SameSite cookies and CSRF tokens prevent this. |
+| **Cursor-Based Pagination** | A pagination technique using an opaque pointer (cursor) to the last item you've seen. More reliable than offset/page-based pagination on large, frequently updated datasets — no risk of skipping or repeating items if rows are added mid-page. |
+| **Introspection (GraphQL)** | GraphQL's built-in ability to describe its own schema. A client can query "what types and operations does this API have?" and get a complete answer — self-documenting APIs. Should be disabled in production for security. |
+| **Query Depth Limiting** | A safety guard for GraphQL. Prevents deeply nested queries like "user → posts → user → posts → user..." which can exponentially explode into millions of database calls. |
+| **Query Complexity** | Assigning a cost score to each GraphQL field. A list of 100 users with their posts scores high. If the total cost exceeds a threshold, the query is rejected before execution. |
+| **DataLoader** | A batching and caching utility for GraphQL resolvers. Instead of N queries for N authors, DataLoader collects all 100 author IDs and fires 1 DB query: "SELECT * WHERE id IN (...)". Solves the N+1 problem. |
+| **P95 Response Time** | The response time that 95% of requests are faster than. A P95 of 200ms means 95 out of 100 requests complete within 200ms. The other 5% (outliers) may be slower. Better than average — captures real user experience at the tail. |
+| **@deprecated Directive (GraphQL)** | A way to mark a GraphQL field as old without removing it. Clients still work, but their developer tools show a warning. Allows gradual schema evolution without breaking existing clients. |

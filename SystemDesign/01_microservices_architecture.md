@@ -227,3 +227,35 @@ const result = await breaker.fire(userId, amount);
 
 **Q: How do services authenticate with each other internally?**
 > mTLS (mutual TLS) for service-to-service trust in a service mesh, or short-lived internal JWTs signed by a shared secret. API Gateway validates user tokens; downstream services trust the gateway's forwarded identity header.
+
+---
+
+## ELI5 Complex Keywords Glossary
+
+| Term | ELI5 Explanation |
+|------|-----------------|
+| **Microservices** | Instead of one giant app doing everything, you split it into small apps — one for users, one for payments, one for emails. Each runs on its own and can be updated without touching the others. |
+| **Monolith** | One big app that handles everything. Like a Swiss Army knife — handy at first, but if you break one blade the whole knife is in the shop. |
+| **Stateless** | The server doesn't remember you between requests. Every request carries all the info the server needs (like showing your ID every time you enter a building instead of them memorising your face). |
+| **HPA (Horizontal Pod Autoscaler)** | A Kubernetes robot that watches how busy your app is. If it gets too busy, it automatically adds more copies of your app. If it quiets down, it removes them to save money. |
+| **API Gateway** | The front door of your entire system. All requests come here first. It checks who you are, blocks bad actors, then forwards your request to the right internal service — like a hotel concierge. |
+| **JWT (JSON Web Token)** | A small, tamper-proof digital ID card you get when you log in. You show it on every request. The server can verify it's real without asking the database — it just checks the signature, like a passport stamp. |
+| **Redis** | An in-memory database that's extremely fast (microseconds). Think of it as a whiteboard next to your desk — much faster to look at than going into a filing cabinet (regular database). |
+| **TTL (Time To Live)** | An expiry timer attached to a piece of data. Like milk with a use-by date — after the TTL expires the data is automatically deleted so old/stale data doesn't pile up. |
+| **Load Balancer** | A traffic cop standing in front of your servers. It spreads incoming requests evenly across all available servers so no single one gets overwhelmed. |
+| **Service Discovery** | A phonebook for services. Since servers in the cloud come and go with random IP addresses, services register themselves in a directory. Other services look them up by name instead of hardcoding an IP. |
+| **Circuit Breaker** | Protects your app from a failing service. Like a household fuse — if one service keeps failing, the circuit "opens" (stops trying) for a while instead of flooding it with calls and making things worse. |
+| **Saga Pattern** | A way to do multi-step tasks across different services safely. Each step has an "undo" action. If step 3 fails, the system automatically runs the undos for steps 1 and 2 — like reversing a chain of dominoes. |
+| **Distributed Transaction** | Trying to do one atomic operation (all-or-nothing) across multiple databases/services. Hard because if the network dies mid-way you don't know what succeeded — Saga pattern is the practical alternative. |
+| **mTLS (Mutual TLS)** | Both sides of a connection prove who they are, not just the server. Like two people showing ID to each other before talking — used between internal services so a rogue service can't pretend to be a trusted one. |
+| **Service Mesh** | A layer of infrastructure (like Istio or Linkerd) that handles all service-to-service communication: auth, retries, tracing, encryption. Tiny "sidecar" proxies sit next to each service and manage traffic automatically. |
+| **Sidecar Proxy** | A helper container that runs alongside your main service container. It handles networking concerns (security, logging, retries) so your app code doesn't have to. Like having a personal assistant manage your calls. |
+| **BFF (Backend for Frontend)** | A dedicated API layer built specifically for one type of client (e.g., mobile app or web app). It aggregates data from multiple services into one perfect response for that client — so mobile gets exactly what mobile needs. |
+| **gRPC** | A faster, more efficient way for services to talk to each other compared to REST. Uses a binary format (smaller messages) and a defined contract (proto file) — like services speaking a tightly agreed shorthand code. |
+| **Idempotent** | Doing the same operation multiple times gives the same result as doing it once. Like pressing an elevator button 10 times — it only calls the elevator once. Critical for retries so you don't double-charge a customer. |
+| **TLS Termination** | The API Gateway decrypts the incoming HTTPS traffic and forwards plain HTTP internally. Like a secure mailroom that opens the encrypted envelope and passes the plain letter inside to the right department. |
+| **RPS (Requests Per Second)** | How many requests your system handles every second. A useful measure of load — e.g., "we scale out when we exceed 1000 RPS" means the autoscaler kicks in at high traffic. |
+| **Compensating Transaction** | The "undo" step in a Saga. If you booked a flight and the hotel booking failed, the compensating transaction cancels the flight. It reverses what was already done to keep the system consistent. |
+| **Choreography vs Orchestration** | Two styles of coordinating services. Choreography: each service reacts to events independently (like a flash mob — no director). Orchestration: a central coordinator tells each service what to do (like a conductor in an orchestra). |
+| **Cascade Failure** | When one failing service causes other services that depend on it to also fail, which then causes their dependents to fail — a domino effect that can take down the entire system. Circuit breakers prevent this. |
+| **Replica** | An identical copy of a running service instance. Running 3 replicas means 3 copies of the same service, all handling requests. More replicas = more capacity + higher availability. |

@@ -282,3 +282,33 @@ console.log(results.documents[0]);       // top 5 matching chunks
 
 **Q: How do you handle documents that change over time?**
 > Re-embed and upsert with the same IDs (Pinecone upsert is idempotent — same ID overwrites). For deleted documents, delete all chunk vectors with that docId prefix. For large-scale re-indexing, use a shadow index: build new index offline, swap atomically.
+
+---
+
+## ELI5 Complex Keywords Glossary
+
+| Term | ELI5 Explanation |
+|------|-----------------|
+| **Vector / Embedding** | A list of numbers (like GPS coordinates) that captures the *meaning* of text. Words with similar meanings end up with similar coordinates. "Cat" and "kitten" are close together in this number-space; "cat" and "spreadsheet" are far apart. |
+| **Embedding Model** | A special AI model that converts text into vectors. You feed in "How do I cancel my order?" and get back a list of 1,536 numbers that represent the meaning of that sentence. |
+| **Vector Database** | A database designed to store millions of these meaning-coordinates and answer "which stored item is closest in meaning to this query?" in milliseconds. Like Google Maps' "find nearest coffee shop" but for ideas. |
+| **Semantic Search** | Search based on meaning, not exact words. "Vehicle coverage" matches "car insurance" because they mean the same thing, even though no word overlaps. Classic keyword search would miss this. |
+| **Cosine Similarity** | A measure of how similar two vectors are. Score of 1.0 = same meaning, score of 0 = totally unrelated. Think of it as measuring the angle between two arrows — pointing the same direction = similar meaning. |
+| **Top-K Search** | Retrieve the K most similar items from the vector database. `topK=5` means "give me the 5 chunks most relevant to my query." More K = more context but more noise. |
+| **RAG (Retrieval-Augmented Generation)** | A technique: search your knowledge base for relevant chunks first, then give those chunks to the LLM as context so it answers from evidence, not from memory. Like an open-book exam instead of asking someone to remember everything. |
+| **Hallucination** | When an AI confidently states something that isn't true — it's making things up from its training patterns. RAG drastically reduces hallucination by grounding the model in retrieved, real documents. |
+| **Chunking** | Breaking a long document into smaller pieces before embedding. A 50-page PDF is split into 100+ smaller chunks so each piece has a focused, embeddable meaning. |
+| **Chunk Overlap** | When splitting text into chunks, you deliberately include the last N tokens of the previous chunk at the start of the next. This prevents losing context when a key sentence falls at a boundary. |
+| **Context Window** | The maximum amount of text an LLM can read at once. GPT-4o's context window is ~128,000 tokens. RAG fits retrieved chunks into this window so the model can read and reason over them. |
+| **Grounded Answer** | An LLM answer based only on provided documents, not invented knowledge. The model is instructed: "only answer from the context below." Dramatically reduces hallucination. |
+| **HNSW (Hierarchical Navigable Small World)** | The algorithm most vector databases use under the hood to find nearest neighbours fast. Instead of comparing every vector to every other vector (slow), it builds a multi-layer graph of shortcuts — like a highway network instead of local roads. |
+| **ANN (Approximate Nearest Neighbour)** | Finding vectors that are "close enough" to the query without guaranteeing the mathematically exact nearest match. The trade-off: much faster than exact search (O(log n) vs O(n)), with accuracy above 99% in practice. |
+| **Pinecone** | A managed cloud vector database. You just call an API — no infrastructure to manage. Good for production with billions of vectors. You pay per index and query. |
+| **ChromaDB** | An open-source vector database you can run locally (in a Docker container or in-memory). Perfect for development and prototyping. Free, but single-node — not designed for massive scale. |
+| **pgvector** | A Postgres extension that adds vector storage and similarity search to a regular Postgres database. Great if you're already using Postgres and your dataset fits (tens of millions of vectors). No new infrastructure needed. |
+| **Metadata Filter** | Narrowing your vector search with regular attribute conditions. "Find similar chunks BUT only from documents of type 'policy' published after 2024." Like filtering Google Maps results to only show open restaurants. |
+| **Upsert** | Insert if doesn't exist, update if it does (by ID). When a document changes, you upsert its chunks with the same IDs — the new embeddings overwrite the old ones cleanly. |
+| **Shadow Index** | A technique for re-indexing without downtime. Build the new index in the background while the old one serves traffic. Once the new one is ready, atomically swap them — users never see a gap. |
+| **Recursive Character Text Splitter** | A chunking strategy that tries to split text by paragraph breaks first (`\n\n`), then line breaks, then sentences, then words. Tries to keep semantically meaningful units together. |
+| **Source Attribution** | Returning which documents/chunks were used to generate the answer. Lets users click "where did this come from?" — crucial for trust and auditability in enterprise RAG systems. |
+| **Temperature (LLM)** | A dial controlling how creative/random the LLM's output is. Temperature=0 means deterministic, most likely answer. Temperature=1 means more creative, varied responses. For factual Q&A, use 0. |
