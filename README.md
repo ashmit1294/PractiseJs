@@ -138,6 +138,220 @@ All 28 interview questions organized by technology domain with flow diagrams:
 | [ByteByteGo YouTube Crash Course](https://www.youtube.com/@ByteByteGo) | Video (free) | DNS, storage, memory deep dives |
 | [System Design Handbook](https://www.freecodecamp.org/news/system-design-for-interviews-and-beyond/) | Web (free) | Interview-format walkthroughs |
 | [ByteByteGo Course](https://bytebytego.com) | Text + diagrams (paid) | Structured end-to-end prep |
+| [Layrs System Design Course](https://layrs.me/course/) | Web (structured) | 149 topics across 12 modules, interview-focused |
+
+---
+
+## 🎓 Layrs System Design Interview Course
+
+> Comprehensive system design course with **149 topics across 12 modules**. Master distributed systems, scalability patterns, and ace your system design interview.
+> 🔗 [https://layrs.me/course/](https://layrs.me/course/)
+
+### [1. Introduction to System Design](https://layrs.me/course/hld/01-introduction) — 3 topics
+- [What is System Design?](https://layrs.me/course/hld/01-introduction/what-is-system-design)
+- [How to Approach System Design?](https://layrs.me/course/hld/01-introduction/how-to-approach-system-design)
+- [Back-of-the-Envelope Estimation](https://layrs.me/course/hld/01-introduction/back-of-the-envelope-estimation)
+
+### [2. Core Concepts & Trade-offs](https://layrs.me/course/hld/02-core-concepts) — 17 topics
+**Performance & Scalability**
+- [Performance vs Scalability](https://layrs.me/course/hld/02-core-concepts/performance-vs-scalability)
+- [Latency vs Throughput](https://layrs.me/course/hld/02-core-concepts/latency-vs-throughput)
+
+**CAP Theorem & Consistency**
+- [Availability vs Consistency](https://layrs.me/course/hld/02-core-concepts/availability-vs-consistency)
+- [CAP Theorem](https://layrs.me/course/hld/02-core-concepts/cap-theorem)
+
+**Consistency Patterns**
+- [Consistency Patterns](https://layrs.me/course/hld/02-core-concepts/consistency-patterns)
+- [Weak Consistency](https://layrs.me/course/hld/02-core-concepts/weak-consistency)
+- [Eventual Consistency](https://layrs.me/course/hld/02-core-concepts/eventual-consistency)
+- [Strong Consistency](https://layrs.me/course/hld/02-core-concepts/strong-consistency)
+
+**Availability Patterns**
+- [Availability Patterns](https://layrs.me/course/hld/02-core-concepts/availability-patterns)
+- [Fail-Over](https://layrs.me/course/hld/02-core-concepts/fail-over)
+- [Replication](https://layrs.me/course/hld/02-core-concepts/replication)
+- [Availability in Numbers](https://layrs.me/course/hld/02-core-concepts/availability-in-numbers)
+
+**Additional Topics**
+- [Consistent Hashing](https://layrs.me/course/hld/02-core-concepts/consistent-hashing)
+- [Bloom Filters](https://layrs.me/course/hld/02-core-concepts/bloom-filters)
+- [Merkle Trees](https://layrs.me/course/hld/02-core-concepts/merkle-trees)
+- [PACELC Theorem](https://layrs.me/course/hld/02-core-concepts/pacelc-theorem)
+- [Quorum](https://layrs.me/course/hld/02-core-concepts/quorum)
+
+### [3. Networking & DNS](https://layrs.me/course/hld/03-networking-dns) — 4 topics
+- [DNS Fundamentals](https://layrs.me/course/hld/03-networking-dns/dns-fundamentals)
+- [CDN Overview](https://layrs.me/course/hld/03-networking-dns/cdn-overview)
+- [Push CDNs](https://layrs.me/course/hld/03-networking-dns/push-cdns)
+- [Pull CDNs](https://layrs.me/course/hld/03-networking-dns/pull-cdns)
+
+### [4. Load Balancing & Scaling](https://layrs.me/course/hld/04-load-balancing-scaling) — 7 topics
+**Load Balancers**
+- [Load Balancers Overview](https://layrs.me/course/hld/04-load-balancing-scaling/load-balancers-overview)
+- [Load Balancer vs Reverse Proxy](https://layrs.me/course/hld/04-load-balancing-scaling/lb-vs-reverse-proxy)
+- [Load Balancing Algorithms](https://layrs.me/course/hld/04-load-balancing-scaling/load-balancing-algorithms)
+- [Layer 4 Load Balancing](https://layrs.me/course/hld/04-load-balancing-scaling/layer-4-load-balancing)
+- [Layer 7 Load Balancing](https://layrs.me/course/hld/04-load-balancing-scaling/layer-7-load-balancing)
+
+**Scaling Strategies**
+- [Horizontal Scaling](https://layrs.me/course/hld/04-load-balancing-scaling/horizontal-scaling)
+- [Forward Proxy](https://layrs.me/course/hld/04-load-balancing-scaling/forward-proxy)
+
+### [5. Application Architecture](https://layrs.me/course/hld/05-application-architecture) — 9 topics
+**Application Layer**
+- [Application Layer Overview](https://layrs.me/course/hld/05-application-architecture/application-layer-overview)
+- [Microservices](https://layrs.me/course/hld/05-application-architecture/microservices)
+- [Service Discovery](https://layrs.me/course/hld/05-application-architecture/service-discovery)
+
+**Background Jobs**
+- [Background Jobs Overview](https://layrs.me/course/hld/05-application-architecture/background-jobs-overview)
+- [Event-Driven](https://layrs.me/course/hld/05-application-architecture/event-driven)
+- [Schedule Driven](https://layrs.me/course/hld/05-application-architecture/schedule-driven)
+- [Returning Results](https://layrs.me/course/hld/05-application-architecture/returning-results)
+
+**Additional Topics**
+- [API Gateway](https://layrs.me/course/hld/05-application-architecture/api-gateway)
+- [Rate Limiting](https://layrs.me/course/hld/05-application-architecture/rate-limiting)
+
+### [6. Databases](https://layrs.me/course/hld/06-databases) — 16 topics
+**Database Fundamentals**
+- [Databases Overview](https://layrs.me/course/hld/06-databases/databases-overview)
+- [SQL vs NoSQL](https://layrs.me/course/hld/06-databases/sql-vs-nosql)
+
+**RDBMS Patterns**
+- [Sharding](https://layrs.me/course/hld/06-databases/sharding)
+- [Federation](https://layrs.me/course/hld/06-databases/federation)
+- [Denormalization](https://layrs.me/course/hld/06-databases/denormalization)
+- [SQL Tuning](https://layrs.me/course/hld/06-databases/sql-tuning)
+
+**NoSQL Databases**
+- [Key-Value Store](https://layrs.me/course/hld/06-databases/key-value-store)
+- [Document Store](https://layrs.me/course/hld/06-databases/document-store)
+- [Wide Column Store](https://layrs.me/course/hld/06-databases/wide-column-store)
+- [Graph Databases](https://layrs.me/course/hld/06-databases/graph-databases)
+
+**Additional Topics**
+- [Data Lakes & Warehousing](https://layrs.me/course/hld/06-databases/data-lakes-and-warehousing)
+- [Database Indexing Strategies](https://layrs.me/course/hld/06-databases/database-indexing)
+- [Replication (RDBMS)](https://layrs.me/course/hld/06-databases/replication-rdbms)
+- [Search Systems & Inverted Index](https://layrs.me/course/hld/06-databases/search-systems)
+- [Vector Databases](https://layrs.me/course/hld/06-databases/vector-databases)
+- [Write-Ahead Log (WAL)](https://layrs.me/course/hld/06-databases/write-ahead-log)
+
+### [7. Caching](https://layrs.me/course/hld/07-caching) — 13 topics
+**Caching Fundamentals**
+- [Caching Overview](https://layrs.me/course/hld/07-caching/caching-overview)
+
+**Caching Strategies**
+- [Cache Aside](https://layrs.me/course/hld/07-caching/cache-aside)
+- [Write-Through](https://layrs.me/course/hld/07-caching/write-through)
+- [Write-Behind](https://layrs.me/course/hld/07-caching/write-behind)
+- [Refresh Ahead](https://layrs.me/course/hld/07-caching/refresh-ahead)
+- [Read-Through](https://layrs.me/course/hld/07-caching/read-through)
+
+**Types of Caching**
+- [Client Caching](https://layrs.me/course/hld/07-caching/client-caching)
+- [CDN Caching](https://layrs.me/course/hld/07-caching/cdn-caching)
+- [Web Server Caching](https://layrs.me/course/hld/07-caching/web-server-caching)
+- [Database Caching](https://layrs.me/course/hld/07-caching/database-caching)
+- [Application Caching](https://layrs.me/course/hld/07-caching/application-caching)
+
+**Additional Topics**
+- [Cache Eviction Policies](https://layrs.me/course/hld/07-caching/cache-eviction-policies)
+- [Cache Invalidation](https://layrs.me/course/hld/07-caching/cache-invalidation)
+
+### [8. Asynchronous Processing](https://layrs.me/course/hld/08-asynchronous-processing) — 6 topics
+- [Asynchronism Overview](https://layrs.me/course/hld/08-asynchronous-processing/asynchronism-overview)
+- [Message Queues](https://layrs.me/course/hld/08-asynchronous-processing/message-queues)
+- [Task Queues](https://layrs.me/course/hld/08-asynchronous-processing/task-queues)
+- [Back Pressure](https://layrs.me/course/hld/08-asynchronous-processing/back-pressure)
+- [Idempotent Operations](https://layrs.me/course/hld/08-asynchronous-processing/idempotent-operations)
+- [Stream Processing](https://layrs.me/course/hld/08-asynchronous-processing/stream-processing)
+
+### [9. Communication Protocols](https://layrs.me/course/hld/09-communication-protocols) — 9 topics
+**Network Protocols**
+- [Communication Overview](https://layrs.me/course/hld/09-communication-protocols/communication-overview)
+- [HTTP](https://layrs.me/course/hld/09-communication-protocols/http)
+- [TCP](https://layrs.me/course/hld/09-communication-protocols/tcp)
+- [UDP](https://layrs.me/course/hld/09-communication-protocols/udp)
+
+**API Protocols**
+- [REST](https://layrs.me/course/hld/09-communication-protocols/rest)
+- [RPC](https://layrs.me/course/hld/09-communication-protocols/rpc)
+- [gRPC](https://layrs.me/course/hld/09-communication-protocols/grpc)
+- [GraphQL](https://layrs.me/course/hld/09-communication-protocols/graphql)
+- [Long Polling, WebSockets & SSE](https://layrs.me/course/hld/09-communication-protocols/long-polling-websockets-sse)
+
+### [10. Performance & Monitoring](https://layrs.me/course/hld/10-performance-monitoring) — 19 topics
+**Performance Antipatterns**
+- [Performance Antipatterns Overview](https://layrs.me/course/hld/10-performance-monitoring/antipatterns-overview)
+- [Busy Database](https://layrs.me/course/hld/10-performance-monitoring/busy-database)
+- [Busy Frontend](https://layrs.me/course/hld/10-performance-monitoring/busy-frontend)
+- [Chatty I/O](https://layrs.me/course/hld/10-performance-monitoring/chatty-io)
+- [Extraneous Fetching](https://layrs.me/course/hld/10-performance-monitoring/extraneous-fetching)
+- [Improper Instantiation](https://layrs.me/course/hld/10-performance-monitoring/improper-instantiation)
+- [Monolithic Persistence](https://layrs.me/course/hld/10-performance-monitoring/monolithic-persistence)
+- [No Caching](https://layrs.me/course/hld/10-performance-monitoring/no-caching)
+- [Noisy Neighbor](https://layrs.me/course/hld/10-performance-monitoring/noisy-neighbor)
+- [Retry Storm](https://layrs.me/course/hld/10-performance-monitoring/retry-storm)
+- [Synchronous I/O](https://layrs.me/course/hld/10-performance-monitoring/synchronous-io)
+
+**Monitoring**
+- [Monitoring Overview](https://layrs.me/course/hld/10-performance-monitoring/monitoring-overview)
+- [Health Monitoring](https://layrs.me/course/hld/10-performance-monitoring/health-monitoring)
+- [Availability Monitoring](https://layrs.me/course/hld/10-performance-monitoring/availability-monitoring)
+- [Performance Monitoring](https://layrs.me/course/hld/10-performance-monitoring/performance-monitoring)
+- [Security Monitoring](https://layrs.me/course/hld/10-performance-monitoring/security-monitoring)
+- [Usage Monitoring](https://layrs.me/course/hld/10-performance-monitoring/usage-monitoring)
+- [Instrumentation](https://layrs.me/course/hld/10-performance-monitoring/instrumentation)
+- [Visualization & Alerts](https://layrs.me/course/hld/10-performance-monitoring/visualization-and-alerts)
+
+### [11. Cloud Design Patterns](https://layrs.me/course/hld/11-cloud-design-patterns) — 37 topics
+**Messaging Patterns**
+- [Messaging Overview](https://layrs.me/course/hld/11-cloud-design-patterns/messaging-overview)
+- [Async Request-Reply](https://layrs.me/course/hld/11-cloud-design-patterns/async-request-reply)
+- [Claim Check](https://layrs.me/course/hld/11-cloud-design-patterns/claim-check)
+- [Choreography](https://layrs.me/course/hld/11-cloud-design-patterns/choreography)
+- [Competing Consumers](https://layrs.me/course/hld/11-cloud-design-patterns/competing-consumers)
+- [Pipes and Filters](https://layrs.me/course/hld/11-cloud-design-patterns/pipes-and-filters)
+- [Priority Queue](https://layrs.me/course/hld/11-cloud-design-patterns/priority-queue)
+- [Publisher/Subscriber](https://layrs.me/course/hld/11-cloud-design-patterns/publisher-subscriber)
+- [Queue-based Load Leveling](https://layrs.me/course/hld/11-cloud-design-patterns/queue-based-load-leveling)
+- [Scheduling Agent Supervisor](https://layrs.me/course/hld/11-cloud-design-patterns/scheduling-agent-supervisor)
+- [Sequential Convoy](https://layrs.me/course/hld/11-cloud-design-patterns/sequential-convoy)
+
+**Data Management Patterns**
+- [Data Management Overview](https://layrs.me/course/hld/11-cloud-design-patterns/data-management-overview)
+- [Cache-Aside Pattern](https://layrs.me/course/hld/11-cloud-design-patterns/cache-aside-pattern)
+- [CQRS](https://layrs.me/course/hld/11-cloud-design-patterns/cqrs)
+- [Event Sourcing](https://layrs.me/course/hld/11-cloud-design-patterns/event-sourcing)
+- [Index Table](https://layrs.me/course/hld/11-cloud-design-patterns/index-table)
+- [Materialized View](https://layrs.me/course/hld/11-cloud-design-patterns/materialized-view)
+- [Sharding Pattern](https://layrs.me/course/hld/11-cloud-design-patterns/sharding-pattern)
+- [Static Content Hosting](https://layrs.me/course/hld/11-cloud-design-patterns/static-content-hosting)
+- [Valet Key](https://layrs.me/course/hld/11-cloud-design-patterns/valet-key)
+
+**Design & Implementation Patterns**
+- [Design & Implementation Overview](https://layrs.me/course/hld/11-cloud-design-patterns/design-and-implementation)
+- [Ambassador](https://layrs.me/course/hld/11-cloud-design-patterns/ambassador)
+- [Anti-Corruption Layer](https://layrs.me/course/hld/11-cloud-design-patterns/anti-corruption-layer)
+- [Backends for Frontend](https://layrs.me/course/hld/11-cloud-design-patterns/backends-for-frontend)
+- [Compute Resource Consolidation](https://layrs.me/course/hld/11-cloud-design-patterns/compute-resource-consolidation)
+- [External Config Store](https://layrs.me/course/hld/11-cloud-design-patterns/external-config-store)
+- [Gateway Aggregation](https://layrs.me/course/hld/11-cloud-design-patterns/gateway-aggregation)
+- [Gateway Offloading](https://layrs.me/course/hld/11-cloud-design-patterns/gateway-offloading)
+- [Gateway Routing](https://layrs.me/course/hld/11-cloud-design-patterns/gateway-routing)
+- [Leader Election](https://layrs.me/course/hld/11-cloud-design-patterns/leader-election)
+- [Pipes & Filters (Implementation)](https://layrs.me/course/hld/11-cloud-design-patterns/pipes-and-filters-impl)
+- [Sidecar](https://layrs.me/course/hld/11-cloud-design-patterns/sidecar)
+- [Static Content Hosting (Implementation)](https://layrs.me/course/hld/11-cloud-design-patterns/static-content-hosting-impl)
+- [Strangler Fig](https://layrs.me/course/hld/11-cloud-design-patterns/strangler-fig)
+- [CQRS (Implementation)](https://layrs.me/course/hld/11-cloud-design-patterns/cqrs-impl)
+
+**Additional Topics**
+- [Containerization & Orchestration](https://layrs.me/course/hld/11-cloud-design-patterns/containerization-and-orchestration)
+- [Serverless Architecture](https://layrs.me/course/hld/11-cloud-design-patterns/serverless-architecture)
 
 ---
 
