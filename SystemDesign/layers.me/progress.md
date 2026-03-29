@@ -14,7 +14,7 @@
 | M2 — Core Concepts & Trade-offs | 17 | ✅ Complete |
 | M3 — Networking & DNS | 4 | ✅ Complete |
 | M4 — Load Balancing & Scaling | 7 | ✅ Complete |
-| M5 — Application Architecture | 9 | ⏳ Pending |
+| M5 — Application Architecture | 9 | 🔄 In Progress |
 | M6 — Databases | 16 | ⏳ Pending |
 | M7 — Caching | 13 | ⏳ Pending |
 | M8 — Asynchronous Processing | 6 | ⏳ Pending |
@@ -23,7 +23,7 @@
 | M11 — Cloud Design Patterns | ? | ⏳ Pending |
 | M12 — (remaining) | ? | ⏳ Pending |
 
-**Completed**: 31 / 149 topics
+**Completed**: 32 / 149 topics
 
 ---
 
@@ -96,13 +96,22 @@
 
 ---
 
-## Module 5 — Application Architecture ⏳
+## Module 5 — Application Architecture 🔄
 
-> Folder: `05-application-architecture/`
+> Folder: `05-application-architecture/`  
+> Source: https://layrs.me/course/hld/05-application-architecture
 
 | # | Topic | File | Status |
 |---|---|---|---|
-| T01–T09 | (to be fetched) | — | ⏳ |
+| T01 | Application Layer Overview | `01_Application Layer Overview.md` | ✅ |
+| T02 | Microservices Architecture | `02_Microservices Architecture.md` | ⏳ |
+| T03 | Service Discovery | `03_Service Discovery.md` | ⏳ |
+| T04 | Background Jobs | `04_Background Jobs.md` | ⏳ |
+| T05 | Event-Driven Architecture | `05_Event-Driven Architecture.md` | ⏳ |
+| T06 | Schedule-Driven Architecture | `06_Schedule-Driven Architecture.md` | ⏳ |
+| T07 | Returning Results (Async) | `07_Returning Results.md` | ⏳ |
+| T08 | API Gateway | `08_API Gateway.md` | ⏳ |
+| T09 | Rate Limiting | `09_Rate Limiting.md` | ⏳ |
 
 ---
 
