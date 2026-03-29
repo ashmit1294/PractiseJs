@@ -23,7 +23,7 @@
 | M11 — Cloud Design Patterns | ? | ⏳ Pending |
 | M12 — (remaining) | ? | ⏳ Pending |
 
-**Completed**: 38 / 149 topics
+**Completed**: 39 / 149 topics
 
 ---
 
@@ -110,7 +110,7 @@
 | T05 | Event-Driven Architecture | `05_Event-Driven Architecture.md` | ✅ |
 | T06 | Schedule-Driven Architecture | `06_Schedule-Driven Architecture.md` | ✅ |
 | T07 | Returning Results (Async) | `07_Returning Results.md` | ✅ |
-| T08 | API Gateway | `08_API Gateway.md` | ⏳ |
+| T08 | API Gateway | `08_API Gateway.md` | ✅ |
 | T09 | Rate Limiting | `09_Rate Limiting.md` | ⏳ |
 
 ---
