@@ -23,7 +23,7 @@
 | M11 — Cloud Design Patterns | ? | ⏳ Pending |
 | M12 — (remaining) | ? | ⏳ Pending |
 
-**Completed**: 22 / 149 topics
+**Completed**: 23 / 149 topics
 
 ---
 
@@ -74,7 +74,7 @@
 |---|---|---|---|
 | T01 | DNS Fundamentals | `01_DNS Fundamentals.md` | ✅ |
 | T02 | CDN Overview | `02_CDN Overview.md` | ✅ |
-| T03 | Push CDNs | `03_Push CDNs.md` | ⏳ |
+| T03 | Push CDNs | `03_Push CDNs.md` | ✅ |
 | T04 | Pull CDNs | `04_Pull CDNs.md` | ⏳ |
 
 ---
