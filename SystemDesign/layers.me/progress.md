@@ -15,7 +15,7 @@
 | M3 — Networking & DNS | 4 | ✅ Complete |
 | M4 — Load Balancing & Scaling | 7 | ✅ Complete |
 | M5 — Application Architecture | 9 | ✅ Complete |
-| M6 — Databases | 16 | ⏳ Pending |
+| M6 — Databases | 16 | 🔄 In Progress |
 | M7 — Caching | 13 | ⏳ Pending |
 | M8 — Asynchronous Processing | 6 | ⏳ Pending |
 | M9 — Communication Protocols | 9 | ⏳ Pending |
@@ -23,7 +23,7 @@
 | M11 — Cloud Design Patterns | ? | ⏳ Pending |
 | M12 — (remaining) | ? | ⏳ Pending |
 
-**Completed**: 40 / 149 topics
+**Completed**: 41 / 149 topics
 
 ---
 
@@ -115,13 +115,29 @@
 
 ---
 
-## Module 6 — Databases ⏳
+## Module 6 — Databases 🔄
 
-> Folder: `06-databases/`
+> Folder: `06-databases/`  
+> Source: https://layrs.me/course/hld/06-databases
 
 | # | Topic | File | Status |
 |---|---|---|---|
-| T01–T16 | (to be fetched) | — | ⏳ |
+| T01 | Databases Overview | `01_Databases Overview.md` | ✅ |
+| T02 | SQL vs NoSQL | `02_SQL vs NoSQL.md` | ⏳ |
+| T03 | Database Sharding | `03_Database Sharding.md` | ⏳ |
+| T04 | Database Federation | `04_Database Federation.md` | ⏳ |
+| T05 | Denormalization | `05_Denormalization.md` | ⏳ |
+| T06 | SQL Tuning | `06_SQL Tuning.md` | ⏳ |
+| T07 | Key-Value Store | `07_Key-Value Store.md` | ⏳ |
+| T08 | Document Store | `08_Document Store.md` | ⏳ |
+| T09 | Wide Column Store | `09_Wide Column Store.md` | ⏳ |
+| T10 | Graph Databases | `10_Graph Databases.md` | ⏳ |
+| T11 | Data Lakes & Warehouses | `11_Data Lakes and Warehouses.md` | ⏳ |
+| T12 | Database Indexing | `12_Database Indexing.md` | ⏳ |
+| T13 | Database Replication | `13_Database Replication.md` | ⏳ |
+| T14 | Search Systems | `14_Search Systems.md` | ⏳ |
+| T15 | Write-Ahead Log | `15_Write-Ahead Log.md` | ⏳ |
+| T16 | Vector Databases | `16_Vector Databases.md` | ⏳ |
 
 ---
 
