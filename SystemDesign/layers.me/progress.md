@@ -23,7 +23,7 @@
 | M11 — Cloud Design Patterns | ? | ⏳ Pending |
 | M12 — (remaining) | ? | ⏳ Pending |
 
-**Completed**: 47 / 149 topics
+**Completed**: 48 / 149 topics
 
 ---
 
@@ -129,7 +129,7 @@
 | T05 | Denormalization | `05_Denormalization.md` | ✅ |
 | T06 | SQL Tuning | `06_SQL Tuning.md` | ✅ |
 | T07 | Key-Value Store | `07_Key-Value Store.md` | ✅ |
-| T08 | Document Store | `08_Document Store.md` | ⏳ |
+| T08 | Document Store | `08_Document Store.md` | ✅ |
 | T09 | Wide Column Store | `09_Wide Column Store.md` | ⏳ |
 | T10 | Graph Databases | `10_Graph Databases.md` | ⏳ |
 | T11 | Data Lakes & Warehouses | `11_Data Lakes and Warehouses.md` | ⏳ |
