@@ -12,7 +12,7 @@
 |---|---|---|
 | M1 — Introduction to System Design | 3 | ✅ Complete |
 | M2 — Core Concepts & Trade-offs | 17 | ✅ Complete |
-| M3 — Networking & DNS | 4 | 🔄 In Progress |
+| M3 — Networking & DNS | 4 | ✅ Complete |
 | M4 — Load Balancing & Scaling | 7 | ⏳ Pending |
 | M5 — Application Architecture | 9 | ⏳ Pending |
 | M6 — Databases | 16 | ⏳ Pending |
@@ -23,7 +23,7 @@
 | M11 — Cloud Design Patterns | ? | ⏳ Pending |
 | M12 — (remaining) | ? | ⏳ Pending |
 
-**Completed**: 23 / 149 topics
+**Completed**: 24 / 149 topics
 
 ---
 
@@ -75,7 +75,7 @@
 | T01 | DNS Fundamentals | `01_DNS Fundamentals.md` | ✅ |
 | T02 | CDN Overview | `02_CDN Overview.md` | ✅ |
 | T03 | Push CDNs | `03_Push CDNs.md` | ✅ |
-| T04 | Pull CDNs | `04_Pull CDNs.md` | ⏳ |
+| T04 | Pull CDNs | `04_Pull CDNs.md` | ✅ |
 
 ---
 
