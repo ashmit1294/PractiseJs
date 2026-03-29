@@ -23,7 +23,7 @@
 | M11 — Cloud Design Patterns | ? | ⏳ Pending |
 | M12 — (remaining) | ? | ⏳ Pending |
 
-**Completed**: 45 / 149 topics
+**Completed**: 46 / 149 topics
 
 ---
 
@@ -127,7 +127,7 @@
 | T03 | Database Sharding | `03_Database Sharding.md` | ✅ |
 | T04 | Database Federation | `04_Database Federation.md` | ✅ |
 | T05 | Denormalization | `05_Denormalization.md` | ✅ |
-| T06 | SQL Tuning | `06_SQL Tuning.md` | ⏳ |
+| T06 | SQL Tuning | `06_SQL Tuning.md` | ✅ |
 | T07 | Key-Value Store | `07_Key-Value Store.md` | ⏳ |
 | T08 | Document Store | `08_Document Store.md` | ⏳ |
 | T09 | Wide Column Store | `09_Wide Column Store.md` | ⏳ |
