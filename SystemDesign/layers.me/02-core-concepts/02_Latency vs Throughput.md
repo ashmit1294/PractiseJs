@@ -10,7 +10,7 @@
 | Term | ELI5 | Unit |
 |---|---|---|
 | **Latency** | How long does ONE request take? | milliseconds (ms) |
-| **Throughput** | How many requests can the system handle per second? | RPS / QPS / TPS |
+| **Throughput** | How many requests can the system handle per second? | RPS (Requests Per Second) / QPS (Queries Per Second) / TPS (Transactions Per Second) |
 
 > **Key Formula — Little's Law:** `Throughput = Concurrency / Latency`
 >
@@ -73,7 +73,7 @@ Request 2 → network call (5ms) → Server → Result
 Request 3 → network call (5ms) → Server → Result
 
 100 requests = 100 network calls
-Throughput: 100 RPS
+Throughput: 100 RPS (Requests Per Second)
 Latency: 5ms per request
 
 WITH BATCHING (High Throughput, Higher Latency)
@@ -97,16 +97,16 @@ Latency: 0–15ms (first request waits longest)
 Little's Law:  Throughput = Concurrency / Latency
 
 Scenario 1: Add Caching (Win-Win)
-  Before: Latency=100ms, Concurrency=100 → Throughput = 1,000 RPS
-  After:  Latency=50ms,  Concurrency=100 → Throughput = 2,000 RPS ✅
+  Before: Latency=100ms, Concurrency=100 → Throughput = 1,000 RPS (Requests Per Second)
+  After:  Latency=50ms,  Concurrency=100 → Throughput = 2,000 RPS (Requests Per Second) ✅
 
 Scenario 2: Increase Concurrency (Horizontal Scale)
-  Before: Latency=100ms, Concurrency=100  → Throughput = 1,000 RPS
-  After:  Latency=100ms, Concurrency=500  → Throughput = 5,000 RPS ✅
+  Before: Latency=100ms, Concurrency=100  → Throughput = 1,000 RPS (Requests Per Second)
+  After:  Latency=100ms, Concurrency=500  → Throughput = 5,000 RPS (Requests Per Second) ✅
 
 Scenario 3: Batching Trade-off
-  Before: Latency=10ms,  Concurrency=100 → Throughput = 10,000 RPS
-  After:  Latency=60ms,  Concurrency=100 → Throughput = 1,667 RPS ⚠️
+  Before: Latency=10ms,  Concurrency=100 → Throughput = 10,000 RPS (Requests Per Second)
+  After:  Latency=60ms,  Concurrency=100 → Throughput = 1,667 RPS (Requests Per Second) ⚠️
   (But 10x fewer DB operations — much more efficient per batch)
 ```
 
@@ -139,7 +139,7 @@ System Utilization vs Latency:
 |---|---|---|
 | **Measure what matters** | User-facing = p99 latency; batch jobs = throughput | Google Search: p99 < 200ms; Google MapReduce: max TB/hr |
 | **Batching trades latency for throughput** | Wait to group requests → fewer, bigger operations | Uber batches driver location writes every 100ms (10K tx per batch) |
-| **Parallelism improves both** | More workers = more done, faster | Netflix API gateway: 100 concurrent connections → 100x throughput at same latency (until DB contention hits) |
+| **Parallelism improves both** | More workers = more done, faster | Netflix API (Application Programming Interface) gateway: 100 concurrent connections → 100x throughput at same latency (until DB contention hits) |
 
 ---
 
@@ -148,8 +148,8 @@ System Utilization vs Latency:
 ```
 Formula: Throughput = Concurrency / Latency
 
-Example: Design checkout API for 10,000 RPS at 100ms latency
-  Concurrency = 10,000 RPS × 0.1s = 1,000 concurrent connections needed
+Example: Design checkout API (Application Programming Interface) for 10,000 RPS (Requests Per Second) at 100ms latency
+  Concurrency = 10,000 RPS (Requests Per Second) × 0.1s = 1,000 concurrent connections needed
 
 If you add caching and reduce latency to 50ms:
   Concurrency = 10,000 × 0.05 = 500 connections (half the infra cost!)
@@ -173,7 +173,7 @@ If DB slows to 200ms:
 | **p95 / p99 latency** | The slowest 5% / 1% of requests — what users actually feel |
 | **Tail latency** | p99.9+ — extreme outliers from GC pauses, retries, network hiccups |
 
-> **Never use average latency for SLAs.** A 10ms average with 500ms p99 = users are suffering.
+> **Never use average latency for SLAs (Service Level Agreements).** A 10ms average with 500ms p99 = users are suffering.
 
 ---
 
@@ -217,9 +217,9 @@ If DB slows to 200ms:
 
 | Pitfall | Reality | Fix |
 |---|---|---|
-| **Optimizing average latency** | Averages hide p99/p99.9 outliers from GC, retries, slow queries | Always set SLAs on percentiles, not averages |
+| **Optimizing average latency** | Averages hide p99/p99.9 outliers from GC, retries, slow queries | Always set SLAs (Service Level Agreements) on percentiles, not averages |
 | **Ignoring queueing theory near capacity** | At 90% utilization, latency can hit 10x vs 70% | Load test at realistic peak; keep prod ≤ 60–70% utilization |
-| **Confusing bandwidth with latency** | High bandwidth ≠ low latency (satellite: 50 Mbps, 600ms latency) | Use CDN/edge to reduce distance, not just bandwidth |
+| **Confusing bandwidth with latency** | High bandwidth ≠ low latency (satellite: 50 Mbps, 600ms latency) | Use CDN (Content Delivery Network)/edge to reduce distance, not just bandwidth |
 | **"Add more servers"** | Doesn't automatically reduce latency if bottleneck is DB or logic | Identify the bottleneck first — use profiling and percentile metrics |
 
 ---
@@ -229,12 +229,12 @@ If DB slows to 200ms:
 **Common Questions + Answers:**
 - "How to improve throughput for write-heavy DB?" → Batching, write-behind caching, sharding
 - "p99 is 2s but avg is 50ms — what's wrong?" → Tail latency: look for GC pauses, slow queries, retries
-- "Need 50K RPS at 20ms — how many connections?" → 50,000 × 0.02 = **1,000 connections**
+- "Need 50K RPS (Requests Per Second) at 20ms — how many connections?" → 50,000 × 0.02 = **1,000 connections**
 - "When to optimize throughput over latency?" → Batch jobs, analytics, background tasks
 
 **Red Flags:**
 - "We can optimize both without trade-offs" — shows no real-world experience
-- Using average latency for SLAs
+- Using average latency for SLAs (Service Level Agreements)
 - Not asking which metric matters more for the use case
 - "Just add more servers" without explaining the mechanism
 

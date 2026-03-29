@@ -11,7 +11,7 @@
 |---|---|
 | **Performance** | How fast your system handles **one** request |
 | **Scalability** | How well it stays fast when **many** people use it at once |
-| **Vertical Scaling** | Give your one machine a bigger brain (more RAM/CPU) |
+| **Vertical Scaling** | Give your one machine a bigger brain (more RAM (Random Access Memory)/CPU (Central Processing Unit)) |
 | **Horizontal Scaling** | Add more machines to share the work |
 
 > **Key Insight:** A system can be fast for 1 user but crash for 1000 (scalability problem), OR handle 1000 users but be slow for each one (performance problem). **You need both.**
@@ -158,8 +158,8 @@ No coordination overhead
 - **Example:** An e-commerce site doing checkout in 200ms normally but timing out on Black Friday → **scalability problem**, not a performance one
 
 ### 3. Vertical Scaling Has Hard Limits
-- **What it means:** Upgrade one machine (more RAM, faster CPU, better disk)
-- **ELI5:** Like upgrading your computer — faster RAM helps, but eventually you can't just buy a bigger computer
+- **What it means:** Upgrade one machine (more RAM (Random Access Memory), faster CPU (Central Processing Unit), better disk)
+- **ELI5:** Like upgrading your computer — faster RAM (Random Access Memory) helps, but eventually you can't just buy a bigger computer
 - **Pros:** Simple — no code changes needed
 - **Cons:** Physical and economic limits; expensive at scale; **single point of failure**
 - **Example:** Twitter's monolithic Rails app hit vertical limits → had to rearchitect for horizontal scaling
@@ -182,8 +182,8 @@ No coordination overhead
 ### Vertical vs Horizontal Scaling Types
 
 **Vertical Scaling (Scale-Up) Flavors:**
-- **Compute scaling** → Faster CPUs, more cores → Good for CPU-bound (video encoding, cryptography)
-- **Memory scaling** → More RAM, faster storage → Good for in-memory caches, large datasets
+- **Compute scaling** → Faster CPUs, more cores → Good for CPU (Central Processing Unit)-bound (video encoding, cryptography)
+- **Memory scaling** → More RAM (Random Access Memory), faster storage → Good for in-memory caches, large datasets
 - Simple, no code changes, but **exponentially more expensive** at high tiers
 
 **Horizontal Scaling (Scale-Out) Patterns:**
@@ -242,7 +242,7 @@ VIDEO ENCODING → Vertical Scaling
 ─────────────────────────────────────────────────────────
 Video Upload (raw 4K)
         ↓
-GPU Instance (p3.16xlarge, 8x V100 GPUs, 488GB RAM)
+GPU Instance (p3.16xlarge, 8x V100 GPUs, 488GB RAM (Random Access Memory))
         ↓
 Parallel Encoding (multiple bitrates)
         ↓
@@ -258,7 +258,7 @@ User 1, User 2 ... User N (millions concurrent)
         ↓
 Load Balancer (AWS ELB)
         ↓
-API Server 1, API Server 2 ... API Server N (1000s of instances)
+API (Application Programming Interface) Server 1, API (Application Programming Interface) Server 2 ... API (Application Programming Interface) Server N (1000s of instances)
         ↓
 Regional CDN (CloudFront)
 
@@ -307,18 +307,18 @@ Why Horizontal? → Each stream is independent (embarrassingly parallel).
 
 ### Staff+
 - Quantify trade-offs with data:
-  > "Vertical to 256GB RAM costs $X/month, handles Y req/sec. Horizontal with 10 instances costs $Z/month, handles 8Y req/sec with 20ms additional latency."
+  > "Vertical to 256GB RAM (Random Access Memory) costs $X/month, handles Y req/sec. Horizontal with 10 instances costs $Z/month, handles 8Y req/sec with 20ms additional latency."
 - Discuss organizational implications: ops complexity, monitoring, engineering expertise
 - Identify when scalability is premature vs critical:
   - 1,000 users → vertical is fine
-  - 99.99% uptime SLA → you need redundancy
+  - 99.99% uptime SLA (Service Level Agreement) → you need redundancy
 - Understand second-order effects: how caching affects consistency, sharding affects queries, microservices affect deployment
 
 ---
 
 ## Common Interview Questions
 
-1. **"Your API response time increased from 100ms to 2 seconds. Is this a performance or scalability issue?"**
+1. **"Your API (Application Programming Interface) response time increased from 100ms to 2 seconds. Is this a performance or scalability issue?"**
    - ✅ Check if it's slow for *all* users or only during peak load
    - Profile single requests vs concurrent load testing
 
@@ -326,7 +326,7 @@ Why Horizontal? → Each stream is independent (embarrassingly parallel).
    - ✅ Early-stage products, latency-sensitive workloads (trading, gaming), when coordination overhead exceeds benefits, when the problem doesn't parallelize well
 
 3. **"How does Netflix handle millions of concurrent video streams?"**
-   - ✅ Horizontal scaling with stateless servers, CDN distribution, regional caching. Each stream is independent → embarrassingly parallel
+   - ✅ Horizontal scaling with stateless servers, CDN (Content Delivery Network) distribution, regional caching. Each stream is independent → embarrassingly parallel
 
 4. **"You need to handle 10x traffic in 6 months. How do you prepare?"**
    - ✅ Profile current bottlenecks → calculate capacity needs → design for horizontal if vertical won't suffice → implement monitoring for scalability metrics
@@ -338,7 +338,7 @@ Why Horizontal? → Each stream is independent (embarrassingly parallel).
 - Saying "we'll just add more servers" without identifying the actual bottleneck
 - Confusing **caching** (performance optimization) with **scalability architecture**
 - Suggesting microservices for a system with 100 users (premature optimization)
-- Not asking about current traffic, growth projections, or SLA before recommending scaling
+- Not asking about current traffic, growth projections, or SLA (Service Level Agreement) before recommending scaling
 - Claiming horizontal scaling always provides **linear** scalability (ignores coordination overhead and **Amdahl's Law**)
 
 ---

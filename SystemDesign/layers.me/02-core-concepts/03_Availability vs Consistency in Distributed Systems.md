@@ -78,7 +78,7 @@ Replica B must choose:
 EVENTUAL CONSISTENCY ◄──────────────────────► STRONG CONSISTENCY
    (Availability)                               (Consistency)
        │                                               │
-  DNS updates          Cassandra        Google Spanner │
+  DNS (Domain Name System) updates          Cassandra        Google Spanner │
   Social feeds         DynamoDB         Bank transfers │
   Like counters        (tunable)        Medical records│
   1-5ms latency        quorum reads     50-100ms writes│
@@ -86,7 +86,7 @@ EVENTUAL CONSISTENCY ◄──────────────────�
 
 | System | Model | Why |
 |---|---|---|
-| **DNS** | Eventual | Stale IP is better than no resolution |
+| **DNS (Domain Name System)** | Eventual | Stale IP is better than no resolution |
 | **Cassandra / DynamoDB** | Tunable | Configure per-operation |
 | **Facebook News Feed** | Eventual | Seconds of delay is fine |
 
@@ -112,7 +112,7 @@ EVENTUAL CONSISTENCY ◄──────────────────�
   │ Payment    │   │  Analytics     │
   │ Inventory  │   │  Product Page  │
   └────────────┘   └────────────────┘
-  Quorum writes    Last-write-wins / TTL
+  Quorum writes    Last-write-wins / TTL (Time To Live)
   10-50ms latency  1-5ms latency
 ```
 

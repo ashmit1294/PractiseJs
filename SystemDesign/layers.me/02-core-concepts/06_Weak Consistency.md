@@ -136,7 +136,7 @@ Acceptable? YES — users don't care if likes are off by 3
 |---|---|
 | **Confusing weak with eventual** | Eventual = promises convergence. Weak = no promise at all. |
 | **Weak consistency for user-facing writes** | Use read-your-own-writes at minimum (session affinity / client-side cache of own writes) |
-| **No staleness monitoring** | Even in weak consistency, track data age; alert when staleness SLA is violated |
+| **No staleness monitoring** | Even in weak consistency, track data age; alert when staleness SLA (Service Level Agreement) is violated |
 | Applying strong consistency everywhere | Over-engineering; pay coordination cost only where business demands it |
 
 ---
@@ -165,7 +165,7 @@ Acceptable? YES — users don't care if likes are off by 3
 |---|---|
 | **Mid** | Define weak consistency; distinguish from eventual; name 1–2 use cases (VoIP, caching); explain performance benefit |
 | **Senior** | Design a system (analytics dashboard, social feed) using weak consistency with justification; mention monitoring staleness; discuss user experience impact |
-| **Staff+** | Explain hybrid designs; evolve from weak → eventual as requirements grow; quantify staleness SLAs; reference specific tech (memcached, UDP, Prometheus) |
+| **Staff+** | Explain hybrid designs; evolve from weak → eventual as requirements grow; quantify staleness SLAs (Service Level Agreements); reference specific tech (memcached, UDP, Prometheus) |
 
 **Common Questions:**
 - "When would you choose weak over eventual consistency?" → When convergence itself isn't needed (real-time media, approximate metrics)
@@ -186,7 +186,7 @@ Acceptable? YES — users don't care if likes are off by 3
 3. **Sub-millisecond writes** via zero coordination → millions of ops/sec
 4. Complexity is **pushed to the application** — app must tolerate inconsistency as normal, not exceptional
 5. Use for: VoIP, caches, social counters, approximate analytics
-6. **Monitor staleness** even without guarantees — track data age; set SLA alerts
+6. **Monitor staleness** even without guarantees — track data age; set SLA (Service Level Agreement) alerts
 7. Distinct from eventual: **eventual promises convergence; weak does not**
 
 ---

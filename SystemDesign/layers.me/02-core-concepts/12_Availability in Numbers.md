@@ -1,10 +1,10 @@
-# 12. Availability in Numbers: SLA & Nines Explained
+# 12. Availability in Numbers: SLA (Service Level Agreement) & Nines Explained
 
 ---
 
 ## TL;DR
 
-Availability = uptime as a percentage. Each additional "nine" = 10x less downtime but roughly 10x more cost and complexity. Sequential components multiply availability (always worse). Parallel redundancy dramatically improves it. Set SLA targets *below* your measured availability to leave a buffer.
+Availability = uptime as a percentage. Each additional "nine" = 10x less downtime but roughly 10x more cost and complexity. Sequential components multiply availability (always worse). Parallel redundancy dramatically improves it. Set SLA (Service Level Agreement) targets *below* your measured availability to leave a buffer.
 
 > **Cheat Sheet**: 99.9% = 8.7h/year | 99.99% = 52min/year | 99.999% = 5.3min/year | Sequential: multiply | Parallel: `1 - (1-A₁)(1-A₂)` | Measure end-to-end, not component-by-component
 
@@ -68,7 +68,7 @@ Example: 3 hours downtime last month (720 hours total)
 ```
 Availability_total = A₁ × A₂ × A₃ × ... × Aₙ
 
-Example: Load Balancer(99.95%) → API Gateway(99.9%) → Service(99.9%) → DB(99.99%)
+Example: Load Balancer(99.95%) → API (Application Programming Interface) Gateway(99.9%) → Service(99.9%) → DB(99.99%)
   = 0.9995 × 0.999 × 0.999 × 0.9999
   = 99.74%  ← worse than every individual component!
 
@@ -99,10 +99,10 @@ Example: 2 load balancers each at 99.9%
 ```
 Downtime = Total_Time × (1 - Availability)
 
-99.95% SLA, annual:
+99.95% SLA (Service Level Agreement), annual:
   = 8760 hours × 0.0005 = 4.38 hours/year = ~22 minutes/month
 
-This is your "error budget" — how much downtime you can have before breaching SLA
+This is your "error budget" — how much downtime you can have before breaching SLA (Service Level Agreement)
 ```
 
 ### Formula 5 — Composite System (mixed serial/parallel)
@@ -110,16 +110,16 @@ This is your "error budget" — how much downtime you can have before breaching 
 ```
 Real architecture:
   Layer 1: 2× Load Balancers (parallel)    → 1 - (0.001)²  = 99.9999%
-  Layer 2: API Gateway (single component)  →                = 99.95%   ← BOTTLENECK
+  Layer 2: API (Application Programming Interface) Gateway (single component)  →                = 99.95%   ← BOTTLENECK
   Layer 3: 3× App Servers (parallel)       → 1 - (0.001)³  = 99.9999999%
   Layer 4: 2× DB Replicas (parallel)       → 1 - (0.0001)² = 99.999999%
 
 Total = 0.999999 × 0.9995 × 0.999999999 × 0.99999999
       = 99.95%
 
-The single API Gateway at 99.95% is the BOTTLENECK.
+The single API (Application Programming Interface) Gateway at 99.95% is the BOTTLENECK.
 No amount of redundancy elsewhere can overcome it.
-Fix: add a second API Gateway → total jumps to ~99.9999%
+Fix: add a second API (Application Programming Interface) Gateway → total jumps to ~99.9999%
 ```
 
 ---
@@ -128,7 +128,7 @@ Fix: add a second API Gateway → total jumps to ~99.9999%
 
 ```
 Sequential (multiply → worse):
-  [LB 99.95%] → [API GW 99.9%] → [Service 99.9%] → [DB 99.99%]
+  [LB 99.95%] → [API (Application Programming Interface) GW 99.9%] → [Service 99.9%] → [DB 99.99%]
   
   Total: 0.9995 × 0.999 × 0.999 × 0.9999 = 99.74%
   Each arrow = multiplied risk
@@ -161,7 +161,7 @@ Two 99% components in parallel = 99.99%. Three = 99.9999%. But if both share the
 | 99.99% → 99.999% | Active-active multi-region, 24/7 on-call, chaos engineering | ~1000x |
 
 ### 4. Measure End-to-End, Not Component-by-Component
-Your database might have 99.99% uptime, but users could experience 99.1% availability due to CDN failures, DNS problems, slow queries, client-side JS errors. Use **synthetic monitoring** — automated scripts that simulate real user journeys from multiple locations.
+Your database might have 99.99% uptime, but users could experience 99.1% availability due to CDN (Content Delivery Network) failures, DNS (Domain Name System) problems, slow queries, client-side JS errors. Use **synthetic monitoring** — automated scripts that simulate real user journeys from multiple locations.
 
 > Netflix: primary metric is "stream starts per second" — not whether backend services respond to health checks.
 
@@ -176,8 +176,8 @@ Your database might have 99.99% uptime, but users could experience 99.1% availab
 |---|---|---|
 | **Service-Level** | Single component uptime | Individual microservice SLOs |
 | **End-to-End** | Full user journey success rate | Uber: "request ride → trip complete" |
-| **Regional** | Availability per geographic zone | Netflix: tracks per AWS region |
-| **Weighted** | Critical paths get higher targets | Stripe: payment API=99.99%, analytics=99.9% |
+| **Regional** | Availability per geographic zone | Netflix: tracks per AWS (Amazon Web Services) region |
+| **Weighted** | Critical paths get higher targets | Stripe: payment API (Application Programming Interface)=99.99%, analytics=99.9% |
 
 ---
 
@@ -190,47 +190,47 @@ Your database might have 99.99% uptime, but users could experience 99.1% availab
 > - Writes MUST go to primary (sequential single point)
 > - Primary election on failure: ~10–30s downtime during failover
 >
-> MongoDB Atlas handles this automatically — but understanding the math explains WHY Atlas charges more for multi-region clusters (it's adding parallel layers to reduce that single-primary bottleneck). A 3-node Atlas cluster across 3 AZs gives you `1 - (0.0005)³ ≈ 99.9999999%` for reads, but write availability is still limited by primary promotion time (your failover RTO).
+> MongoDB Atlas handles this automatically — but understanding the math explains WHY Atlas charges more for multi-region clusters (it's adding parallel layers to reduce that single-primary bottleneck). A 3-node Atlas cluster across 3 AZs gives you `1 - (0.0005)³ ≈ 99.9999999%` for reads, but write availability is still limited by primary promotion time (your failover RTO (Recovery Time Objective)).
 
 ---
 
 ## Real-World Examples
 
-### Amazon S3 — 99.99% SLA
+### Amazon S3 — 99.99% SLA (Service Level Agreement)
 - Internal target: 99.995% (buffer for unexpected incidents)
-- SLA is set *below* measured performance so they can always exceed it
+- SLA (Service Level Agreement) is set *below* measured performance so they can always exceed it
 - 2017 outage: 4 hours, triggered by a maintenance command typo that removed too many servers
 - Fix: gradual rollouts for all maintenance ops + strict server-per-command limits
 
 ### Netflix — 99.99% Streaming Availability
-- Serves 200M+ subscribers across multiple AWS regions
+- Serves 200M+ subscribers across multiple AWS (Amazon Web Services) regions
 - Measure **"stream starts per second"** as primary availability metric (user perspective)
-- Discovered gap: component uptime showed 99.99%, users experienced 99.95% (client-side, CDN, ISP routing failures)
+- Discovered gap: component uptime showed 99.99%, users experienced 99.95% (client-side, CDN (Content Delivery Network), ISP routing failures)
 - Response: synthetic monitoring + client-side telemetry + measure from user perspective
 
 ### Stripe — Tiered Availability
 
 | Endpoint | Target | Why |
 |---|---|---|
-| Payment processing API | 99.99% | Every minute down = millions lost |
-| Reporting / analytics API | 99.9% | Merchants can tolerate 30min delay |
+| Payment processing API (Application Programming Interface) | 99.99% | Every minute down = millions lost |
+| Reporting / analytics API (Application Programming Interface) | 99.9% | Merchants can tolerate 30min delay |
 | Enterprise customers | 99.995% | Dedicated infrastructure |
 | Standard customers | 99.99% | Shared infrastructure |
 
 ---
 
-## Setting Realistic SLA Targets
+## Setting Realistic SLA (Service Level Agreement) Targets
 
 ```
 SLA_target = Measured_Availability - Safety_Buffer
 
 Example: System achieves 99.97% over 6 months
-  → Set SLA at 99.95%
+  → Set SLA (Service Level Agreement) at 99.95%
   → Buffer = 0.02% = ~1.75 hours/year
 
 Why? Accounts for: black swan events, seasonal spikes, measurement gaps
 
-AWS pattern: Set SLA 0.01–0.05% below measured availability
+AWS (Amazon Web Services) pattern: Set SLA (Service Level Agreement) 0.01–0.05% below measured availability
 ```
 
 ---
@@ -258,7 +258,7 @@ ROI check (if downtime = $100K/hour):
 ## Common Pitfalls
 
 ### Pitfall 1: Component Uptime ≠ User Availability
-- DB at 99.99% but checkout success at 99.5%? Check: load balancer, API gateway, CDN, DNS, client JS errors
+- DB at 99.99% but checkout success at 99.5%? Check: load balancer, API (Application Programming Interface) gateway, CDN (Content Delivery Network), DNS (Domain Name System), client JS errors
 - Fix: synthetic monitoring simulating complete user journeys
 
 ### Pitfall 2: Correlated Failures in "Redundant" Systems
@@ -285,8 +285,8 @@ ROI check (if downtime = $100K/hour):
 | Level | What you need to demonstrate |
 |---|---|
 | **Mid** | Basic formula; convert percentages to downtime; sequential multiply, parallel redundancy formula; know that microservices reduce availability |
-| **Senior** | Calculate composite availability; explain correlated failure risk; justify availability target via cost-benefit; know 5 types of availability; set SLA with buffer |
-| **Staff+** | Design company-wide SLA frameworks; ROI of reliability investments; org culture (blameless post-mortems, error budgets, on-call rotation); handle incidents and derive systemic improvements |
+| **Senior** | Calculate composite availability; explain correlated failure risk; justify availability target via cost-benefit; know 5 types of availability; set SLA (Service Level Agreement) with buffer |
+| **Staff+** | Design company-wide SLA (Service Level Agreement) frameworks; ROI of reliability investments; org culture (blameless post-mortems, error budgets, on-call rotation); handle incidents and derive systemic improvements |
 
 ---
 
@@ -309,7 +309,7 @@ ROI check (if downtime = $100K/hour):
    - Also consider: dependency ceiling (can't exceed your weakest dependency's availability)
 
 4. **"DB is 99.99% uptime but users report 99.5% availability. What's wrong?"**
-   - Network issues, CDN serving stale/corrupted content, DNS failures, API rate limiting, client-side JS errors, slow queries timing out
+   - Network issues, CDN (Content Delivery Network) serving stale/corrupted content, DNS (Domain Name System) failures, API (Application Programming Interface) rate limiting, client-side JS errors, slow queries timing out
    - Fix: synthetic monitoring from user perspective, not just health check pings
 
 5. **"How to improve availability without increasing costs?"**
@@ -317,7 +317,7 @@ ROI check (if downtime = $100K/hour):
    - Circuit breakers + fallbacks (fail fast, degrade gracefully)
    - Better monitoring → MTTD (mean time to detect) drives recovery time
    - Optimize slow queries that cause timeouts
-   - Runbooks for common incidents → reduce MTTR
+   - Runbooks for common incidents → reduce MTTR (Mean Time To Recovery)
 
 ---
 
@@ -327,7 +327,7 @@ ROI check (if downtime = $100K/hour):
 - ❌ "More microservices = better availability" — they multiply failure risk unless you add redundancy per service
 - ❌ "Just add redundancy everywhere for five nines" — redundancy only works if failures are independent; also costs 1000x more
 - ❌ "Availability is the ops team's problem" — it's owned by architecture, code quality, AND operations
-- ❌ "We hit 99.99% last month so we'll promise it" — one month is insufficient; set SLA below measured with a buffer
+- ❌ "We hit 99.99% last month so we'll promise it" — one month is insufficient; set SLA (Service Level Agreement) below measured with a buffer
 
 ---
 
@@ -337,11 +337,11 @@ ROI check (if downtime = $100K/hour):
 - **Sequential**: multiply availabilities → always worse than the weakest component
 - **Parallel**: `1 - (1-A₁)(1-A₂)` → dramatically better, but only if failures are independent
 - **Measure user-facing availability**, not just component uptime — use synthetic monitoring
-- **SLA target = measured availability − safety buffer** — never promise what you've only barely achieved
+- **SLA (Service Level Agreement) target = measured availability − safety buffer** — never promise what you've only barely achieved
 - **Each additional nine costs ~10x more** — justify via business cost of downtime vs infrastructure cost
 
 ---
 
 ## Keywords
 
-`availability` `nines` `SLA` (Service Level Agreement) `SLO` (Service Level Objective) `SLI` (Service Level Indicator) `uptime` `downtime` `error budget` `sequential availability` `parallel redundancy` `composite availability` `MTTR` (Mean Time to Recover) `MTTD` (Mean Time to Detect) `MTBF` (Mean Time Between Failures) `synthetic monitoring` `end-to-end availability` `correlated failure` `shared dependency` `single point of failure` `multi-AZ` `multi-region` `active-active` `chaos engineering` `zero-downtime deployment` `blue-green deployment` `rolling update` `planned maintenance` `error budget burn rate`
+`availability` `nines` `SLA (Service Level Agreement)` (Service Level Agreement) `SLO (Service Level Objective)` (Service Level Objective) `SLI (Service Level Indicator)` (Service Level Indicator) `uptime` `downtime` `error budget` `sequential availability` `parallel redundancy` `composite availability` `MTTR (Mean Time To Recovery)` (Mean Time to Recover) `MTTD (Mean Time To Detect)` (Mean Time to Detect) `MTBF (Mean Time Between Failures)` (Mean Time Between Failures) `synthetic monitoring` `end-to-end availability` `correlated failure` `shared dependency` `single point of failure` `multi-AZ` `multi-region` `active-active` `chaos engineering` `zero-downtime deployment` `blue-green deployment` `rolling update` `planned maintenance` `error budget burn rate`

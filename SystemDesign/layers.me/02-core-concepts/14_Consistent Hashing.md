@@ -230,7 +230,7 @@ Buffer range  = 90,909 ± 7,454 keys per server    ← acceptable
 
 > **MERN dev note — DynamoDB partition key = consistent hashing under the hood**
 >
-> When you choose a DynamoDB `partitionKey`, AWS internally hashes it and maps it onto a consistent hashing ring. You never see the ring, but it's why:
+> When you choose a DynamoDB `partitionKey`, AWS (Amazon Web Services) internally hashes it and maps it onto a consistent hashing ring. You never see the ring, but it's why:
 > - Choosing a **high-cardinality partition key** (e.g., `userId`) matters — low cardinality clumps keys on few ring segments
 > - Hot partition errors happen when too many requests hash to the same ring segment
 >
@@ -305,7 +305,7 @@ console.log(ring.getServer('session:abc'));
 |---|---|---|---|---|
 | **Basic Consistent Hashing** | 1 | O(log N) | Poor (40%+ variance) | Academic examples, early Memcached |
 | **Virtual Nodes** | 100–500 | O(log N) | Excellent (<5%) | **Cassandra, DynamoDB, production default** |
-| **Bounded Load** | 100–500 | O(log N) | Excellent + max cap | Google Maglev LB, CDN viral content |
+| **Bounded Load** | 100–500 | O(log N) | Excellent + max cap | Google Maglev LB, CDN (Content Delivery Network) viral content |
 | **Jump Hash** | N/A (sequential IDs) | O(1) | Good | Google internal, stateless LBs |
 | **Rendezvous Hashing** | N/A | O(N) | Excellent | Small clusters, K8s consistent routing |
 
@@ -327,7 +327,7 @@ console.log(ring.getServer('session:abc'));
 
 > **MERN dev note**: Cassandra's gossip-based ring means **no single point of failure in routing**. MongoDB's `mongos` router + config server is more straightforward to operate but adds a routing layer that can become a bottleneck at hundreds of thousands of writes/sec.
 
-### Akamai CDN
+### Akamai CDN (Content Delivery Network)
 - HTTP request URL hashed → ring position → nearest edge server clockwise
 - New edge PoP only affects URLs in that server's ring segment
 - Bounded load variant: once a server hits 120% of avg load, overflow to next server
@@ -396,7 +396,7 @@ A: After finding the primary server (first clockwise), continue walking to find 
 | **CAP Theorem** | Consistent hashing gives each key a deterministic home → availability during partitions |
 | **Replication** | The ring walk naturally extends to multi-replica placement |
 | **Bloom Filters** | Often co-located in Cassandra/DynamoDB nodes to skip disk reads for absent keys |
-| **Load Balancing** | Bounded-load consistent hashing used in Google Maglev and CDN routing |
+| **Load Balancing** | Bounded-load consistent hashing used in Google Maglev and CDN (Content Delivery Network) routing |
 | **Database Sharding** | Consistent hashing is one of two standard sharding strategies (the other: range-based) |
 
 ---
@@ -408,10 +408,10 @@ A: After finding the primary server (first clockwise), continue walking to find 
 3. **Virtual nodes**: 150–256 vnodes per physical server reduces load variance to <5–8%
 4. **O(log N) lookup**: store ring positions in a sorted array; binary search to find the first position ≥ key hash
 5. **Replication**: walk clockwise from primary to find R-1 additional distinct physical nodes
-6. **Real systems**: DynamoDB partition keys, Cassandra vnodes (256), Redis Cluster (16,384 slots), Akamai CDN routing
+6. **Real systems**: DynamoDB partition keys, Cassandra vnodes (256), Redis Cluster (16,384 slots), Akamai CDN (Content Delivery Network) routing
 
 ---
 
 ## Keywords
 
-`consistent hashing` · `hash ring` · `virtual nodes` · `vnodes` · `minimal redistribution` · `K/N` · `load variance` · `binary search ring` · `ring wrap-around` · `DynamoDB partition key` · `Cassandra 256 vnodes` · `Redis Cluster hash slots` · `Akamai CDN` · `hinted handoff` · `weighted consistent hashing` · `bounded load` · `jump hash` · `rendezvous hashing` · `horizontal scaling` · `cache stampede`
+`consistent hashing` · `hash ring` · `virtual nodes` · `vnodes` · `minimal redistribution` · `K/N` · `load variance` · `binary search ring` · `ring wrap-around` · `DynamoDB partition key` · `Cassandra 256 vnodes` · `Redis Cluster hash slots` · `Akamai CDN (Content Delivery Network)` · `hinted handoff` · `weighted consistent hashing` · `bounded load` · `jump hash` · `rendezvous hashing` · `horizontal scaling` · `cache stampede`

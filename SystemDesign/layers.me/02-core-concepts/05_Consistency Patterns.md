@@ -32,7 +32,7 @@ WEAK ◄────────────────────────
   │                                                           │
   No guarantees                                  Linearizability
   │                                                           │
-Memcached     DNS     DynamoDB    Cassandra    Spanner  PostgreSQL
+Memcached     DNS (Domain Name System)     DynamoDB    Cassandra    Spanner  PostgreSQL
               │      (eventual)  (tunable)           (single node)
               │
          Eventual: guaranteed convergence, no order guarantees
@@ -71,7 +71,7 @@ STRONG CONSISTENCY:
 | Model | Guarantee | Example Systems | When to Use |
 |---|---|---|---|
 | **Weak** | No guarantees after write | Memcached | Cache invalidations, best-effort |
-| **Eventual** | All replicas converge eventually | DynamoDB, Cassandra, DNS | Social feeds, analytics, view counts |
+| **Eventual** | All replicas converge eventually | DynamoDB, Cassandra, DNS (Domain Name System) | Social feeds, analytics, view counts |
 | **Causal** | Cause-effect order preserved | MongoDB (causal sessions) | Chat (reply after message), comments |
 | **Read-Your-Writes** | You always see your own writes | Most session-based systems | Profile updates, user settings |
 | **Monotonic Reads** | Never see older data than you saw before | RSS feeds, news | Avoid time-reversal confusion |
@@ -106,14 +106,14 @@ What are the consequences of stale data?
           │          │              │
     Browse          Cart         Checkout
   (Eventual)     (Eventual)     (Strong)
-  CDN/Cache      DynamoDB      PostgreSQL
+  CDN (Content Delivery Network)/Cache      DynamoDB      PostgreSQL
   Stale OK       Sync later    ACID txn ✓
                                  ↓
                              Inventory DB
                              (Strong — prevent overselling)
 ```
 
-- **Catalog**: Eventual → enables CDN caching + high read throughput
+- **Catalog**: Eventual → enables CDN (Content Delivery Network) caching + high read throughput
 - **Checkout**: Strong → prevents double-charging and overselling
 - **Analytics**: Eventual → massive volume, hours of lag OK
 
@@ -156,7 +156,7 @@ What are the consequences of stale data?
 | Pitfall | Fix |
 |---|---|
 | "Just use strong consistency everywhere" | Kills performance; 10x latency, reduced availability — only use where needed |
-| "Eventual = milliseconds" | May be seconds or minutes under load/partition — measure replication lag; set SLAs |
+| "Eventual = milliseconds" | May be seconds or minutes under load/partition — measure replication lag; set SLAs (Service Level Agreements) |
 | Applying one model to entire system | Use a **consistency matrix** per data type; polyglot persistence |
 | Confusing consistency models with isolation levels | Consistency = cross-replica sync; Isolation = concurrent access on same node — independent choices |
 
@@ -168,7 +168,7 @@ What are the consequences of stale data?
 |---|---|
 | **Mid** | Name the 3 models; give 1 use case each; understand that stronger = slower; map consistency to CAP choices |
 | **Senior** | Design hybrid systems (which component gets which model, why); discuss causal/RYW/monotonic; estimate performance impact; tie to replication strategies |
-| **Staff+** | Design custom models; discuss Paxos/Raft for strong consistency; know CRDTs; quantify SLA impact; challenge over-engineering |
+| **Staff+** | Design custom models; discuss Paxos/Raft for strong consistency; know CRDTs; quantify SLA (Service Level Agreement) impact; challenge over-engineering |
 
 **Common Questions:**
 - "Design a distributed counter at 100K increments/sec" → Eventual, CRDT (G-Counter), explain why
@@ -188,7 +188,7 @@ What are the consequences of stale data?
 1. Consistency = **spectrum**, not binary (weak → eventual → strong)
 2. Stronger consistency = **more coordination = higher latency + lower availability**
 3. Different data types in the **same system** should use **different models**
-4. **"Eventually" is not "milliseconds"** — monitor replication lag; set SLAs
+4. **"Eventually" is not "milliseconds"** — monitor replication lag; set SLAs (Service Level Agreements)
 5. Modern DBs (DynamoDB, Cassandra) offer **tunable consistency per operation**
 6. Strong consistency is possible globally (Spanner) but costs 5–10ms latency + infrastructure
 7. Eventual consistency requires an explicit **conflict resolution strategy**

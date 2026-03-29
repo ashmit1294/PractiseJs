@@ -11,7 +11,7 @@
 - During propagation, different readers may see different versions (**inconsistency window**)
 - **Guaranteed to converge** — this is the key difference from weak consistency (which makes no such promise)
 - When updates conflict, a **deterministic conflict resolution** rule picks the winner
-- Best for: high-availability at global scale — DynamoDB, Cassandra, DNS, Netflix, Amazon
+- Best for: high-availability at global scale — DynamoDB, Cassandra, DNS (Domain Name System), Netflix, Amazon
 
 ---
 
@@ -71,7 +71,7 @@ us-east-1 (Primary)     eu-west-1 (Replica)     ap-southeast-1 (Replica)
   t=200ms: EU user reads again │                           │
   → sees updated cart ✓        │                           │
 
-Prime Day: millions TPS; accepts ~200ms inconsistency window
+Prime Day: millions TPS (Transactions Per Second); accepts ~200ms inconsistency window
 ```
 
 ---
@@ -148,7 +148,7 @@ Fix: Use strong consistency for inventory OR reserved inventory pattern
 - Default reads = eventually consistent (any replica, <1s lag)
 - Strongly consistent reads = optional (+10ms, queries leader)
 - **99.9% of operations tolerate staleness** → optimize for eventual; handle exceptions with strong
-- Prime Day: millions TPS, ~200ms inconsistency window accepted
+- Prime Day: millions TPS (Transactions Per Second), ~200ms inconsistency window accepted
 
 ### Netflix — Viewing History
 - Pause on California device → write to local DC → async propagation to Europe
@@ -165,10 +165,10 @@ Fix: Use strong consistency for inventory OR reserved inventory pattern
 - Read repair + anti-entropy (Merkle trees + gossip) = guaranteed convergence
 - Sensor data (IoT): write `ONE`, read `QUORUM` → balance freshness + availability
 
-### DNS
+### DNS (Domain Name System)
 - Update A record → authoritative nameservers propagate
-- Recursive resolvers cache old IP until TTL expires (seconds to hours)
-- **TTL controls upper bound on inconsistency window**
+- Recursive resolvers cache old IP until TTL (Time To Live) expires (seconds to hours)
+- **TTL (Time To Live) controls upper bound on inconsistency window**
 - Convergence guaranteed; timing not
 
 ---
@@ -192,7 +192,7 @@ Fix: Use strong consistency for inventory OR reserved inventory pattern
 | **"Eventual = never converges"** | It's a mathematical guarantee — measure p99 replication lag; set SLOs (e.g., 99% converge in 100ms) |
 | **No conflict resolution plan** | Silence LWW silently loses data; design merge logic per data type |
 | **Mixing eventual + strong without isolation** | Don't let eventually consistent reads feed into strongly consistent writes (e.g., inventory oversell) |
-| **No monitoring** | Track replication lag, conflict rates; alert on SLO violations; design UI for stale states |
+| **No monitoring** | Track replication lag, conflict rates; alert on SLO (Service Level Objective) violations; design UI for stale states |
 
 ---
 
@@ -207,7 +207,7 @@ Fix: Use strong consistency for inventory OR reserved inventory pattern
 **Common Questions:**
 - "How does eventual consistency differ from weak?" → Eventual guarantees convergence; weak does not
 - "Design a shopping cart with eventual consistency" → Union-based merge (Amazon approach); discuss LWW tradeoffs
-- "Why does DNS use eventual consistency?" → Global scale, high availability, staleness acceptable for name resolution
+- "Why does DNS (Domain Name System) use eventual consistency?" → Global scale, high availability, staleness acceptable for name resolution
 - "How do you monitor eventual consistency?" → Replication lag metrics (p50/p99), conflict rate, convergence SLOs
 - "When to choose strong over eventual?" → Financial transactions, inventory, auth — where inconsistency causes business harm
 
@@ -225,7 +225,7 @@ Fix: Use strong consistency for inventory OR reserved inventory pattern
 2. **Async replication** = write fast, propagate later → inconsistency window during propagation
 3. **Conflict resolution is mandatory** — choose LWW (simple, loses data), vector clocks (app decides), or CRDT (math merge, no loss)
 4. **Measure replication lag** — "eventually" = usually milliseconds to seconds; set SLOs and alert
-5. Choose when **availability > immediate consistency**: feeds, caches, recommendations, DNS
+5. Choose when **availability > immediate consistency**: feeds, caches, recommendations, DNS (Domain Name System)
 6. Avoid for **operations where inconsistency causes harm**: payments, inventory, auth
 7. **Hybrid systems**: eventual for high-volume reads, strong for critical writes — per data type, not per system
 8. DynamoDB, Cassandra = tunable per operation → the spectrum is real and practical
@@ -234,4 +234,4 @@ Fix: Use strong consistency for inventory OR reserved inventory pattern
 
 ## Keywords
 
-`eventual consistency` `async replication` `convergence` `inconsistency window` `last-write-wins (LWW)` `vector clocks` `CRDT` `conflict resolution` `replication lag` `DynamoDB` `Cassandra` `DNS` `gossip protocol` `quorum` `read repair` `anti-entropy` `Merkle trees` `hinted handoff` `optimistic replication` `OR-Set` `G-Counter` `PN-Counter` `Netflix` `Amazon Dynamo paper`
+`eventual consistency` `async replication` `convergence` `inconsistency window` `last-write-wins (LWW)` `vector clocks` `CRDT` `conflict resolution` `replication lag` `DynamoDB` `Cassandra` `DNS (Domain Name System)` `gossip protocol` `quorum` `read repair` `anti-entropy` `Merkle trees` `hinted handoff` `optimistic replication` `OR-Set` `G-Counter` `PN-Counter` `Netflix` `Amazon Dynamo paper`

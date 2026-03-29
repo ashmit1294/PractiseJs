@@ -6,7 +6,7 @@
 
 Failover automatically switches traffic from a failed primary system to a standby backup, ensuring continuous service. Active-passive uses a hot standby that takes over when primary fails. Active-active distributes load across multiple live systems. Detection via heartbeats + health checks triggers the switch.
 
-> **Cheat Sheet**: Active-Passive = one handles traffic, one waits | Active-Active = both handle traffic | Detection via heartbeat + health checks | Watch for split-brain (both think they're primary) | RTO depends on cold vs hot standby
+> **Cheat Sheet**: Active-Passive = one handles traffic, one waits | Active-Active = both handle traffic | Detection via heartbeat + health checks | Watch for split-brain (both think they're primary) | RTO (Recovery Time Objective) depends on cold vs hot standby
 
 ---
 
@@ -66,7 +66,7 @@ Primary Fails:
      - Update routing config (DNS / Load Balancer)
   5. Clients → Load Balancer → [Standby (now primary)]
 
-Total RTO: 15–45 seconds (hot standby)
+Total RTO (Recovery Time Objective): 15–45 seconds (hot standby)
 ```
 
 ### Detection Timeline
@@ -128,7 +128,7 @@ Handles writes  Handles writes
 
 ## Standby Types
 
-| Type | Startup Time | Resource Cost | Typical RTO |
+| Type | Startup Time | Resource Cost | Typical RTO (Recovery Time Objective) |
 |---|---|---|---|
 | **Hot Standby** | Already running, data warm | High (full capacity) | 10–30 seconds |
 | **Warm Standby** | Running minimal processes | Medium | 1–5 minutes |
@@ -178,7 +178,7 @@ Write request must reach majority (2 of 3) replicas:
 ```
 
 **3. STONITH** (Shoot The Other Node In The Head)
-- Forcibly powers down the old primary via hardware/API
+- Forcibly powers down the old primary via hardware/API (Application Programming Interface)
 - Ensures only one primary can operate
 
 ---
@@ -218,9 +218,9 @@ Old primary MUST NOT continue operating after failover.
 - **Cause**: New primary overwhelmed by cold caches + full traffic spike → it also crashes
 - **Fix**: Keep standbys warm (serve reads), gradual traffic shift (10% → 50% → 100%), circuit breakers
 
-### Pitfall 3: Stale DNS Caching
-- **Cause**: DNS TTL too high (hours) → clients keep hitting old primary IP
-- **Fix**: Low TTL (30–60s) for critical services, OR use **load balancer failover** (no DNS changes needed)
+### Pitfall 3: Stale DNS (Domain Name System) Caching
+- **Cause**: DNS (Domain Name System) TTL (Time To Live) too high (hours) → clients keep hitting old primary IP
+- **Fix**: Low TTL (30–60s) for critical services, OR use **load balancer failover** (no DNS (Domain Name System) changes needed)
 
 ---
 
@@ -231,7 +231,7 @@ Old primary MUST NOT continue operating after failover.
 > **MERN dev note — why Cassandra over MongoDB for Netflix watch state?**
 > Netflix needs to write viewing activity (pause position, play history) from **all 3 global regions simultaneously** — true active-active. MongoDB Atlas does support multi-region clusters, but writes still route to a single primary (typically in one region); cross-region writes add 50–150ms. Cassandra is **masterless**: the US, EU, and Asia nodes are all equal — each region writes locally at <5ms. For Netflix's query pattern (`GET watch_position WHERE user_id = X AND content_id = Y`), Cassandra's partition key model is a direct match. MongoDB would be the better pick for Netflix's metadata service (movie details, search) where queries need flexible filtering — that's exactly what MongoDB's query engine excels at.
 
-- 3 AWS availability zones, each with full data replica
+- 3 AWS (Amazon Web Services) availability zones, each with full data replica
 - AZ failure → load balancer stops routing there instantly
 - Cassandra quorum reads/writes (2 of 3) → strong consistency even during failures
 - Sub-second failover, 99.99% availability
@@ -268,31 +268,31 @@ us-east-1 (AZ-1c) fails:
 
 ---
 
-## RTO Calculation
+## RTO (Recovery Time Objective) Calculation
 
 ```
-RTO = Detection Time + Promotion Time + Routing Update Time
+RTO (Recovery Time Objective) = Detection Time + Promotion Time + Routing Update Time
 
-DNS-based failover (TTL=60s):
+DNS (Domain Name System)-based failover (TTL=60s):
   Detection:   10–30s
   Promotion:   5–10s
-  DNS TTL:     up to 60s
+  DNS (Domain Name System) TTL (Time To Live):     up to 60s
   ─────────────────────
-  Total RTO:   ~75–100 seconds
+  Total RTO (Recovery Time Objective):   ~75–100 seconds
 
 Load Balancer-based failover (hot standby):
   Detection:   10–30s
   Promotion:   5–10s
   LB update:   1–2s
   ─────────────────────
-  Total RTO:   ~15–45 seconds
+  Total RTO (Recovery Time Objective):   ~15–45 seconds
 
 Active-Active (load redistribution):
   Detection:   1–5s (health check interval)
   No promotion needed
   LB reroute:  1–2s
   ─────────────────────
-  Total RTO:   ~2–7 seconds
+  Total RTO (Recovery Time Objective):   ~2–7 seconds
 ```
 
 ---
@@ -307,7 +307,7 @@ Active-Active (load redistribution):
 
 ### Senior Expectations
 - Handle edge cases: split-brain, cascading failures, partial partitions
-- Calculate RTO: detection + promotion + DNS/LB propagation
+- Calculate RTO (Recovery Time Objective): detection + promotion + DNS (Domain Name System)/LB propagation
 - Integrate with replication (sync vs async) and its consistency implications
 - Discuss fail-back (returning to original primary after recovery)
 
@@ -321,9 +321,9 @@ Active-Active (load redistribution):
 
 ## Common Interview Questions
 
-1. **How do you implement failover for stateful database vs. stateless API server?**
+1. **How do you implement failover for stateful database vs. stateless API (Application Programming Interface) server?**
    - DB: sync/async replication, promote standby, point writes to new primary
-   - API: stateless, active-active trivial — just remove from LB pool
+   - API (Application Programming Interface): stateless, active-active trivial — just remove from LB pool
 
 2. **What if the network between primary and standby breaks but both are healthy?**
    - Split-brain scenario → quorum (only majority partition can accept writes) or STONITH
@@ -332,7 +332,7 @@ Active-Active (load redistribution):
    - Payments need strong consistency → active-passive (single writer)
    - UNLESS you use idempotency keys + quorum reads (Stripe's approach)
 
-4. **DNS-based vs LB-based failover — what's the RTO difference?**
+4. **DNS (Domain Name System)-based vs LB-based failover — what's the RTO (Recovery Time Objective) difference?**
    - DNS (TTL=60s): ~75–100s. LB-based: ~15–45s. Active-Active: ~2–7s
 
 5. **How do you test failover without causing a production outage?**
@@ -364,4 +364,4 @@ Active-Active (load redistribution):
 
 ## Keywords
 
-`failover` `active-passive` `active-active` `hot standby` `cold standby` `heartbeat` `health check` `split-brain` `STONITH` `fencing` `quorum` `RTO` (Recovery Time Objective) `RPO` (Recovery Point Objective) `DNS failover` `TTL` `replication lag` `etcd` `ZooKeeper` `Raft` `Paxos` `circuit breaker` `cascading failure` `chaos engineering` `fail-back` `promotion` `master-slave` `master-master` `connection draining`
+`failover` `active-passive` `active-active` `hot standby` `cold standby` `heartbeat` `health check` `split-brain` `STONITH` `fencing` `quorum` `RTO (Recovery Time Objective)` (Recovery Time Objective) `RPO (Recovery Point Objective)` (Recovery Point Objective) `DNS (Domain Name System) failover` `TTL (Time To Live)` `replication lag` `etcd` `ZooKeeper` `Raft` `Paxos` `circuit breaker` `cascading failure` `chaos engineering` `fail-back` `promotion` `master-slave` `master-master` `connection draining`

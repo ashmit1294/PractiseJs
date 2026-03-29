@@ -4,7 +4,7 @@
 
 ## TL;DR
 
-A Bloom filter answers "Have I seen this before?" with two responses: **"definitely not"** or **"probably yes"**. It uses a bit array + multiple hash functions for 90–95% space savings vs a hash set. False positives possible, false negatives impossible. Tune: ~10 bits/element for 1% FPR.
+A Bloom filter answers "Have I seen this before?" with two responses: **"definitely not"** or **"probably yes"**. It uses a bit array + multiple hash functions for 90–95% space savings vs a hash set. False positives possible, false negatives impossible. Tune: ~10 bits/element for 1% FPR (False Positive Rate).
 
 > **Cheat Sheet**: Insert → hash k times → set k bits | Query → check all k bits → any 0 = definitely absent, all 1 = probably present | No deletions in standard variant | `m = -1.44 × n × ln(p)` | `k = 0.693 × (m/n)` | Rebuild when >50% bits set
 
@@ -40,7 +40,7 @@ The notepad only has checkboxes, not names. MUCH smaller. But occasionally someo
 
 **Bloom filter**: A **fixed-size bit array** + **k hash functions**.
 - Stores only probabilistic **evidence** of elements, not the elements themselves  
-- 10M URLs → 12 MB at 1% FPR = **85% space savings**
+- 10M URLs → 12 MB at 1% FPR (False Positive Rate) = **85% space savings**
 
 ```
 Bit array (m bits), initially all 0:
@@ -84,10 +84,10 @@ Step 4: Query element y
 Step 5: Handle false positives
   Bloom filter says "probably yes" → do the expensive DB lookup to confirm
   Bloom filter eliminates 95–99% of lookups entirely
-  10ms DB call vs 0.01ms bit check → massive win even with 1% FPR
+  10ms DB call vs 0.01ms bit check → massive win even with 1% FPR (False Positive Rate)
 
 Step 6: Monitor saturation
-  When >50% of bits are set → FPR degrades rapidly → REBUILD
+  When >50% of bits are set → FPR (False Positive Rate) degrades rapidly → REBUILD
 ```
 
 ---
@@ -102,7 +102,7 @@ m = -n × ln(p) / (ln 2)²  ≈  -1.44 × n × ln(p)
 n = elements to store
 p = desired false positive rate (decimal)
 
-Example: 1 million elements, 1% FPR
+Example: 1 million elements, 1% FPR (False Positive Rate)
   m = -1.44 × 1,000,000 × ln(0.01)
   m = -1.44 × 1,000,000 × (-4.605)
   m ≈ 9,600,000 bits = 1.2 MB
@@ -119,7 +119,7 @@ Example (from above, m=9.6M, n=1M):
   k = 0.693 × (9,600,000 / 1,000,000) = 0.693 × 9.6 ≈ 6.65 → round to k=7
 ```
 
-### Verify Actual FPR
+### Verify Actual FPR (False Positive Rate)
 
 ```
 p = (1 - e^(-kn/m))^k
@@ -133,14 +133,14 @@ With m=9.6M, n=1M, k=7:
 ### Quick Reference — Bits Per Element
 
 ```
-FPR       Bits/element   m for 10M elements
+FPR (False Positive Rate)       Bits/element   m for 10M elements
 ─────────────────────────────────────────────
 10%       4.8            60 MB
 1%        9.6            12 MB
 0.1%      14.4           18 MB
 0.01%     19.2           24 MB
 
-Rule: each 10x reduction in FPR costs ~4.8 more bits/element
+Rule: each 10x reduction in FPR (False Positive Rate) costs ~4.8 more bits/element
 ```
 
 ### Saturation Formula
@@ -149,7 +149,7 @@ Rule: each 10x reduction in FPR costs ~4.8 more bits/element
 fraction_bits_set = 1 - e^(-kn/m)
 
 Rule: when >50% of bits are set → rebuild or scale
-At saturation 75% → FPR jumps ~3–5x above target
+At saturation 75% → FPR (False Positive Rate) jumps ~3–5x above target
 ```
 
 ---
@@ -171,7 +171,7 @@ If it says NO  → trust it 100%  (no false negatives, ever)
 If it says YES → verify with DB (could be a false positive)
 
 USE Bloom filters when:
-  ✓ False positives are cheap to verify (DB lookup, API call with fallback)
+  ✓ False positives are cheap to verify (DB lookup, API (Application Programming Interface) call with fallback)
   ✓ False negatives are unacceptable (web dedup, security pre-filter)
   ✓ You have millions of elements and memory is constrained
 
@@ -188,11 +188,11 @@ DON'T USE when:
 
 | Variant | Delete? | Memory | Use Case |
 |---|---|---|---|
-| **Standard** | No | 9.6 bits/elem (1% FPR) | Static datasets, append-only |
+| **Standard** | No | 9.6 bits/elem (1% FPR (False Positive Rate)) | Static datasets, append-only |
 | **Counting** | Yes | 38.4 bits/elem (4× overhead) | Dynamic data with deletions |
 | **Scalable** | No | ~10% overhead | Unknown/unbounded n |
 | **Cuckoo Filter** | Yes | ~12 bits/elem | Delete + better performance |
-| **Blocked** | No | ~10 bits/elem | CPU cache efficiency (CDN) |
+| **Blocked** | No | ~10 bits/elem | CPU (Central Processing Unit) cache efficiency (CDN) |
 
 > **MERN dev note**: Think of a standard Bloom filter like a MongoDB `Set` in memory but compressed — you can add and check presence, but you can't remove an entry or get the value back. A Counting Bloom filter is like MongoDB's `$inc` — decrement on delete. But at 4× cost, only worth it when deletions are frequent.
 
@@ -201,28 +201,28 @@ DON'T USE when:
 ## Real-World Examples
 
 ### Google Chrome — Malicious URL Detection
-- Filter contains ~2M known malicious URL hashes, 0.1% FPR, k=10, **3.6 MB total**
+- Filter contains ~2M known malicious URL hashes, 0.1% FPR (False Positive Rate), k=10, **3.6 MB total**
 - 99.9% of URLs: bit check in <1ms → "definitely safe" → load page
-- 0.1% false positives + actual malicious URLs → API call to Google Safe Browsing
-- Saves **millions of API calls per second globally**
+- 0.1% false positives + actual malicious URLs → API (Application Programming Interface) call to Google Safe Browsing
+- Saves **millions of API (Application Programming Interface) calls per second globally**
 
 ### Medium — Article Recommendation Dedup
-- Each user has a Bloom filter for read article IDs (sized for 10K articles, 1% FPR = 120 KB)
+- Each user has a Bloom filter for read article IDs (sized for 10K articles, 1% FPR (False Positive Rate) = 120 KB)
 - Check filter before generating recommendations → 95% fewer DB queries
 - Recommendation latency: 200ms → 50ms
-- Time-partitioned (last 30/31–90/90+ days) with decreasing FPR as history ages
+- Time-partitioned (last 30/31–90/90+ days) with decreasing FPR (False Positive Rate) as history ages
 
-### Cassandra / HBase — SSTable Lookup Optimization
+### Cassandra / HBase — SSTable (Sorted String Table) Lookup Optimization
 - Every SSTable (immutable data file on disk) has a Bloom filter of its row keys
 - Read request → check Bloom filter first
-- "Definitely not in this SSTable" → skip disk seek entirely
+- "Definitely not in this SSTable (Sorted String Table)" → skip disk seek entirely
 - Eliminates majority of unnecessary disk I/Os for read-heavy workloads
 
 > **MERN dev note — why Cassandra here (not MongoDB)?**
-> Cassandra stores data in **SSTables** (immutable sorted files on disk) — a read must potentially scan many files. Bloom filters eliminate 99% of those scans. MongoDB uses **B-tree indexes** instead — already good at point lookups without a Bloom filter. Bloom filters are most valuable with LSM-tree storage engines (Cassandra, RocksDB, LevelDB) where data is spread across many immutable files.
+> Cassandra stores data in **SSTables** (immutable sorted files on disk) — a read must potentially scan many files. Bloom filters eliminate 99% of those scans. MongoDB uses **B-tree indexes** instead — already good at point lookups without a Bloom filter. Bloom filters are most valuable with LSM (Log-Structured Merge-tree)-tree storage engines (Cassandra, RocksDB, LevelDB) where data is spread across many immutable files.
 
-### Akamai CDN — Edge Cache Membership
-- Blocked Bloom filter (512-bit cache-line-aligned blocks), 0.5% FPR, fits in L3 cache
+### Akamai CDN (Content Delivery Network) — Edge Cache Membership
+- Blocked Bloom filter (512-bit cache-line-aligned blocks), 0.5% FPR (False Positive Rate), fits in L3 cache
 - Initial check: ~10ns vs ~100ns hash table lookup → 60% faster cache decision
 - Rebuilt every 5 minutes to stay in sync with cache evictions
 
@@ -232,9 +232,9 @@ DON'T USE when:
 
 | Pitfall | Why it happens | Fix |
 |---|---|---|
-| **Bit saturation ignored** | Sized for initial n, keep inserting beyond it → FPR jumps 10× | Monitor fill rate; alert at 40%; rebuild at 50% |
+| **Bit saturation ignored** | Sized for initial n, keep inserting beyond it → FPR (False Positive Rate) jumps 10× | Monitor fill rate; alert at 40%; rebuild at 50% |
 | **Cryptographic hash functions** | Using SHA-256 for "security" → 100× slower, no benefit | Use MurmurHash3 or xxHash (10–50ns vs 500–1000ns) |
-| **Correlated hash functions** | h₂(x) = h₁(x) + 1 → collisions cluster → actual FPR >> expected | Use double hashing: `hᵢ(x) = (h₁(x) + i×h₂(x)) mod m` |
+| **Correlated hash functions** | h₂(x) = h₁(x) + 1 → collisions cluster → actual FPR (False Positive Rate) >> expected | Use double hashing: `hᵢ(x) = (h₁(x) + i×h₂(x)) mod m` |
 | **Used for auth/security** | False positive = unauthorized access | Always verify with authoritative source for security paths |
 | **Inconsistent distributed impl** | Each service independently implements (diff seeds, diff lib) → cross-service false negatives | Standardize hash function + seeds across all services |
 
@@ -253,7 +253,7 @@ DON'T USE when:
 ## Common Interview Questions
 
 1. **"How would you avoid duplicate URL crawling with a Bloom filter?"**
-   - Size for expected URLs (100M URLs, 1% FPR = 120 MB, k=7)
+   - Size for expected URLs (100M URLs, 1% FPR (False Positive Rate) = 120 MB, k=7)
    - Normalize URLs first (lowercase, sort params)
    - Check before queuing; insert after adding to queue
    - Partition by time-window to enable expiration; rebuild at 50% saturation
@@ -273,7 +273,7 @@ DON'T USE when:
    - Option D: **Cuckoo filter** — native deletion, better performance than counting
 
 4. **"How do you choose m and k?"**
-   - Start with n (elements) and p (target FPR)
+   - Start with n (elements) and p (target FPR (False Positive Rate))
    - `m = -1.44 × n × ln(p)` → `k = 0.693 × (m/n)`
    - Round k to nearest integer; verify with `p = (1 - e^(-kn/m))^k`
    - Monitor saturation in production; rebuild when >50% bits set
@@ -289,7 +289,7 @@ DON'T USE when:
 ## Red Flags to Avoid
 
 - ❌ "Bloom filters guarantee no false positives" — backwards! No false **negatives**, false positives are expected
-- ❌ "More hash functions = lower FPR always" — past optimal k (`0.693 × m/n`), more k → HIGHER FPR (faster saturation)
+- ❌ "More hash functions = lower FPR (False Positive Rate) always" — past optimal k (`0.693 × m/n`), more k → HIGHER FPR (faster saturation)
 - ❌ "Use SHA-256 for hash functions" — 100× too slow; cryptographic strength is irrelevant here
 - ❌ "Bloom filters are always better than hash sets" — for small datasets, hash set is simpler and the memory difference is negligible
 - ❌ "Use a Bloom filter for auth checks" — false positive = unauthorized access; never for security decisions
@@ -300,14 +300,14 @@ DON'T USE when:
 
 - **"Definitely not" or "probably yes"** — false negatives impossible, false positives tunable (0.1%–5%)
 - **`m = -1.44 × n × ln(p)`, `k = 0.693 × m/n`** — calculate and know these by heart
-- **~10 bits/element at 1% FPR** vs 64 bits for a hash set → 85% space savings
+- **~10 bits/element at 1% FPR (False Positive Rate)** vs 64 bits for a hash set → 85% space savings
 - **No deletions** in standard variant — use counting, time-partitioned, or cuckoo filters
-- **Rebuild when >50% bits set** — FPR degrades exponentially past that threshold
+- **Rebuild when >50% bits set** — FPR (False Positive Rate) degrades exponentially past that threshold
 - **Fast hashes only** — MurmurHash3 / xxHash, not SHA-256
-- Real uses: Chrome Safe Browsing, Medium dedup, Cassandra SSTable, Akamai CDN
+- Real uses: Chrome Safe Browsing, Medium dedup, Cassandra SSTable (Sorted String Table), Akamai CDN (Content Delivery Network)
 
 ---
 
 ## Keywords
 
-`bloom filter` `probabilistic data structure` `bit array` `false positive` `false negative` `membership testing` `deduplication` `hash functions` `MurmurHash` `xxHash` `double hashing` `false positive rate (FPR)` `bit saturation` `counting bloom filter` `scalable bloom filter` `cuckoo filter` `blocked bloom filter` `quotient filter` `space-time tradeoff` `negative cache` `LSM tree` `SSTable` `HyperLogLog` `Count-Min Sketch` `approximate membership query (AMQ)` `web crawler dedup` `cache pre-filter`
+`bloom filter` `probabilistic data structure` `bit array` `false positive` `false negative` `membership testing` `deduplication` `hash functions` `MurmurHash` `xxHash` `double hashing` `false positive rate (FPR)` `bit saturation` `counting bloom filter` `scalable bloom filter` `cuckoo filter` `blocked bloom filter` `quotient filter` `space-time tradeoff` `negative cache` `LSM (Log-Structured Merge-tree) tree` `SSTable (Sorted String Table)` `HyperLogLog` `Count-Min Sketch` `approximate membership query (AMQ)` `web crawler dedup` `cache pre-filter`

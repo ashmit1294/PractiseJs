@@ -161,7 +161,7 @@ At 1M requests/day:
   EC: 1M × 20ms avg  = 20,000 seconds wasted in latency
 
 At 1B requests/day (typical large service):
-  The gap compounds to millions of CPU-seconds and direct user UX impact.
+  The gap compounds to millions of CPU (Central Processing Unit)-seconds and direct user UX impact.
 ```
 
 This is why services like Amazon, Netflix, and Twitter default to **EL systems** for non-critical paths — the latency difference is product-critical, not just engineering preference.

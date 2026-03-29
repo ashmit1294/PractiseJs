@@ -219,7 +219,7 @@ R3 comes back online:
   → R4 hands off the data and deletes the hint ✓
 ```
 
-**Cassandra hint TTL**: default 3 hours. If R3 doesn't recover within 3 hours, hint is dropped → use Merkle tree anti-entropy repair to catch up.
+**Cassandra hint TTL (Time To Live)**: default 3 hours. If R3 doesn't recover within 3 hours, hint is dropped → use Merkle tree anti-entropy repair to catch up.
 
 Use for: **high-availability systems that can tolerate brief eventual consistency during failures** (session stores, user activity, recommendations).
 
@@ -278,7 +278,7 @@ Netflix uses Cassandra N=3, `LOCAL_QUORUM` (W=2, R=2 within one region) for view
 - Async cross-DC replication for global availability
 - A/B test assignments: W=ONE, R=ONE — fastest, eventual consistency fine
 
-Cassandra hinted handoff TTL = 3 hours by default. Monitor hint queues to detect prolonged outages.
+Cassandra hinted handoff TTL (Time To Live) = 3 hours by default. Monitor hint queues to detect prolonged outages.
 
 ### Amazon DynamoDB (N=3, Strict AZ Quorum)
 

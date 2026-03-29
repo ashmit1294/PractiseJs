@@ -335,7 +335,7 @@ Lag = time between master write and replica visibility. Creates "read-your-write
    - Read-your-writes consistency: route reads to master for X seconds after writes, or track replication position
 
 2. **What happens if master fails in master-slave? How do you promote a slave?**
-   - Failover: detect via heartbeat, promote slave with most recent replication position, update routing (30–60s RTO)
+   - Failover: detect via heartbeat, promote slave with most recent replication position, update routing (30–60s RTO (Recovery Time Objective))
 
 3. **How do you resolve conflicts in master-master replication?**
    - Last-write-wins (timestamps), CRDTs, application-level merge (Google Docs OT), or partitioning to avoid conflicts
@@ -345,7 +345,7 @@ Lag = time between master write and replica visibility. Creates "read-your-write
    - Social feeds, analytics, recommendations → async acceptable
 
 5. **How does replication interact with caching?**
-   - Cache from replicas risks stale cache (double staleness: replica lag + cache TTL)
+   - Cache from replicas risks stale cache (double staleness: replica lag + cache TTL (Time To Live))
    - For strong consistency: cache at master layer, use short TTLs, invalidate on write
 
 6. **What metrics to monitor for healthy replication?**
@@ -379,4 +379,4 @@ Lag = time between master write and replica visibility. Creates "read-your-write
 
 ## Keywords
 
-`replication` `master-slave` `primary-replica` `leader-follower` `master-master` `multi-master` `active-active` `read replica` `replication lag` `synchronous replication` `asynchronous replication` `semi-synchronous` `eventual consistency` `read-your-writes` `conflict resolution` `last-write-wins` `CRDT` `chain replication` `quorum replication` `statement-based replication` `row-based replication` `logical replication` `replication log` `binlog` `WAL` (Write-Ahead Log) `change data capture` (CDC) `Kafka CDC` `split-brain` (see Failover) `failover promotion` `read scaling`
+`replication` `master-slave` `primary-replica` `leader-follower` `master-master` `multi-master` `active-active` `read replica` `replication lag` `synchronous replication` `asynchronous replication` `semi-synchronous` `eventual consistency` `read-your-writes` `conflict resolution` `last-write-wins` `CRDT` `chain replication` `quorum replication` `statement-based replication` `row-based replication` `logical replication` `replication log` `binlog` `WAL (Write-Ahead Log)` (Write-Ahead Log) `change data capture` (CDC) `Kafka CDC` `split-brain` (see Failover) `failover promotion` `read scaling`
