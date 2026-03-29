@@ -23,7 +23,7 @@
 | M11 — Cloud Design Patterns | ? | ⏳ Pending |
 | M12 — (remaining) | ? | ⏳ Pending |
 
-**Completed**: 26 / 149 topics
+**Completed**: 27 / 149 topics
 
 ---
 
@@ -88,7 +88,7 @@
 |---|---|---|---|
 | T01 | Load Balancers Overview | `01_Load Balancers Overview.md` | ✅ |
 | T02 | LB vs Reverse Proxy | `02_LB vs Reverse Proxy.md` | ✅ |
-| T03 | Load Balancing Algorithms | `03_Load Balancing Algorithms.md` | ⏳ |
+| T03 | Load Balancing Algorithms | `03_Load Balancing Algorithms.md` | ✅ |
 | T04 | Layer 4 Load Balancing | `04_Layer 4 Load Balancing.md` | ⏳ |
 | T05 | Layer 7 Load Balancing | `05_Layer 7 Load Balancing.md` | ⏳ |
 | T06 | Horizontal Scaling | `06_Horizontal Scaling.md` | ⏳ |
