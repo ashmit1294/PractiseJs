@@ -23,7 +23,7 @@
 | M11 — Cloud Design Patterns | ? | ⏳ Pending |
 | M12 — (remaining) | ? | ⏳ Pending |
 
-**Completed**: 35 / 149 topics
+**Completed**: 36 / 149 topics
 
 ---
 
@@ -107,7 +107,7 @@
 | T02 | Microservices Architecture | `02_Microservices Architecture.md` | ✅ |
 | T03 | Service Discovery | `03_Service Discovery.md` | ✅ |
 | T04 | Background Jobs | `04_Background Jobs.md` | ✅ |
-| T05 | Event-Driven Architecture | `05_Event-Driven Architecture.md` | ⏳ |
+| T05 | Event-Driven Architecture | `05_Event-Driven Architecture.md` | ✅ |
 | T06 | Schedule-Driven Architecture | `06_Schedule-Driven Architecture.md` | ⏳ |
 | T07 | Returning Results (Async) | `07_Returning Results.md` | ⏳ |
 | T08 | API Gateway | `08_API Gateway.md` | ⏳ |
