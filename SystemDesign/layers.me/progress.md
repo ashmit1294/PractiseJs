@@ -13,7 +13,7 @@
 | M1 — Introduction to System Design | 3 | ✅ Complete |
 | M2 — Core Concepts & Trade-offs | 17 | ✅ Complete |
 | M3 — Networking & DNS | 4 | ✅ Complete |
-| M4 — Load Balancing & Scaling | 7 | ⏳ Pending |
+| M4 — Load Balancing & Scaling | 7 | 🔄 In Progress |
 | M5 — Application Architecture | 9 | ⏳ Pending |
 | M6 — Databases | 16 | ⏳ Pending |
 | M7 — Caching | 13 | ⏳ Pending |
@@ -23,7 +23,7 @@
 | M11 — Cloud Design Patterns | ? | ⏳ Pending |
 | M12 — (remaining) | ? | ⏳ Pending |
 
-**Completed**: 24 / 149 topics
+**Completed**: 25 / 149 topics
 
 ---
 
@@ -79,14 +79,20 @@
 
 ---
 
-## Module 4 — Load Balancing & Scaling ⏳
+## Module 4 — Load Balancing & Scaling 🔄
 
 > Folder: `04-load-balancing-scaling/`  
 > Source: https://layrs.me/course/hld/04-load-balancing-scaling
 
 | # | Topic | File | Status |
 |---|---|---|---|
-| T01–T07 | (to be fetched) | — | ⏳ |
+| T01 | Load Balancers Overview | `01_Load Balancers Overview.md` | ✅ |
+| T02 | LB vs Reverse Proxy | `02_LB vs Reverse Proxy.md` | ⏳ |
+| T03 | Load Balancing Algorithms | `03_Load Balancing Algorithms.md` | ⏳ |
+| T04 | Layer 4 Load Balancing | `04_Layer 4 Load Balancing.md` | ⏳ |
+| T05 | Layer 7 Load Balancing | `05_Layer 7 Load Balancing.md` | ⏳ |
+| T06 | Horizontal Scaling | `06_Horizontal Scaling.md` | ⏳ |
+| T07 | Forward Proxy | `07_Forward Proxy.md` | ⏳ |
 
 ---
 
