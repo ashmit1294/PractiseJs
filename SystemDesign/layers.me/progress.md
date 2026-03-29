@@ -23,7 +23,7 @@
 | M11 — Cloud Design Patterns | ? | ⏳ Pending |
 | M12 — (remaining) | ? | ⏳ Pending |
 
-**Completed**: 43 / 149 topics
+**Completed**: 44 / 149 topics
 
 ---
 
@@ -125,7 +125,7 @@
 | T01 | Databases Overview | `01_Databases Overview.md` | ✅ |
 | T02 | SQL vs NoSQL | `02_SQL vs NoSQL.md` | ✅ |
 | T03 | Database Sharding | `03_Database Sharding.md` | ✅ |
-| T04 | Database Federation | `04_Database Federation.md` | ⏳ |
+| T04 | Database Federation | `04_Database Federation.md` | ✅ |
 | T05 | Denormalization | `05_Denormalization.md` | ⏳ |
 | T06 | SQL Tuning | `06_SQL Tuning.md` | ⏳ |
 | T07 | Key-Value Store | `07_Key-Value Store.md` | ⏳ |
