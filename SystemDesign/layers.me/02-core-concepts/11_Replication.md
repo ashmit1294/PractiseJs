@@ -139,10 +139,13 @@ Semi-Synchronous (middle ground):
 
 | Variant | How It Works | Used By | Best For |
 |---|---|---|---|
-| **Master-Slave** | One writer, many readers | MySQL, PostgreSQL, Redis | Read-heavy, consistency needed |
+| **Master-Slave** | One writer, many readers | MySQL, PostgreSQL, Redis, **MongoDB** | Read-heavy, consistency needed |
 | **Master-Master** | Multiple writers | Cassandra, DynamoDB, CouchDB | Geo-distributed writes |
 | **Chain Replication** | Writes at head, reads at tail (linear chain) | LinkedIn Espresso | Strong read consistency |
 | **Quorum-Based** | W + R > N for tunable consistency | Cassandra, DynamoDB | Tunable trade-offs |
+
+> **MERN dev note — MongoDB vs Cassandra replication:**
+> MongoDB uses **Master-Slave** (called Replica Set) — one primary handles all writes, secondaries replicate and handle reads. This is simple, consistent, and great for most apps. Cassandra uses **Master-Master** (called multi-master / peer-to-peer ring) — every node can write, no single primary. Choose MongoDB (Master-Slave) when you need ACID transactions, complex queries, and flexible schema. Choose Cassandra (Master-Master) when you need to write from multiple datacenters simultaneously at massive scale (millions of writes/sec) and can tolerate eventual consistency.
 | **Statement-Based** | Replicate SQL statements (INSERT, UPDATE) | MySQL (mode) | Smaller logs |
 | **Row-Based** | Replicate actual data row changes | MySQL (default), PostgreSQL | Deterministic, larger logs |
 | **Logical Replication** | High-level change descriptions | PostgreSQL | Allows schema differences |

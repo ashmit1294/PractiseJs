@@ -76,6 +76,9 @@ PARTITION OCCURS:
 
 ## The Spectrum: Tunable Consistency (Cassandra Example)
 
+> **MERN dev note — why Cassandra, not MongoDB for this?**
+> As a MERN dev you know MongoDB lets you set `writeConcern: { w: 'majority' }` per operation — that's the same idea. Cassandra just exposes MORE levels (`ONE`, `QUORUM`, `LOCAL_QUORUM`, `ALL`) and defaults to AP (eventual). MongoDB defaults to CP (majority). When you need AP by default with optional consistency per query (e.g., IoT writes at 500k/sec where some staleness is fine), Cassandra is the go-to. Use MongoDB when you need JSON-style documents, rich queries (`$lookup`, aggregation pipelines), or ACID transactions.
+
 ```
  < MORE AP                                MORE CP >
  ┌──────────────────────────────────────────────────┐
@@ -99,8 +102,8 @@ PARTITION OCCURS:
 |---|---|---|
 | **HBase** | CP | Rejects requests during partition to stay consistent |
 | **ZooKeeper** | CP | Leader quorum required; rejects requests without quorum |
-| **MongoDB** (majority write concern) | CP | Rejects writes without quorum |
-| **Cassandra** | AP (tunable) | All nodes respond; eventual consistency by default |
+| **MongoDB** (majority write concern) | CP | Rejects writes without quorum; single primary handles all writes |
+| **Cassandra** | AP (tunable) | No primary — every node accepts writes; eventual consistency by default; configure quorum per-op |
 | **DynamoDB** | AP (tunable) | Eventually consistent by default; strong reads optional |
 | **Riak** | AP | Serves all requests; reconciles after partition |
 | **Spotify Playlists** | AP | Always add songs; sync later |

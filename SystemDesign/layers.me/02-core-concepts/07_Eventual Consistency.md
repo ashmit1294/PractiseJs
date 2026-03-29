@@ -157,6 +157,10 @@ Fix: Use strong consistency for inventory OR reserved inventory pattern
 - p99 replication lag: < 50ms; nearly invisible to users
 
 ### Apache Cassandra
+
+> **MERN dev note — why Cassandra over MongoDB for IoT sensor data?**
+> IoT sensors can generate **100k–1M writes/second**. MongoDB uses a single-primary replica set — all writes queue at the primary. Under that write load, the primary becomes the bottleneck and replication lag spikes. Cassandra is a **multi-master, ring-based** system — every node accepts writes independently. Add 5 more nodes → write capacity scales linearly with zero reconfiguration. MongoDB is the better pick when you need rich queries like `find all sensors where temp > 90 AND location = 'NYC'` — Cassandra's CQL is limited for that. Use Cassandra when write speed and scale trump query flexibility.
+
 - Tunable: write with `ONE` (AP) or `QUORUM` (balanced) or `ALL` (CP)
 - Read repair + anti-entropy (Merkle trees + gossip) = guaranteed convergence
 - Sensor data (IoT): write `ONE`, read `QUORUM` → balance freshness + availability

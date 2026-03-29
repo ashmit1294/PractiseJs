@@ -227,6 +227,10 @@ Old primary MUST NOT continue operating after failover.
 ## Real-World Examples
 
 ### Netflix — Cassandra (Active-Active, Multi-AZ)
+
+> **MERN dev note — why Cassandra over MongoDB for Netflix watch state?**
+> Netflix needs to write viewing activity (pause position, play history) from **all 3 global regions simultaneously** — true active-active. MongoDB Atlas does support multi-region clusters, but writes still route to a single primary (typically in one region); cross-region writes add 50–150ms. Cassandra is **masterless**: the US, EU, and Asia nodes are all equal — each region writes locally at <5ms. For Netflix's query pattern (`GET watch_position WHERE user_id = X AND content_id = Y`), Cassandra's partition key model is a direct match. MongoDB would be the better pick for Netflix's metadata service (movie details, search) where queries need flexible filtering — that's exactly what MongoDB's query engine excels at.
+
 - 3 AWS availability zones, each with full data replica
 - AZ failure → load balancer stops routing there instantly
 - Cassandra quorum reads/writes (2 of 3) → strong consistency even during failures

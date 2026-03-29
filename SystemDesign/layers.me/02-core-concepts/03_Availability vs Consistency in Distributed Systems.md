@@ -89,6 +89,9 @@ EVENTUAL CONSISTENCY ◄──────────────────�
 | **DNS** | Eventual | Stale IP is better than no resolution |
 | **Cassandra / DynamoDB** | Tunable | Configure per-operation |
 | **Facebook News Feed** | Eventual | Seconds of delay is fine |
+
+> **MERN dev note — why Cassandra and not MongoDB here?**
+> Cassandra is listed alongside DynamoDB as "tunable" because both are **masterless, AP-first** systems designed for massive write throughput at global scale. MongoDB defaults to a single-primary replica set (CP) — great for flexible JSON queries and ACID transactions, but all writes must route through one primary. Cassandra has **no primary** — every node is equal and accepts writes. When you need to write from 5 global regions simultaneously at millions of writes/second, Cassandra scales linearly; MongoDB would bottleneck at the single primary.
 | **Facebook Social Graph** | Strong | Half-friendship = privacy violation |
 | **Google Spanner** | Strong | Atomic clocks + global consensus |
 | **Stripe Payments** | Strong | Exact ledger entries required |

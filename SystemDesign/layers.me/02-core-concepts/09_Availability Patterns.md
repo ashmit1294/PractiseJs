@@ -144,6 +144,10 @@ Why? Dispatch downtime = lost trips (very expensive)
 - **BUT** payments use active-passive: sync replication to standby, 30s RTO
 
 ### Discord — Message Storage
+
+> **MERN dev note — why Cassandra over MongoDB for Discord messages?**
+> Discord handles **billions of messages** with write bursts across many regions simultaneously (active-active). MongoDB's architecture designates one primary per replica set — all writes must go through it, so cross-region writes incur latency AND the primary becomes a single point of write failure. Cassandra is **peer-to-peer with no primary** — every node in every region accepts writes at local speed. Discord's access pattern (`SELECT messages WHERE channel_id = X ORDER BY timestamp`) maps perfectly to Cassandra's partitioned wide-column model. MongoDB would win if Discord needed full-text search across messages or complex joins — that's where MongoDB's aggregation pipeline shines.
+
 - **Active-Active Cassandra** with quorum writes (W=2, R=2 out of 3 replicas)
 - Write succeeds if 2/3 replicas acknowledge → tolerates 1 failure
 - Read requests 2 replicas → returns most recent version
