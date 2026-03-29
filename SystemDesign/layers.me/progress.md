@@ -14,7 +14,7 @@
 | M2 — Core Concepts & Trade-offs | 17 | ✅ Complete |
 | M3 — Networking & DNS | 4 | ✅ Complete |
 | M4 — Load Balancing & Scaling | 7 | ✅ Complete |
-| M5 — Application Architecture | 9 | 🔄 In Progress |
+| M5 — Application Architecture | 9 | ✅ Complete |
 | M6 — Databases | 16 | ⏳ Pending |
 | M7 — Caching | 13 | ⏳ Pending |
 | M8 — Asynchronous Processing | 6 | ⏳ Pending |
@@ -23,7 +23,7 @@
 | M11 — Cloud Design Patterns | ? | ⏳ Pending |
 | M12 — (remaining) | ? | ⏳ Pending |
 
-**Completed**: 39 / 149 topics
+**Completed**: 40 / 149 topics
 
 ---
 
@@ -111,7 +111,7 @@
 | T06 | Schedule-Driven Architecture | `06_Schedule-Driven Architecture.md` | ✅ |
 | T07 | Returning Results (Async) | `07_Returning Results.md` | ✅ |
 | T08 | API Gateway | `08_API Gateway.md` | ✅ |
-| T09 | Rate Limiting | `09_Rate Limiting.md` | ⏳ |
+| T09 | Rate Limiting | `09_Rate Limiting.md` | ✅ |
 
 ---
 
