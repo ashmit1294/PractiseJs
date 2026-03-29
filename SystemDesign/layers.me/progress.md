@@ -23,7 +23,7 @@
 | M11 — Cloud Design Patterns | ? | ⏳ Pending |
 | M12 — (remaining) | ? | ⏳ Pending |
 
-**Completed**: 32 / 149 topics
+**Completed**: 33 / 149 topics
 
 ---
 
@@ -104,7 +104,7 @@
 | # | Topic | File | Status |
 |---|---|---|---|
 | T01 | Application Layer Overview | `01_Application Layer Overview.md` | ✅ |
-| T02 | Microservices Architecture | `02_Microservices Architecture.md` | ⏳ |
+| T02 | Microservices Architecture | `02_Microservices Architecture.md` | ✅ |
 | T03 | Service Discovery | `03_Service Discovery.md` | ⏳ |
 | T04 | Background Jobs | `04_Background Jobs.md` | ⏳ |
 | T05 | Event-Driven Architecture | `05_Event-Driven Architecture.md` | ⏳ |
