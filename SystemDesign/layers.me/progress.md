@@ -23,7 +23,7 @@
 | M11 — Cloud Design Patterns | ? | ⏳ Pending |
 | M12 — (remaining) | ? | ⏳ Pending |
 
-**Completed**: 65 / 149 topics
+**Completed**: 66 / 149 topics
 
 ---
 
@@ -157,7 +157,7 @@
 | T07 | CDN Caching | `07_CDN Caching.md` | ✅ |
 | T08 | Web Server Caching | `08_Web Server Caching.md` | ✅ |
 | T09 | Database Caching | `09_Database Caching.md` | ✅ |
-| T10 | Application-Level Caching | `10_Application-Level Caching.md` | ⏳ |
+| T10 | Application-Level Caching | `10_Application-Level Caching.md` | ✅ |
 | T11 | Cache Eviction Policies | `11_Cache Eviction Policies.md` | ⏳ |
 | T12 | Cache Invalidation | `12_Cache Invalidation.md` | ⏳ |
 | T13 | Read-Through Cache | `13_Read-Through Cache.md` | ⏳ |
