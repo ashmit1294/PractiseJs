@@ -16,14 +16,14 @@
 | M4 — Load Balancing & Scaling | 7 | ✅ Complete |
 | M5 — Application Architecture | 9 | ✅ Complete |
 | M6 — Databases | 16 | ✅ Complete |
-| M7 — Caching | 13 | 🔄 In Progress |
-| M8 — Asynchronous Processing | 6 | ⏳ Pending |
+| M7 — Caching | 13 | ✅ Complete |
+| M8 — Asynchronous Processing | 6 | ✅ Complete |
 | M9 — Communication Protocols | 9 | ⏳ Pending |
 | M10 — Performance & Monitoring | 19 | ⏳ Pending |
 | M11 — Cloud Design Patterns | ? | ⏳ Pending |
 | M12 — (remaining) | ? | ⏳ Pending |
 
-**Completed**: 69 / 149 topics
+**Completed**: 75 / 149 topics
 
 ---
 
@@ -164,13 +164,19 @@
 
 ---
 
-## Module 8 — Asynchronous Processing ⏳
+## Module 8 — Asynchronous Processing ✅
 
-> Folder: `08-asynchronous-processing/`
+> Folder: `08-asynchronous-processing/`  
+> Source: https://layrs.me/course/hld/08-asynchronous-processing
 
 | # | Topic | File | Status |
 |---|---|---|---|
-| T01–T06 | (to be fetched) | — | ⏳ |
+| T01 | Asynchronism Overview | `01_Asynchronism Overview.md` | ✅ |
+| T02 | Message Queues (Kafka, RabbitMQ & SQS) | `02_Message Queues.md` | ✅ |
+| T03 | Task Queues (Celery, Sidekiq & Job Processing) | `03_Task Queues.md` | ✅ |
+| T04 | Backpressure in Distributed Systems | `04_Backpressure.md` | ✅ |
+| T05 | Idempotent Operations | `05_Idempotent Operations.md` | ✅ |
+| T06 | Stream Processing (Kafka Streams, Flink & Spark) | `06_Stream Processing.md` | ✅ |
 
 ---
 
