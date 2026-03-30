@@ -23,7 +23,7 @@
 | M11 — Cloud Design Patterns | ? | ⏳ Pending |
 | M12 — (remaining) | ? | ⏳ Pending |
 
-**Completed**: 62 / 149 topics
+**Completed**: 63 / 149 topics
 
 ---
 
@@ -154,7 +154,7 @@
 | T04 | Write-Behind Cache | `04_Write-Behind Cache.md` | ✅ |
 | T05 | Refresh-Ahead Cache | `05_Refresh-Ahead Cache.md` | ✅ |
 | T06 | Client-Side Caching | `06_Client-Side Caching.md` | ✅ |
-| T07 | CDN Caching | `07_CDN Caching.md` | ⏳ |
+| T07 | CDN Caching | `07_CDN Caching.md` | ✅ |
 | T08 | Web Server Caching | `08_Web Server Caching.md` | ⏳ |
 | T09 | Database Caching | `09_Database Caching.md` | ⏳ |
 | T10 | Application-Level Caching | `10_Application-Level Caching.md` | ⏳ |
