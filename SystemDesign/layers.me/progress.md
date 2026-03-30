@@ -23,7 +23,7 @@
 | M11 — Cloud Design Patterns | ? | ⏳ Pending |
 | M12 — (remaining) | ? | ⏳ Pending |
 
-**Completed**: 58 / 149 topics
+**Completed**: 59 / 149 topics
 
 ---
 
@@ -150,7 +150,7 @@
 |---|---|---|---|
 | T01 | Caching Overview | `01_Caching Overview.md` | ✅ |
 | T02 | Cache-Aside | `02_Cache-Aside.md` | ✅ |
-| T03 | Write-Through Cache | `03_Write-Through Cache.md` | ⏳ |
+| T03 | Write-Through Cache | `03_Write-Through Cache.md` | ✅ |
 | T04 | Write-Behind Cache | `04_Write-Behind Cache.md` | ⏳ |
 | T05 | Refresh-Ahead Cache | `05_Refresh-Ahead Cache.md` | ⏳ |
 | T06 | Client-Side Caching | `06_Client-Side Caching.md` | ⏳ |
