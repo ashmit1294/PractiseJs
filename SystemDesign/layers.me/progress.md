@@ -177,6 +177,7 @@
 | T04 | Backpressure in Distributed Systems | `04_Backpressure.md` | ✅ |
 | T05 | Idempotent Operations | `05_Idempotent Operations.md` | ✅ |
 | T06 | Stream Processing (Kafka Streams, Flink & Spark) | `06_Stream Processing.md` | ✅ |
+| — | **Module Summary** | `_SUMMARY.md` | ✅ |
 
 ---
 
@@ -200,12 +201,24 @@
 
 ---
 
+## ⛔ NON-NEGOTIABLE RULES
+
+> These rules apply to **every module, every commit, no exceptions.**
+
+1. **`_SUMMARY.md` is mandatory** — every module folder MUST have a `_SUMMARY.md` file created BEFORE the module is committed. No exceptions.
+   - Format: Topics at a Glance table → one detailed section per topic (core concept + ASCII diagram + code or table + quick pros/cons) → Cross-Topic Connections → Interview Rapid-Fire Answers
+   - File location: `##-module-folder/_SUMMARY.md`
+2. **`progress.md` updated on every commit** — module status, topic rows, and **Completed count** must reflect reality before committing.
+3. **Commit only after both `_SUMMARY.md` and `progress.md` are updated** — never commit topic files alone.
+4. **Commit format** (full module): `feat(layrs.me): Add M## - [Module Name] (T01-T##)`
+5. **Commit format** (single file update): `docs(layrs.me): [description]`
+6. **Shell**: Windows PowerShell — use `;` not `&&`, never `&&`
+
+---
+
 ## Standing Notes
 
-- **Format per file**: ELI5 → Analogy → Core Concept → ASCII diagrams → Math (if applicable) → MERN dev notes → Real-world examples → Interview cheat sheet → Keywords/Glossary
+- **Format per topic file**: ELI5 → Analogy → Core Concept → ASCII diagrams → Math (if applicable) → MERN dev notes → Real-world examples → Interview cheat sheet → Keywords/Glossary
 - **Cassandra mentions** → add `> **MERN dev note — why Cassandra over MongoDB?**` callout
 - **MongoDB sharding** = range-based (chunk migration) ≠ consistent hash rings (Cassandra/DynamoDB)
 - **All abbreviations** must have full forms either inline or in glossary
-- **Commit format** (new file): `feat(layrs.me): Add M3-T## - [Topic Name]`
-- **Commit format** (cross-file update): `docs(layrs.me): [description]`
-- **Shell**: Windows PowerShell — use `;` not `&&`
