@@ -23,7 +23,7 @@
 | M11 — Cloud Design Patterns | ? | ⏳ Pending |
 | M12 — (remaining) | ? | ⏳ Pending |
 
-**Completed**: 68 / 149 topics
+**Completed**: 69 / 149 topics
 
 ---
 
@@ -141,7 +141,7 @@
 
 ---
 
-## Module 7 — Caching 🔄
+## Module 7 — Caching ✅
 
 > Folder: `07-caching/`
 > Source: https://layrs.me/course/hld/07-caching
@@ -160,7 +160,7 @@
 | T10 | Application-Level Caching | `10_Application-Level Caching.md` | ✅ |
 | T11 | Cache Eviction Policies | `11_Cache Eviction Policies.md` | ✅ |
 | T12 | Cache Invalidation | `12_Cache Invalidation.md` | ✅ |
-| T13 | Read-Through Cache | `13_Read-Through Cache.md` | ⏳ |
+| T13 | Read-Through Cache | `13_Read-Through Cache.md` | ✅ |
 
 ---
 
