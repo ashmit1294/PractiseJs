@@ -129,6 +129,42 @@ EVENTUAL CONSISTENCY ◄──────────────────�
 | **Multi-Value** | Keep both conflicting versions | No — user reconciles | Amazon shopping cart |
 | **CRDT** | Deterministic math merge | No — always converges | Collaborative editors |
 
+### LWW (Last-Write-Wins)
+Every write is tagged with a **timestamp** (wall clock or logical clock). When two conflicting versions are compared, the one with the **later timestamp wins** — the other is silently discarded.
+- **Risk**: clock skew on distributed nodes can cause a newer write to lose
+- **Use when**: data loss is acceptable and simplicity matters (DNS TTL refresh, simple caches, leaderboards)
+- **Used by**: Cassandra (default conflict resolution), Redis (TTL-based eviction)
+
+### Multi-Value (Siblings / Vector Clocks)
+When two replicas diverge, **both versions are preserved** as siblings. The conflict is surfaced to the **application or user** to resolve on next read ("merge on read").
+- **Risk**: accumulating siblings if not regularly reconciled
+- **Use when**: no write should be silently dropped (shopping carts, user preferences)
+- **Used by**: Amazon DynamoDB (original Dynamo paper), Riak
+
+### CRDT (Conflict-free Replicated Data Type)
+A data structure mathematically designed so that **all replicas can accept writes independently and always merge to the same final state** — no coordination or conflict resolution logic needed.
+- The merge function is **associative, commutative, and idempotent** — order of merges doesn't matter
+- **Types**:
+  - **G-Counter** (Grow-only Counter): each node tracks its own increment; total = sum of all. Used for distributed like/view counts.
+  - **PN-Counter**: two G-Counters (increments + decrements). Used for inventory deltas.
+  - **G-Set / 2P-Set**: grow-only set; or a set with a separate tombstone set for deletions.
+  - **LWW-Register**: single-value CRDT using timestamps (a formal CRDT version of LWW).
+  - **OR-Set (Observed-Remove Set)**: handles add/remove with unique tags — avoids the "removed then re-added" race condition.
+- **Use when**: real-time collaboration, offline-first apps, distributed counters that must never lose an increment
+- **Used by**: Redis (HyperLogLog, CRDT mode in Redis Enterprise), Figma (collaborative canvas), Riak, Yjs, Automerge
+
+```
+Example — G-Counter CRDT across 3 nodes after network partition and merge:
+
+  [Partition]
+  Node A: {A:3, B:0, C:0}   ← incremented 3 times
+  Node B: {A:0, B:5, C:0}   ← incremented 5 times
+  Node C: {A:0, B:0, C:2}   ← incremented 2 times
+
+  [Merge — take max per node]
+  Merged: {A:3, B:5, C:2}  → Total = 10  ✓ no writes lost
+```
+
 ---
 
 ## Key Principles
