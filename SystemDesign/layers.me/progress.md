@@ -16,14 +16,14 @@
 | M4 — Load Balancing & Scaling | 7 | ✅ Complete |
 | M5 — Application Architecture | 9 | ✅ Complete |
 | M6 — Databases | 16 | ✅ Complete |
-| M7 — Caching | 13 | ⏳ Pending |
+| M7 — Caching | 13 | 🔄 In Progress |
 | M8 — Asynchronous Processing | 6 | ⏳ Pending |
 | M9 — Communication Protocols | 9 | ⏳ Pending |
 | M10 — Performance & Monitoring | 19 | ⏳ Pending |
 | M11 — Cloud Design Patterns | ? | ⏳ Pending |
 | M12 — (remaining) | ? | ⏳ Pending |
 
-**Completed**: 56 / 149 topics
+**Completed**: 57 / 149 topics
 
 ---
 
@@ -141,13 +141,26 @@
 
 ---
 
-## Module 7 — Caching ⏳
+## Module 7 — Caching 🔄
 
 > Folder: `07-caching/`
+> Source: https://layrs.me/course/hld/07-caching
 
 | # | Topic | File | Status |
 |---|---|---|---|
-| T01–T13 | (to be fetched) | — | ⏳ |
+| T01 | Caching Overview | `01_Caching Overview.md` | ✅ |
+| T02 | Cache-Aside | `02_Cache-Aside.md` | ⏳ |
+| T03 | Write-Through Cache | `03_Write-Through Cache.md` | ⏳ |
+| T04 | Write-Behind Cache | `04_Write-Behind Cache.md` | ⏳ |
+| T05 | Refresh-Ahead Cache | `05_Refresh-Ahead Cache.md` | ⏳ |
+| T06 | Client-Side Caching | `06_Client-Side Caching.md` | ⏳ |
+| T07 | CDN Caching | `07_CDN Caching.md` | ⏳ |
+| T08 | Web Server Caching | `08_Web Server Caching.md` | ⏳ |
+| T09 | Database Caching | `09_Database Caching.md` | ⏳ |
+| T10 | Application-Level Caching | `10_Application-Level Caching.md` | ⏳ |
+| T11 | Cache Eviction Policies | `11_Cache Eviction Policies.md` | ⏳ |
+| T12 | Cache Invalidation | `12_Cache Invalidation.md` | ⏳ |
+| T13 | Read-Through Cache | `13_Read-Through Cache.md` | ⏳ |
 
 ---
 
