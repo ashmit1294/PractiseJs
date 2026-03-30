@@ -134,6 +134,8 @@ Rider App
 
 > Different parts use **different consistency models**: payments = strong consistency; trip history = eventual consistency.
 
+> **ACID (Atomicity, Consistency, Isolation, Durability)** — the four guarantees of a safe database transaction. **A**tomicity: all steps succeed or all are rolled back. **C**onsistency: DB stays in a valid state. **I**solation: concurrent writes don’t corrupt each other. **D**urability: committed data survives crashes. Payments require ACID — a $200 charge must either fully succeed or fully roll back, never left half-done. [Full breakdown → M6-T01: Databases Overview]
+
 ---
 
 ## Flowchart 5 — Netflix Architecture (Simplified)
@@ -225,3 +227,9 @@ User Device (Web/Mobile/TV)
 - Architecture **must match scale** — 1K users ≠ 1M users design
 - Every decision is a **trade-off**: consistency ↔ availability, latency ↔ throughput, simplicity ↔ flexibility
 - In interviews: **requirements first → estimate → trade-offs → failure scenarios**
+
+---
+
+## Keywords
+
+`system design` `scalability` `reliability` `availability` `maintainability` `latency` `throughput` `horizontal scaling` `vertical scaling` `ACID (Atomicity, Consistency, Isolation, Durability)` `BASE` `CAP theorem` `consistency` `eventual consistency` `strong consistency` `load balancer` `API gateway` `CDN (Content Delivery Network)` `cache` `relational database` `NoSQL` `microservices` `monolith` `replication` `sharding` `fault tolerance` `quadtree` `EVCache` `Kafka` `Redis` `TAO`

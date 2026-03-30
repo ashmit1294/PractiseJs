@@ -197,6 +197,58 @@ EVENTUAL CONSISTENCY ◄──────────────────�
 
 ---
 
+## ACID Transactions — Why They Matter Here
+
+> Referenced throughout this topic: MongoDB supports multi-document ACID; Cassandra opts for BASE by default. Understanding ACID is a prerequisite for the consistency trade-off debate.
+
+**ACID** = the four guarantees that make database write operations safe and reliable:
+
+```
+A — Atomicity   → all or nothing: every step in a transaction succeeds, or ALL are rolled back
+                  "Charge $200 + create order" → both happen together, or neither happens
+
+C — Consistency → every transaction leaves the DB in a valid state
+                  foreign keys, constraints, and business rules always enforced
+
+I — Isolation   → concurrent transactions behave as if they ran serially (no dirty reads, no lost updates)
+                  Alice and Bob both buying the last concert ticket → exactly one succeeds
+
+D — Durability  → committed data survives crashes, reboots, power cuts
+                  data written to disk / WAL before client receives "Payment confirmed"
+```
+
+**BASE** (distributed NoSQL default) — the counterpart to ACID:
+
+| Letter | Meaning | What It Sacrifices |
+|---|---|---|
+| **B**asically Available | System stays up and serves every request, even during node failures | May return stale or partial data |
+| **S**oft state | State may change over time even without new input | Replicas temporarily diverge |
+| **E**ventually Consistent | All replicas converge to the same value — eventually | No guarantee on *when* they will converge |
+
+### Why ACID is Difficult in Distributed Systems
+
+```
+ACID Isolation → every write must coordinate with ALL concurrent writes across replicas
+              → during a network partition → coordinator must WAIT (block) or FAIL
+              → sacrifices Availability to preserve Consistency
+
+BASE          → accept temporary divergence → stay available during partitions
+              → reconcile replicas later → sacrifices Consistency temporarily
+
+→ This exact trade-off is precisely what CAP Theorem formalises (next topic: T04)
+```
+
+| Property | ACID Systems | BASE Systems |
+|---|---|---|
+| **Typical DBs** | PostgreSQL, MySQL, MongoDB (multi-doc), Google Spanner | Cassandra, DynamoDB (default), Redis |
+| **Best for** | Payments, inventory management, financial ledgers | Social feeds, IoT streams, analytics, caching |
+| **During partition** | Block or return error — never serve inconsistent data | Stay available and serve (possibly stale) data |
+| **Write throughput** | Lower (coordination overhead) | Higher (no cross-replica locks) |
+
+> **Full ACID breakdown with code examples** → M6-T01: Databases Overview
+
+---
+
 ## Key Takeaways
 
 1. **Availability** = always respond (possibly stale). **Consistency** = always correct (possibly slow/unavailable)
@@ -210,4 +262,4 @@ EVENTUAL CONSISTENCY ◄──────────────────�
 
 ## Keywords
 
-`availability` `consistency` `CAP theorem` `network partition` `eventual consistency` `strong consistency` `linearizability` `quorum` `vector clocks` `CRDT` `last-write-wins` `tunable consistency` `causal consistency` `read-your-writes` `DynamoDB` `Cassandra` `Google Spanner` `replication lag` `conflict resolution` `merge on read`
+`availability` `consistency` `CAP theorem` `network partition` `eventual consistency` `strong consistency` `linearizability` `quorum` `vector clocks` `CRDT` `last-write-wins` `tunable consistency` `causal consistency` `read-your-writes` `DynamoDB` `Cassandra` `Google Spanner` `replication lag` `conflict resolution` `merge on read` `ACID (Atomicity, Consistency, Isolation, Durability)` `BASE (Basically Available, Soft state, Eventually consistent)` `Atomicity` `Isolation` `Durability` `WAL (Write-Ahead Log)`

@@ -197,4 +197,4 @@ What are the consequences of stale data?
 
 ## Keywords
 
-`consistency patterns` `weak consistency` `eventual consistency` `strong consistency` `linearizability` `causal consistency` `read-your-writes` `monotonic reads` `replication lag` `tunable consistency` `DynamoDB` `Cassandra` `Google Spanner` `TrueTime` `CRDT` `conflict resolution` `CAP theorem` `polyglot persistence` `consistency matrix` `synchronous replication` `asynchronous replication`
+`consistency patterns` `weak consistency` `eventual consistency` `strong consistency` `linearizability` `causal consistency` `read-your-writes` `monotonic reads` `replication lag` `tunable consistency` `DynamoDB` `Cassandra` `Google Spanner` `TrueTime` `CRDT` `conflict resolution` `CAP theorem` `polyglot persistence` `consistency matrix` `synchronous replication` `asynchronous replication` `ACID (Atomicity, Consistency, Isolation, Durability)` `BASE (Basically Available, Soft state, Eventually consistent)` `2PC (Two-Phase Commit)`

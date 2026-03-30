@@ -213,4 +213,4 @@ CAP only covers partition scenarios. **PACELC** adds: even without partitions, y
 
 ## Keywords
 
-`CAP theorem` `consistency` `availability` `partition tolerance` `linearizability` `CP systems` `AP systems` `CA systems` `HBase` `ZooKeeper` `Cassandra` `DynamoDB` `tunable consistency` `quorum` `network partition` `split-brain` `PACELC` `vector clocks` `conflict resolution` `Eric Brewer`
+`CAP theorem` `consistency` `availability` `partition tolerance` `linearizability` `CP systems` `AP systems` `CA systems` `HBase` `ZooKeeper` `Cassandra` `DynamoDB` `tunable consistency` `quorum` `network partition` `split-brain` `PACELC` `vector clocks` `conflict resolution` `Eric Brewer` `ACID (Atomicity, Consistency, Isolation, Durability)` `BASE (Basically Available, Soft state, Eventually consistent)`

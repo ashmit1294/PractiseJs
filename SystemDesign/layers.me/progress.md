@@ -213,6 +213,7 @@
 4. **Commit format** (full module): `feat(layrs.me): Add M## - [Module Name] (T01-T##)`
 5. **Commit format** (single file update): `docs(layrs.me): [description]`
 6. **Shell**: Windows PowerShell — use `;` not `&&`, never `&&`
+7. **All technical terms must be defined where they are used** — every acronym must be expanded at first use (e.g. `ACID (Atomicity, Consistency, Isolation, Durability)`). Every term that is not a dedicated topic file in this course must have an entry in the **Keywords/Glossary section of that same file**. If the term has its own topic file, add a brief inline definition + `[→ Full detail: MX-TY filename]` cross-reference. No term should appear without explanation.
 
 ---
 

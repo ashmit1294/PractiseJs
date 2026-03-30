@@ -414,4 +414,4 @@ A: After finding the primary server (first clockwise), continue walking to find 
 
 ## Keywords
 
-`consistent hashing` · `hash ring` · `virtual nodes` · `vnodes` · `minimal redistribution` · `K/N` · `load variance` · `binary search ring` · `ring wrap-around` · `DynamoDB partition key` · `Cassandra 256 vnodes` · `Redis Cluster hash slots` · `Akamai CDN (Content Delivery Network)` · `hinted handoff` · `weighted consistent hashing` · `bounded load` · `jump hash` · `rendezvous hashing` · `horizontal scaling` · `cache stampede`
+`consistent hashing` · `hash ring` · `virtual nodes` · `vnodes` · `minimal redistribution` · `K/N` · `load variance` · `binary search ring` · `ring wrap-around` · `DynamoDB partition key` · `Cassandra 256 vnodes` · `Redis Cluster hash slots` · `Akamai CDN (Content Delivery Network)` · `hinted handoff` · `weighted consistent hashing` · `bounded load` · `jump hash` · `rendezvous hashing` · `horizontal scaling` · `cache stampede` · `ACID (Atomicity, Consistency, Isolation, Durability)`

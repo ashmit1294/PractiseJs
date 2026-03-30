@@ -334,6 +334,7 @@ await consumer.run({
 | **Chandy-Lamport** | Distributed snapshot algorithm using barrier markers for consistent state capture |
 | **Checkpoint** | Snapshot of all operator state + Kafka offsets; enables recovery to consistent point |
 | **Exactly-once** | Each event processed exactly one time; requires distributed transactions + idempotent sinks |
+| **2PC (Two-Phase Commit)** | Distributed atomic commit protocol: coordinator sends Prepare → all participants vote Yes/No → only if ALL vote Yes does coordinator send Commit. Guarantees all-or-nothing across nodes at the cost of 10–30% throughput overhead. |
 | **At-least-once** | Events may be processed multiple times on failure; simpler than exactly-once |
 | **RocksDB** | LSM-tree embedded key-value store used by Flink/Kafka Streams for local operator state |
 | **Kafka Streams** | Java library for stateful stream processing; embedded, Kafka-native |
