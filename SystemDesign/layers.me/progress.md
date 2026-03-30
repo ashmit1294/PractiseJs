@@ -23,7 +23,7 @@
 | M11 — Cloud Design Patterns | ? | ⏳ Pending |
 | M12 — (remaining) | ? | ⏳ Pending |
 
-**Completed**: 53 / 149 topics
+**Completed**: 54 / 149 topics
 
 ---
 
@@ -135,7 +135,7 @@
 | T11 | Data Lakes & Warehouses | `11_Data Lakes and Warehouses.md` | ✅ |
 | T12 | Database Indexing | `12_Database Indexing.md` | ✅ |
 | T13 | Database Replication | `13_Database Replication.md` | ✅ |
-| T14 | Search Systems | `14_Search Systems.md` | ⏳ |
+| T14 | Search Systems | `14_Search Systems.md` | ✅ |
 | T15 | Write-Ahead Log | `15_Write-Ahead Log.md` | ⏳ |
 | T16 | Vector Databases | `16_Vector Databases.md` | ⏳ |
 
