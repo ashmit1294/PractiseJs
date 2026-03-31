@@ -18,12 +18,12 @@
 | M6 — Databases | 16 | ✅ Complete |
 | M7 — Caching | 13 | ✅ Complete |
 | M8 — Asynchronous Processing | 6 | ✅ Complete |
-| M9 — Communication Protocols | 9 | ⏳ Pending |
+| M9 — Communication Protocols | 9 | ✅ Complete |
 | M10 — Performance & Monitoring | 19 | ⏳ Pending |
 | M11 — Cloud Design Patterns | ? | ⏳ Pending |
 | M12 — (remaining) | ? | ⏳ Pending |
 
-**Completed**: 75 / 149 topics
+**Completed**: 84 / 149 topics
 
 ---
 
@@ -181,13 +181,22 @@
 
 ---
 
-## Module 9 — Communication Protocols ⏳
+## Module 9 — Communication Protocols ✅
 
 > Folder: `09-communication-protocols/`
 
 | # | Topic | File | Status |
 |---|---|---|---|
-| T01–T09 | (to be fetched) | — | ⏳ |
+| T01 | Communication Protocols Overview | `01_Communication Protocols Overview.md` | ✅ |
+| T02 | HTTP | `02_HTTP.md` | ✅ |
+| T03 | TCP | `03_TCP.md` | ✅ |
+| T04 | UDP | `04_UDP.md` | ✅ |
+| T05 | REST API Design | `05_REST API Design.md` | ✅ |
+| T06 | RPC vs REST | `06_RPC vs REST.md` | ✅ |
+| T07 | gRPC | `07_gRPC.md` | ✅ |
+| T08 | GraphQL | `08_GraphQL.md` | ✅ |
+| T09 | Long Polling vs WebSockets vs SSE | `09_Long Polling vs WebSockets vs SSE.md` | ✅ |
+| — | **Module Summary** | `_SUMMARY.md` | ✅ |
 
 ---
 
