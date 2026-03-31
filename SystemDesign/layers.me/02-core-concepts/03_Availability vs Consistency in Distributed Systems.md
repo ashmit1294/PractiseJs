@@ -240,17 +240,25 @@ Example — G-Counter CRDT across 3 nodes after network partition and merge:
 **ACID** = the four guarantees that make database write operations safe and reliable:
 
 ```
-A — Atomicity   → all or nothing: every step in a transaction succeeds, or ALL are rolled back
+A — Atomicity   → "all-or-nothing" execution: every step in a transaction succeeds, or ALL are
+                  rolled back — preventing partial updates from ever being written
                   "Charge $200 + create order" → both happen together, or neither happens
+                  If step 2 of 3 fails → step 1 is undone; DB is unchanged
 
-C — Consistency → every transaction leaves the DB in a valid state
-                  foreign keys, constraints, and business rules always enforced
+C — Consistency → a transaction transforms the DB from one valid state to another valid state
+                  ALL predefined rules, constraints, triggers, and foreign keys are enforced
+                  No transaction can leave the DB in a structurally corrupt or rule-breaking state
+                  e.g. bank balance can't go below 0 if that rule exists — even mid-transaction
 
-I — Isolation   → concurrent transactions behave as if they ran serially (no dirty reads, no lost updates)
+I — Isolation   → concurrent transactions do not interfere with each other — they execute
+                  as if they were running sequentially, one after another
+                  prevents: dirty reads (reading uncommitted data), lost updates, phantom reads
                   Alice and Bob both buying the last concert ticket → exactly one succeeds
 
-D — Durability  → committed data survives crashes, reboots, power cuts
-                  data written to disk / WAL before client receives "Payment confirmed"
+D — Durability  → once a transaction is committed, it remains permanent — even in the event of
+                  a system crash, power loss, or hardware failure
+                  data is written to disk / WAL (Write-Ahead Log) BEFORE "Payment confirmed" is sent
+                  no committed write can be "forgotten" by the database
 ```
 
 **BASE** (distributed NoSQL default) — the counterpart to ACID:
