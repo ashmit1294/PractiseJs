@@ -19,11 +19,11 @@
 | M7 — Caching | 13 | ✅ Complete |
 | M8 — Asynchronous Processing | 6 | ✅ Complete |
 | M9 — Communication Protocols | 9 | ✅ Complete |
-| M10 — Performance & Monitoring | 19 | ⏳ Pending |
+| M10 — Performance & Monitoring | 19 | ✅ Complete |
 | M11 — Cloud Design Patterns | ? | ⏳ Pending |
 | M12 — (remaining) | ? | ⏳ Pending |
 
-**Completed**: 84 / 149 topics
+**Completed**: 103 / 149 topics
 
 ---
 
@@ -200,13 +200,32 @@
 
 ---
 
-## Module 10 — Performance & Monitoring ⏳
+## Module 10 — Performance & Monitoring ✅
 
 > Folder: `10-performance-monitoring/`
 
 | # | Topic | File | Status |
 |---|---|---|---|
-| T01–T19 | (to be fetched) | — | ⏳ |
+| T01 | Performance Antipatterns Overview | `01_Performance Antipatterns Overview.md` | ✅ |
+| T02 | Busy Database | `02_Busy Database.md` | ✅ |
+| T03 | Busy Frontend | `03_Busy Frontend.md` | ✅ |
+| T04 | Chatty I/O | `04_Chatty IO.md` | ✅ |
+| T05 | Extraneous Fetching | `05_Extraneous Fetching.md` | ✅ |
+| T06 | Improper Instantiation | `06_Improper Instantiation.md` | ✅ |
+| T07 | Monolithic Persistence | `07_Monolithic Persistence.md` | ✅ |
+| T08 | No-Caching | `08_No-Caching.md` | ✅ |
+| T09 | Noisy Neighbor | `09_Noisy Neighbor.md` | ✅ |
+| T10 | Retry Storm | `10_Retry Storm.md` | ✅ |
+| T11 | Synchronous I/O | `11_Synchronous IO.md` | ✅ |
+| T12 | Monitoring Overview | `12_Monitoring Overview.md` | ✅ |
+| T13 | Health Monitoring | `13_Health Monitoring.md` | ✅ |
+| T14 | Availability Monitoring | `14_Availability Monitoring.md` | ✅ |
+| T15 | Performance Monitoring | `15_Performance Monitoring.md` | ✅ |
+| T16 | Security Monitoring | `16_Security Monitoring.md` | ✅ |
+| T17 | Usage Monitoring | `17_Usage Monitoring.md` | ✅ |
+| T18 | Instrumentation | `18_Instrumentation.md` | ✅ |
+| T19 | Visualization and Alerts | `19_Visualization and Alerts.md` | ✅ |
+| — | **Module Summary** | `_SUMMARY.md` | ✅ |
 
 ---
 
