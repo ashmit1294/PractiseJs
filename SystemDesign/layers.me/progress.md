@@ -23,7 +23,7 @@
 | M11 — Cloud Design Patterns | 37 | ⏳ Pending |
 | M12 — (remaining) | ? | ⏳ Pending |
 
-**Completed**: 114 / 149 topics
+**Completed**: 115 / 149 topics
 
 ---
 
@@ -254,7 +254,7 @@
 
 | # | Topic | File | Status |
 |---|---|---|---|
-| T12 | Data Management Overview | `12_Data Management Overview.md` | ⏳ |
+| T12 | Data Management Overview | `12_Data Management Overview.md` | ✅ |
 | T13 | Cache-Aside Pattern | `13_Cache-Aside Pattern.md` | ⏳ |
 | T14 | CQRS | `14_CQRS.md` | ⏳ |
 | T15 | Event Sourcing | `15_Event Sourcing.md` | ⏳ |
