@@ -23,7 +23,7 @@
 | M11 — Cloud Design Patterns | 37 | ✅ Complete |
 | M12 — Reliability Patterns | 32 | ⏳ Pending |
 
-**Completed**: 142 / 172 topics
+**Completed**: 143 / 172 topics
 
 ---
 
@@ -305,7 +305,7 @@
 |---|---|---|---|
 | T01 | Resiliency Overview | `01_Resiliency Overview.md` | ✅ |
 | T02 | Bulkhead Pattern | `02_Bulkhead Pattern.md` | ✅ |
-| T03 | Circuit Breaker Pattern | `03_Circuit Breaker Pattern.md` | ⏳ |
+| T03 | Circuit Breaker Pattern | `03_Circuit Breaker Pattern.md` | ✅ |
 | T04 | Compensating Transaction | `04_Compensating Transaction.md` | ⏳ |
 | T05 | Health Endpoint Monitoring | `05_Health Endpoint Monitoring.md` | ⏳ |
 | T06 | Retry Pattern | `06_Retry Pattern.md` | ⏳ |
