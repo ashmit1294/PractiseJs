@@ -20,7 +20,7 @@
 | M8 — Asynchronous Processing | 6 | ✅ Complete |
 | M9 — Communication Protocols | 9 | ✅ Complete |
 | M10 — Performance & Monitoring | 19 | ✅ Complete |
-| M11 — Cloud Design Patterns | ? | ⏳ Pending |
+| M11 — Cloud Design Patterns | 37 | ⏳ Pending |
 | M12 — (remaining) | ? | ⏳ Pending |
 
 **Completed**: 103 / 149 topics
@@ -226,6 +226,71 @@
 | T18 | Instrumentation | `18_Instrumentation.md` | ✅ |
 | T19 | Visualization and Alerts | `19_Visualization and Alerts.md` | ✅ |
 | — | **Module Summary** | `_SUMMARY.md` | ✅ |
+
+---
+
+## Module 11 — Cloud Design Patterns ⏳
+
+> Folder: `11-cloud-design-patterns/`  
+> Source: https://layrs.me/course/hld/11-cloud-design-patterns
+
+### Section 1: Messaging Patterns
+
+| # | Topic | File | Status |
+|---|---|---|---|
+| T01 | Messaging Patterns Overview | `01_Messaging Patterns Overview.md` | ⏳ |
+| T02 | Async Request-Reply | `02_Async Request-Reply.md` | ⏳ |
+| T03 | Claim Check | `03_Claim Check.md` | ⏳ |
+| T04 | Choreography | `04_Choreography.md` | ⏳ |
+| T05 | Competing Consumers | `05_Competing Consumers.md` | ⏳ |
+| T06 | Pipes and Filters | `06_Pipes and Filters.md` | ⏳ |
+| T07 | Priority Queue | `07_Priority Queue.md` | ⏳ |
+| T08 | Publisher-Subscriber | `08_Publisher-Subscriber.md` | ⏳ |
+| T09 | Queue-Based Load Leveling | `09_Queue-Based Load Leveling.md` | ⏳ |
+| T10 | Scheduling Agent Supervisor | `10_Scheduling Agent Supervisor.md` | ⏳ |
+| T11 | Sequential Convoy | `11_Sequential Convoy.md` | ⏳ |
+
+### Section 2: Data Management Patterns
+
+| # | Topic | File | Status |
+|---|---|---|---|
+| T12 | Data Management Overview | `12_Data Management Overview.md` | ⏳ |
+| T13 | Cache-Aside Pattern | `13_Cache-Aside Pattern.md` | ⏳ |
+| T14 | CQRS | `14_CQRS.md` | ⏳ |
+| T15 | Event Sourcing | `15_Event Sourcing.md` | ⏳ |
+| T16 | Index Table | `16_Index Table.md` | ⏳ |
+| T17 | Materialized View | `17_Materialized View.md` | ⏳ |
+| T18 | Sharding Pattern | `18_Sharding Pattern.md` | ⏳ |
+| T19 | Static Content Hosting | `19_Static Content Hosting.md` | ⏳ |
+| T20 | Valet Key | `20_Valet Key.md` | ⏳ |
+
+### Section 3: Design & Implementation Patterns
+
+| # | Topic | File | Status |
+|---|---|---|---|
+| T21 | Design and Implementation Overview | `21_Design and Implementation Overview.md` | ⏳ |
+| T22 | Ambassador | `22_Ambassador.md` | ⏳ |
+| T23 | Anti-Corruption Layer | `23_Anti-Corruption Layer.md` | ⏳ |
+| T24 | Backends for Frontend | `24_Backends for Frontend.md` | ⏳ |
+| T25 | Compute Resource Consolidation | `25_Compute Resource Consolidation.md` | ⏳ |
+| T26 | External Config Store | `26_External Config Store.md` | ⏳ |
+| T27 | Gateway Aggregation | `27_Gateway Aggregation.md` | ⏳ |
+| T28 | Gateway Offloading | `28_Gateway Offloading.md` | ⏳ |
+| T29 | Gateway Routing | `29_Gateway Routing.md` | ⏳ |
+| T30 | Leader Election | `30_Leader Election.md` | ⏳ |
+| T31 | Pipes and Filters Implementation | `31_Pipes and Filters Implementation.md` | ⏳ |
+| T32 | Sidecar | `32_Sidecar.md` | ⏳ |
+| T33 | Static Content Hosting Implementation | `33_Static Content Hosting Implementation.md` | ⏳ |
+| T34 | Strangler Fig | `34_Strangler Fig.md` | ⏳ |
+| T35 | CQRS Implementation | `35_CQRS Implementation.md` | ⏳ |
+
+### Section 4: Additional Topics
+
+| # | Topic | File | Status |
+|---|---|---|---|
+| T36 | Containerization and Orchestration | `36_Containerization and Orchestration.md` | ⏳ |
+| T37 | Serverless Architecture | `37_Serverless Architecture.md` | ⏳ |
+| — | **Module Summary** | `_SUMMARY.md` | ⏳ |
 
 ---
 
