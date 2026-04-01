@@ -23,7 +23,7 @@
 | M11 — Cloud Design Patterns | 37 | ⏳ Pending |
 | M12 — (remaining) | ? | ⏳ Pending |
 
-**Completed**: 123 / 149 topics
+**Completed**: 129 / 149 topics
 
 ---
 
@@ -268,12 +268,12 @@
 
 | # | Topic | File | Status |
 |---|---|---|---|
-| T21 | Design and Implementation Overview | `21_Design and Implementation Overview.md` | ⏳ |
-| T22 | Ambassador | `22_Ambassador.md` | ⏳ |
-| T23 | Anti-Corruption Layer | `23_Anti-Corruption Layer.md` | ⏳ |
-| T24 | Backends for Frontend | `24_Backends for Frontend.md` | ⏳ |
-| T25 | Compute Resource Consolidation | `25_Compute Resource Consolidation.md` | ⏳ |
-| T26 | External Config Store | `26_External Config Store.md` | ⏳ |
+| T21 | Design and Implementation Overview | `21_Design and Implementation Overview.md` | ✅ |
+| T22 | Ambassador | `22_Ambassador.md` | ✅ |
+| T23 | Anti-Corruption Layer | `23_Anti-Corruption Layer.md` | ✅ |
+| T24 | Backends for Frontend | `24_Backends for Frontend.md` | ✅ |
+| T25 | Compute Resource Consolidation | `25_Compute Resource Consolidation.md` | ✅ |
+| T26 | External Config Store | `26_External Config Store.md` | ✅ |
 | T27 | Gateway Aggregation | `27_Gateway Aggregation.md` | ⏳ |
 | T28 | Gateway Offloading | `28_Gateway Offloading.md` | ⏳ |
 | T29 | Gateway Routing | `29_Gateway Routing.md` | ⏳ |
