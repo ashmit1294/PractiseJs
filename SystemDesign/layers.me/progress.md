@@ -23,7 +23,7 @@
 | M11 — Cloud Design Patterns | 37 | ⏳ Pending |
 | M12 — (remaining) | ? | ⏳ Pending |
 
-**Completed**: 107 / 149 topics
+**Completed**: 108 / 149 topics
 
 ---
 
@@ -242,7 +242,7 @@
 | T02 | Async Request-Reply | `02_Async Request-Reply.md` | ✅ |
 | T03 | Claim Check | `03_Claim Check.md` | ✅ |
 | T04 | Choreography | `04_Choreography.md` | ✅ |
-| T05 | Competing Consumers | `05_Competing Consumers.md` | ⏳ |
+| T05 | Competing Consumers | `05_Competing Consumers.md` | ✅ |
 | T06 | Pipes and Filters | `06_Pipes and Filters.md` | ⏳ |
 | T07 | Priority Queue | `07_Priority Queue.md` | ⏳ |
 | T08 | Publisher-Subscriber | `08_Publisher-Subscriber.md` | ⏳ |
