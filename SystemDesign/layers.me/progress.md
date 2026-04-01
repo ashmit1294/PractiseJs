@@ -23,7 +23,7 @@
 | M11 — Cloud Design Patterns | 37 | ⏳ Pending |
 | M12 — (remaining) | ? | ⏳ Pending |
 
-**Completed**: 139 / 149 topics
+**Completed**: 140 / 149 topics
 
 ---
 
@@ -289,7 +289,7 @@
 | # | Topic | File | Status |
 |---|---|---|---|
 | T36 | Containerization and Orchestration | `36_Containerization and Orchestration.md` | ✅ |
-| T37 | Serverless Architecture | `37_Serverless Architecture.md` | ⏳ |
+| T37 | Serverless Architecture | `37_Serverless Architecture.md` | ✅ |
 | — | **Module Summary** | `_SUMMARY.md` | ⏳ |
 
 ---
