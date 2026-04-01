@@ -23,7 +23,7 @@
 | M11 — Cloud Design Patterns | 37 | ⏳ Pending |
 | M12 — (remaining) | ? | ⏳ Pending |
 
-**Completed**: 135 / 149 topics
+**Completed**: 136 / 149 topics
 
 ---
 
@@ -280,7 +280,7 @@
 | T30 | Leader Election | `30_Leader Election.md` | ✅ |
 | T31 | Pipes and Filters Implementation | `31_Pipes and Filters Implementation.md` | ✅ |
 | T32 | Sidecar | `32_Sidecar.md` | ✅ |
-| T33 | Static Content Hosting Implementation | `33_Static Content Hosting Implementation.md` | ⏳ |
+| T33 | Static Content Hosting Implementation | `33_Static Content Hosting Implementation.md` | ✅ |
 | T34 | Strangler Fig | `34_Strangler Fig.md` | ⏳ |
 | T35 | CQRS Implementation | `35_CQRS Implementation.md` | ⏳ |
 
