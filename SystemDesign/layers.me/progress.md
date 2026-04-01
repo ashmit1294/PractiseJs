@@ -23,7 +23,7 @@
 | M11 — Cloud Design Patterns | 37 | ⏳ Pending |
 | M12 — (remaining) | ? | ⏳ Pending |
 
-**Completed**: 133 / 149 topics
+**Completed**: 134 / 149 topics
 
 ---
 
@@ -278,7 +278,7 @@
 | T28 | Gateway Offloading | `28_Gateway Offloading.md` | ✅ |
 | T29 | Gateway Routing | `29_Gateway Routing.md` | ✅ |
 | T30 | Leader Election | `30_Leader Election.md` | ✅ |
-| T31 | Pipes and Filters Implementation | `31_Pipes and Filters Implementation.md` | ⏳ |
+| T31 | Pipes and Filters Implementation | `31_Pipes and Filters Implementation.md` | ✅ |
 | T32 | Sidecar | `32_Sidecar.md` | ⏳ |
 | T33 | Static Content Hosting Implementation | `33_Static Content Hosting Implementation.md` | ⏳ |
 | T34 | Strangler Fig | `34_Strangler Fig.md` | ⏳ |
