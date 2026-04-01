@@ -23,7 +23,7 @@
 | M11 — Cloud Design Patterns | 37 | ⏳ Pending |
 | M12 — (remaining) | ? | ⏳ Pending |
 
-**Completed**: 120 / 149 topics
+**Completed**: 121 / 149 topics
 
 ---
 
@@ -260,7 +260,7 @@
 | T15 | Event Sourcing | `15_Event Sourcing.md` | ✅ |
 | T16 | Index Table | `16_Index Table.md` | ✅ |
 | T17 | Materialized View | `17_Materialized View.md` | ✅ |
-| T18 | Sharding Pattern | `18_Sharding Pattern.md` | ⏳ |
+| T18 | Sharding Pattern | `18_Sharding Pattern.md` | ✅ |
 | T19 | Static Content Hosting | `19_Static Content Hosting.md` | ⏳ |
 | T20 | Valet Key | `20_Valet Key.md` | ⏳ |
 
