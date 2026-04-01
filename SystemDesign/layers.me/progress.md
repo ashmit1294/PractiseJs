@@ -229,7 +229,7 @@
 
 ---
 
-## Module 11 — Cloud Design Patterns ⏳
+## Module 11 — Cloud Design Patterns ✅
 
 > Folder: `11-cloud-design-patterns/`  
 > Source: https://layrs.me/course/hld/11-cloud-design-patterns
@@ -290,7 +290,7 @@
 |---|---|---|---|
 | T36 | Containerization and Orchestration | `36_Containerization and Orchestration.md` | ✅ |
 | T37 | Serverless Architecture | `37_Serverless Architecture.md` | ✅ |
-| — | **Module Summary** | `_SUMMARY.md` | ⏳ |
+| — | **Module Summary** | `_SUMMARY.md` | ✅ |
 
 ---
 
