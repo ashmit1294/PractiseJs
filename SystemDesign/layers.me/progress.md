@@ -23,7 +23,7 @@
 | M11 — Cloud Design Patterns | 37 | ⏳ Pending |
 | M12 — (remaining) | ? | ⏳ Pending |
 
-**Completed**: 130 / 149 topics
+**Completed**: 131 / 149 topics
 
 ---
 
@@ -275,7 +275,7 @@
 | T25 | Compute Resource Consolidation | `25_Compute Resource Consolidation.md` | ✅ |
 | T26 | External Config Store | `26_External Config Store.md` | ✅ |
 | T27 | Gateway Aggregation | `27_Gateway Aggregation.md` | ✅ |
-| T28 | Gateway Offloading | `28_Gateway Offloading.md` | ⏳ |
+| T28 | Gateway Offloading | `28_Gateway Offloading.md` | ✅ |
 | T29 | Gateway Routing | `29_Gateway Routing.md` | ⏳ |
 | T30 | Leader Election | `30_Leader Election.md` | ⏳ |
 | T31 | Pipes and Filters Implementation | `31_Pipes and Filters Implementation.md` | ⏳ |
