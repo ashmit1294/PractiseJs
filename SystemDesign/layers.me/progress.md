@@ -23,7 +23,7 @@
 | M11 — Cloud Design Patterns | 37 | ✅ Complete |
 | M12 — Reliability Patterns | 32 | ⏳ Pending |
 
-**Completed**: 149 / 172 topics
+**Completed**: 150 / 172 topics
 
 ---
 
@@ -317,7 +317,7 @@
 |---|---|---|---|
 | T08 | High Availability Overview | `08_High Availability Overview.md` | ✅ |
 | T09 | Deployment Stamps | `09_Deployment Stamps.md` | ✅ |
-| T10 | Geodes Pattern | `10_Geodes Pattern.md` | ⏳ |
+| T10 | Geodes Pattern | `10_Geodes Pattern.md` | ✅ |
 | T11 | Bulkhead for High Availability | `11_Bulkhead for High Availability.md` | ⏳ |
 | T12 | Circuit Breaker for High Availability | `12_Circuit Breaker for High Availability.md` | ⏳ |
 | T13 | Health Endpoint Monitoring for HA | `13_Health Endpoint Monitoring for HA.md` | ⏳ |
