@@ -233,15 +233,36 @@
 
 > These rules apply to **every module, every commit, no exceptions.**
 
-1. **`_SUMMARY.md` is mandatory** — every module folder MUST have a `_SUMMARY.md` file created BEFORE the module is committed. No exceptions.
+### Workflow Rules
+1. **One module at a time** — complete the current module fully before starting the next.
+2. **Each file is a task** — treat every topic file as an individual unit of work. Create it, then immediately commit it before moving to the next file.
+3. **Commit format per file**: `feat(layrs.me): M## T## - [Topic Name]`
+   - Example: `feat(layrs.me): M11 T03 - Circuit Breaker`
+4. **After every file commit, update `progress.md`** — mark that topic ✅ and update the Completed count, then commit progress.md alongside or immediately after.
+5. **`_SUMMARY.md` is mandatory** — every module folder MUST have a `_SUMMARY.md` file created AFTER all topic files are done and committed. Commit it last.
    - Format: Topics at a Glance table → one detailed section per topic (core concept + ASCII diagram + code or table + quick pros/cons) → Cross-Topic Connections → Interview Rapid-Fire Answers
    - File location: `##-module-folder/_SUMMARY.md`
-2. **`progress.md` updated on every commit** — module status, topic rows, and **Completed count** must reflect reality before committing.
-3. **Commit only after both `_SUMMARY.md` and `progress.md` are updated** — never commit topic files alone.
-4. **Commit format** (full module): `feat(layrs.me): Add M## - [Module Name] (T01-T##)`
-5. **Commit format** (single file update): `docs(layrs.me): [description]`
-6. **Shell**: Windows PowerShell — use `;` not `&&`, never `&&`
-7. **All technical terms must be defined where they are used** — every acronym must be expanded at first use (e.g. `ACID (Atomicity, Consistency, Isolation, Durability)`). Every term that is not a dedicated topic file in this course must have an entry in the **Keywords/Glossary section of that same file**. If the term has its own topic file, add a brief inline definition + `[→ Full detail: MX-TY filename]` cross-reference. No term should appear without explanation.
+   - Commit format: `feat(layrs.me): M## - [Module Name] _SUMMARY`
+6. **`progress.md` updated on every commit** — module status, topic rows, and **Completed count** must reflect reality at all times.
+7. **Commit format** (progress.md only update): `docs(layrs.me): Update progress for M## T##`
+8. **Shell**: Windows PowerShell — use `;` not `&&`, never `&&`
+9. **All technical terms must be defined where they are used** — every acronym must be expanded at first use (e.g. `ACID (Atomicity, Consistency, Isolation, Durability)`). Every term that is not a dedicated topic file in this course must have an entry in the **Keywords/Glossary section of that same file**. If the term has its own topic file, add a brief inline definition + `[→ Full detail: MX-TY filename]` cross-reference. No term should appear without explanation.
+
+### Execution Order Per Module
+```
+For each topic file:
+  1. Create the file (full content, all sections)
+  2. git add <file> + git commit -m "feat(layrs.me): M## T## - [Topic Name]"
+  3. Update progress.md (mark ✅, update count)
+  4. git add progress.md + git commit -m "docs(layrs.me): Update progress for M## T##"
+  5. Move to next file
+
+After all topic files done:
+  6. Create _SUMMARY.md
+  7. git add _SUMMARY.md + git commit -m "feat(layrs.me): M## - [Module Name] _SUMMARY"
+  8. Update progress.md (mark module ✅)
+  9. git add progress.md + git commit -m "docs(layrs.me): M## complete"
+```
 
 ---
 
