@@ -23,7 +23,7 @@
 | M11 — Cloud Design Patterns | 37 | ⏳ Pending |
 | M12 — (remaining) | ? | ⏳ Pending |
 
-**Completed**: 112 / 149 topics
+**Completed**: 113 / 149 topics
 
 ---
 
@@ -247,7 +247,7 @@
 | T07 | Priority Queue | `07_Priority Queue.md` | ✅ |
 | T08 | Publisher-Subscriber | `08_Publisher-Subscriber.md` | ✅ |
 | T09 | Queue-Based Load Leveling | `09_Queue-Based Load Leveling.md` | ✅ |
-| T10 | Scheduling Agent Supervisor | `10_Scheduling Agent Supervisor.md` | ⏳ |
+| T10 | Scheduling Agent Supervisor | `10_Scheduling Agent Supervisor.md` | ✅ |
 | T11 | Sequential Convoy | `11_Sequential Convoy.md` | ⏳ |
 
 ### Section 2: Data Management Patterns
