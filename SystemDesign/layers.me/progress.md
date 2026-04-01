@@ -1,7 +1,7 @@
 # HLD Course Progress — layrs.me
 
 > **Course**: https://layrs.me/course/hld  
-> **Total**: 149 topics across 12 modules  
+> **Total**: 172 topics across 12 modules  
 > **Last updated**: auto-updated on each commit
 
 ---
@@ -20,10 +20,10 @@
 | M8 — Asynchronous Processing | 6 | ✅ Complete |
 | M9 — Communication Protocols | 9 | ✅ Complete |
 | M10 — Performance & Monitoring | 19 | ✅ Complete |
-| M11 — Cloud Design Patterns | 37 | ⏳ Pending |
-| M12 — (remaining) | ? | ⏳ Pending |
+| M11 — Cloud Design Patterns | 37 | ✅ Complete |
+| M12 — Reliability Patterns | 32 | ⏳ Pending |
 
-**Completed**: 140 / 149 topics
+**Completed**: 140 / 172 topics
 
 ---
 
@@ -291,6 +291,71 @@
 | T36 | Containerization and Orchestration | `36_Containerization and Orchestration.md` | ✅ |
 | T37 | Serverless Architecture | `37_Serverless Architecture.md` | ✅ |
 | — | **Module Summary** | `_SUMMARY.md` | ✅ |
+
+---
+
+## Module 12 — Reliability Patterns ⏳
+
+> Folder: `12-reliability-patterns/`  
+> Source: https://layrs.me/course/hld/12-reliability-patterns
+
+### Section 1: Resiliency Patterns
+
+| # | Topic | File | Status |
+|---|---|---|---|
+| T01 | Resiliency Overview | `01_Resiliency Overview.md` | ⏳ |
+| T02 | Bulkhead Pattern | `02_Bulkhead Pattern.md` | ⏳ |
+| T03 | Circuit Breaker Pattern | `03_Circuit Breaker Pattern.md` | ⏳ |
+| T04 | Compensating Transaction | `04_Compensating Transaction.md` | ⏳ |
+| T05 | Health Endpoint Monitoring | `05_Health Endpoint Monitoring.md` | ⏳ |
+| T06 | Retry Pattern | `06_Retry Pattern.md` | ⏳ |
+| T07 | Scheduler Agent Supervisor | `07_Scheduler Agent Supervisor.md` | ⏳ |
+
+### Section 2: High Availability Patterns
+
+| # | Topic | File | Status |
+|---|---|---|---|
+| T08 | High Availability Overview | `08_High Availability Overview.md` | ⏳ |
+| T09 | Deployment Stamps | `09_Deployment Stamps.md` | ⏳ |
+| T10 | Geodes Pattern | `10_Geodes Pattern.md` | ⏳ |
+| T11 | Bulkhead for High Availability | `11_Bulkhead for High Availability.md` | ⏳ |
+| T12 | Circuit Breaker for High Availability | `12_Circuit Breaker for High Availability.md` | ⏳ |
+| T13 | Health Endpoint Monitoring for HA | `13_Health Endpoint Monitoring for HA.md` | ⏳ |
+
+### Section 3: Availability Patterns
+
+| # | Topic | File | Status |
+|---|---|---|---|
+| T14 | Availability Overview | `14_Availability Overview.md` | ⏳ |
+| T15 | Deployment Stamps for Availability | `15_Deployment Stamps for Availability.md` | ⏳ |
+| T16 | Geodes Pattern for Availability | `16_Geodes Pattern for Availability.md` | ⏳ |
+| T17 | Health Endpoint Monitoring for Availability | `17_Health Endpoint Monitoring for Availability.md` | ⏳ |
+| T18 | Queue-Based Load Leveling for Availability | `18_Queue-Based Load Leveling for Availability.md` | ⏳ |
+| T19 | Throttling Pattern | `19_Throttling Pattern.md` | ⏳ |
+
+### Section 4: Security Patterns
+
+| # | Topic | File | Status |
+|---|---|---|---|
+| T20 | Security Patterns Overview | `20_Security Patterns Overview.md` | ⏳ |
+| T21 | Federated Identity | `21_Federated Identity.md` | ⏳ |
+| T22 | Gatekeeper Pattern | `22_Gatekeeper Pattern.md` | ⏳ |
+| T23 | Valet Key Security | `23_Valet Key Security.md` | ⏳ |
+
+### Section 5: Additional Topics
+
+| # | Topic | File | Status |
+|---|---|---|---|
+| T24 | Distributed Locking | `24_Distributed Locking.md` | ⏳ |
+| T25 | Distributed Consensus | `25_Distributed Consensus.md` | ⏳ |
+| T26 | Distributed Transactions | `26_Distributed Transactions.md` | ⏳ |
+| T27 | Gossip Protocol | `27_Gossip Protocol.md` | ⏳ |
+| T28 | Heartbeat Mechanism | `28_Heartbeat Mechanism.md` | ⏳ |
+| T29 | Hinted Handoff | `29_Hinted Handoff.md` | ⏳ |
+| T30 | Leader Election (Resiliency) | `30_Leader Election (Resiliency).md` | ⏳ |
+| T31 | Queue-Based Load Leveling (Resiliency) | `31_Queue-Based Load Leveling (Resiliency).md` | ⏳ |
+| T32 | Split-Brain and Fencing | `32_Split-Brain and Fencing.md` | ⏳ |
+| — | **Module Summary** | `_SUMMARY.md` | ⏳ |
 
 ---
 
