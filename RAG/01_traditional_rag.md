@@ -34,6 +34,32 @@
 
 ---
 
+## Key Terms Defined
+
+> Every term used in this file — no Googling needed.
+
+| Term | What it is | Why it matters here |
+|---|---|---|
+| **ANN** (Approximate Nearest Neighbour) | Finds the closest vectors without exhaustively comparing every vector in the index. Uses data structures like HNSW trees/graphs to skip most comparisons. Trade-off: tiny accuracy drop vs massive speed gain. | Without ANN, querying 2M vectors would take seconds; with HNSW-based ANN it takes <10ms |
+| **HNSW** (Hierarchical Navigable Small World) | A layered graph structure where each node connects to nearby vectors. Search enters at the top sparse layer, greedily navigates toward the query, then refines in lower dense layers. O(log n) complexity. | The default ANN algorithm in Pinecone, OpenSearch, Azure AI Search, and pgvector |
+| **Pinecone** | Fully managed cloud vector database — handles indexing, scaling, metadata filtering, and ANN search as a SaaS service. No infrastructure to manage. | Used as the production vector store in the implementation example |
+| **ChromaDB** | Open-source in-memory/local vector database. Ideal for development and testing — zero infra setup. Not recommended for production scale. | Used in dev/local environments to prototype the RAG pipeline |
+| **pgvector** | A PostgreSQL extension that adds a `vector` column type plus `ivfflat` and `hnsw` index types. Runs on existing Postgres infrastructure (RDS, Aurora). | Allows RAG with no new DB — add vector search to existing relational database |
+| **Titan Embeddings** | Amazon Bedrock's embedding model (`amazon.titan-embed-text-v2`) — produces 1024-dim vectors. Stays within AWS network; no external API calls. | AWS-native embedding option for production RAG on Bedrock |
+| **text-embedding-3-large** | OpenAI's highest-quality embedding model. Produces vectors up to 3072 dimensions (vs 1536 for `ada-002`). Higher dims = more nuanced semantic representation but larger storage. | The embedding model used in the JS implementation |
+| **RRF** (Reciprocal Rank Fusion) | Algorithm for merging two ranked lists: `score(d) = 1/(k + rank_bm25(d)) + 1/(k + rank_vector(d))`. Documents appearing high in both lists score highest. k=60 is a common constant. | Used to combine BM25 keyword results + vector results in hybrid retrieval |
+| **p99 latency** | The 99th percentile latency — 99% of all requests complete within this time. 1% of requests (the slowest "tail") take longer. p50 = median; p99 shows your worst-case user experience. | The STAR result cites <80ms p99 — ensures even the slowest 1% of queries are fast |
+| **cold start** | The delay on the first request to a serverless function (Lambda) or container that must initialise its runtime, load dependencies, and connect to services before it can serve. Subsequent requests reuse the warm instance. | Listed as a failure mode — embedding the model in the critical path worsens cold starts |
+| **LlamaParse** | Document parser from LlamaIndex. Handles complex PDFs with tables, figures, and nested layouts — extracts structured Markdown rather than raw noisy text. | Used at ingestion time to convert PDFs into clean text for chunking |
+| **PyMuPDF** | Python binding for the MuPDF rendering library. Fast, accurate PDF text extraction — handles multi-column layouts better than basic PDF readers. | Lightweight alternative to LlamaParse for standard PDFs |
+| **Unstructured.io** | Python library (`unstructured` package) that parses PDFs, HTML, DOCX, PPTX, and images into clean text elements. Handles many formats with a single API. | Normalises heterogeneous document sources before chunking |
+| **temperature=0** | LLM sampling parameter controlling randomness. 0 = greedy/deterministic — always picks the highest-probability next token. Higher values (0.7–1.0) introduce creativity/variation. | Set to 0 in RAG to get consistent, factual answers rather than creative paraphrases |
+| **context window** | The maximum number of tokens an LLM can process in a single forward pass (input + output combined). GPT-4o: 128K tokens; Claude 3.5 Sonnet: 200K tokens. | Limits how many retrieved chunks you can inject — determines max k and chunk size |
+| **L2 distance** (Euclidean) | Straight-line distance between two vectors: `sqrt(Σ(a_i - b_i)²)`. Sensitive to vector magnitude — a longer document's vector will naturally have larger values. | Cosine similarity is preferred for text because it ignores magnitude; L2 is vector-length-sensitive |
+| **RecursiveCharacterTextSplitter** | LangChain chunking utility that tries to split on `\n\n` first (paragraphs), then `\n` (lines), then `. ` (sentences), then spaces — always respecting a max `chunkSize`. | Produces semantically coherent chunks that respect natural text boundaries |
+
+---
+
 ## Similarity Math
 
 $$\text{cosine}(A, B) = \frac{A \cdot B}{\|A\| \cdot \|B\|}$$

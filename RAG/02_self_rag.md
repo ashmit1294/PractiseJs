@@ -21,6 +21,28 @@ Traditional RAG always opens the textbook before answering, even for questions y
 
 ---
 
+## Key Terms Defined
+
+> Every term used in this file — no Googling needed.
+
+| Term | What it is | Why it matters here |
+|---|---|---|
+| **Parametric knowledge** | Facts encoded directly into the LLM's weights during training (e.g., "Paris is the capital of France"). The model "remembers" these without any retrieval. Opposite of retrieved/non-parametric knowledge. | Problem 1 — Traditional RAG wastes cost retrieving docs for questions the LLM already knows from parametric knowledge |
+| **ASQA benchmark** | Ambiguous Seek Question Answering — an academic benchmark for open-domain Q&A. Tests whether a system correctly handles questions with multiple valid answers or ambiguous phrasing. Higher ASQA score = better recall + precision on ambiguous queries. | Cited in the STAR result — 11-point improvement measured on ASQA proves Self-RAG quality gain |
+| **Fine-tuning** | Process of continuing the training of a pre-trained LLM on a smaller, task-specific dataset to teach it new behaviour (e.g., emitting reflection tokens). Updates the model's weights. Expensive but permanent — behaviour is baked in. | The original Self-RAG paper requires fine-tuning a Llama/Mistral model on the Self-RAG training corpus to emit `[Retrieve]`, `[IsRel]` etc. |
+| **Beam search** (segment-level) | An algorithm that tracks the top-B candidate sequences at each step (the "beam"). Instead of token-by-token here, Self-RAG applies it at the **segment level** — generates multiple passage+answer pairs, scores each with `[IsRel] × [IsSup] × [IsUse]`, and keeps the best. | How Self-RAG selects the best retrieved passage when multiple candidates are retrieved |
+| **Speculative decoding** | A latency optimisation where a small fast "draft" model generates multiple tokens speculatively, then a larger "verifier" model checks them in a single forward pass. Accepted tokens are kept; rejected ones are discarded and regenerated. Net effect: 2–4× throughput increase. | Listed as a scaling challenge for Self-RAG — the fine-tuned model's sequential reflection checks limit parallelism that speculative decoding would otherwise provide |
+| **bitsandbytes** | Python library (`pip install bitsandbytes`) for 8-bit and 4-bit quantisation of LLM weights at load time. Halves (8-bit) or quarters (4-bit) GPU memory usage with minimal accuracy loss on most tasks. | Used to fit a Self-RAG Llama-3-8B model on a smaller GPU, reducing hosting cost on SageMaker |
+| **GPTQ** | Post-Training Quantisation method for LLMs — compresses model weights to 4-bit by solving a layer-wise reconstruction problem offline. Produces `*.safetensors` files that load at 4-bit precision. Better quality than naive 4-bit rounding. | Alternative to bitsandbytes for deploying a 4-bit Self-RAG model on SageMaker endpoints |
+| **FAISS** | Facebook AI Similarity Search — open-source in-memory vector similarity search library by Meta. Supports dozens of index types (Flat, IVF, HNSW, PQ). The fastest option for local/dev RAG with no server needed. | Listed in the Tools table as the dev/in-memory vector store option for the Self-RAG LangGraph implementation |
+| **LangGraph** | Extension of LangChain for building **stateful multi-step LLM workflows** as directed graphs (nodes + edges + conditional routing). Each node is a function; the shared `State` dict flows through nodes. Supports loops, conditionals, and parallel fan-out. | The orchestration framework used to implement the 7-node Self-RAG graph — each reflection token becomes a dedicated node |
+| **`with_structured_output()`** | LangChain method that wraps an LLM call to guarantee JSON output matching a given Pydantic schema. Internally uses tool-calling or JSON mode. Eliminates brittle string parsing of LLM responses. | Used in every grader node (IsRelevant, SupportScore, etc.) to get machine-readable scores back from the LLM |
+| **Pydantic** | Python data validation library. Define a class with typed fields; Pydantic validates that incoming data matches. Used with `with_structured_output()` so the LLM's JSON response is parsed directly into a type-safe Python object. | The schema layer for all Self-RAG grader nodes — e.g., `SupportScore` has a `support: str` field that must be one of three allowed values |
+| **SageMaker JumpStart** | AWS service providing pre-built foundation model deployments — one-click fine-tuning + deployment of Llama, Mistral, Falcon, etc. Handles GPU provisioning, model packaging, and endpoint creation automatically. | AWS path for hosting a fine-tuned Self-RAG model — replaces manual container/endpoint setup |
+| **RecursiveCharacterTextSplitter** | LangChain chunking utility — splits on `\n\n` → `\n` → `. ` → ` ` in order, stopping when the chunk fits within `chunk_size`. Preserves natural text boundaries. | Used in Node 2 (Retrieve) to chunk source documents before embedding and storing in the vector store |
+
+---
+
 ## The 3 Problems Self-RAG Was Built to Fix
 
 ### Problem 1 — Indiscriminate Retrieval

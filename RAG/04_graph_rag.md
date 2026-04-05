@@ -21,6 +21,37 @@ Traditional RAG is like reading individual sticky notes — each note has some i
 
 ---
 
+## Key Terms Defined
+
+> Every term used in this file — no Googling needed.
+
+| Term | What it is | Why it matters here |
+|---|---|---|
+| **Knowledge graph** | A graph database where **nodes are real-world entities** (people, companies, laws, places) and **edges are typed relationships** between them (ACQUIRED, TESTIFIED_IN, REGULATED_BY). Unlike relational tables, edges are first-class citizens — querying relationships is as fast as querying rows. | The core data structure of Graph RAG — replaces the flat vector index with a graph of entity connections |
+| **Neo4j** | The most popular property graph database (open-source + commercial). Stores nodes and relationships with properties. Uses **Cypher** as its query language. Supports ACID transactions, native graph storage, and index-based lookups. | The graph DB used in the Python implementation for storing entities and relationships |
+| **Cypher** | Neo4j's declarative graph query language. Pattern-match syntax: `(n:Person)-[:KNOWS]->(m:Company)`. `MERGE` = upsert (create if not exists, match if exists). `MATCH` = read. | Used in the ingestion code to upsert entities and relationships into Neo4j |
+| **`MERGE` (Cypher)** | Neo4j's idempotent create operation — `MERGE (e:Entity {name: $name})` creates the node if it doesn't exist, or matches the existing one if it does. Prevents duplicate nodes when the same entity appears in multiple documents. | Critical for deduplication — without MERGE, "Apple Inc." appearing in 1000 documents would create 1000 separate nodes |
+| **Property graph** | A graph model where both nodes AND edges can carry arbitrary key-value properties (not just RDF subject-predicate-object triples). E.g., a relationship can have `{relation: "ACQUIRED", year: 2019, source_doc: "filing_2019.pdf"}`. | How entity metadata and relationship context are stored in Neo4j and Amazon Neptune |
+| **Entity extraction** | NLP process of identifying named entities (people, organisations, locations, dates, laws) from raw text. Graph RAG uses an LLM to extract entities AND their relationships in a single structured output call. | The first step of Graph RAG ingestion — every chunk is LLM-processed to extract entities |
+| **Entity resolution / deduplication** | Determining that two differently-named mentions refer to the same real-world entity — "Apple Inc.", "Apple Computer", "AAPL" → all the same node. Without this, the graph gets fragmented with duplicate nodes. | A major Graph RAG production challenge — requires fuzzy matching or embedding-based clustering before `MERGE` |
+| **Community detection** | Graph algorithm that identifies which nodes form densely connected clusters (communities) — groups of entities that are more connected to each other than to the rest of the graph. Output: each node gets a `community_id`. | Graph RAG uses community structure to pre-generate community summaries for global search (map-reduce) |
+| **Leiden algorithm** | Graph community detection algorithm that improves on the older Louvain algorithm. Key improvement: **guarantees well-connected communities** (Louvain can produce internally disconnected communities). Maximises modularity — the ratio of intra-community edges vs what you'd expect by random chance. | The algorithm used by Microsoft GraphRAG (and via `graspologic` / Spark GraphX) to cluster entities into communities |
+| **Louvain algorithm** | Earlier community detection algorithm built on modularity optimisation. Faster but can produce disconnected communities. Leiden is the recommended upgrade. | Mentioned as the predecessor — Leiden was invented to fix Louvain's disconnectedness bug |
+| **BFS** (Breadth-First Search) | Graph traversal that explores all neighbours at depth 1 before depth 2, then depth 3, etc. Finds the *shortest* path between nodes. Uses a queue. | Used in local search — starting from a seed entity, BFS traversal within `hops` depth collects all related entities |
+| **DFS** (Depth-First Search) | Graph traversal that follows one path as deep as possible before backtracking. Uses a stack. Finds paths but not necessarily shortest ones. | Alternative traversal strategy; BFS preferred for Graph RAG as it explores breadth before depth, capturing nearby relationships first |
+| **Gremlin** | Graph traversal query language for property graphs — used by Amazon Neptune and Azure Cosmos DB for Apache Gremlin. Functional/fluent syntax: `g.V().has('name','Apple').out('ACQUIRED').values('name')`. | The query language for Amazon Neptune and Azure Cosmos DB Gremlin — an alternative to Cypher for graph traversal |
+| **SPARQL** | Query language for RDF (Resource Description Framework) graphs — W3C standard. Used in academic knowledge graphs and some graph DBs. Syntax differs from Cypher and Gremlin. | Mentioned as a second Neptune query language option — RDF-based knowledge graphs use SPARQL |
+| **Amazon Neptune** | AWS managed graph database service. Supports both property graphs (Gremlin) and RDF graphs (SPARQL). ACID transactions, HA with read replicas. | The AWS graph DB option for Graph RAG — replaces Neo4j self-hosted |
+| **Azure Cosmos DB for Apache Gremlin** | Azure's managed graph database via Cosmos DB with Gremlin API. Same data model as Neptune's property graph but on Azure infrastructure. | The Azure graph DB option for Graph RAG — serverless, globally distributed |
+| **graspologic** | Python library for statistical graph analysis from Microsoft Research. Supports community detection (including Leiden), graph embeddings, and statistical inference on graphs. | Used locally/in Python for running Leiden community detection on the extracted knowledge graph |
+| **GraphX** | Apache Spark's built-in graph computation library — distributed graph algorithms (PageRank, connected components, label propagation). Runs on a Spark cluster. | Used on AWS EMR / Azure Databricks for community detection at scale (Leiden on a graph with millions of nodes) |
+| **GraphFrames** | A higher-level DataFrame-based graph library for Spark. More Pythonic API over GraphX. Supports graph algorithms including community detection. | Alternative to raw GraphX — easier to use from PySpark notebooks on Databricks |
+| **SpaCy** | Industrial-strength Python NLP library. Provides named entity recognition (NER), dependency parsing, and entity linking. Optional tool for a cheaper entity extraction step before passing to the LLM. | Mentioned as a pre-processing step in entity extraction and entity linking pipelines |
+| **Wikidata** | Collaborative open knowledge base from the Wikimedia Foundation. Contains structured facts about real-world entities with unique identifiers (e.g., Q312 = Apple Inc.). Used as an external entity dictionary for entity linking. | Cited in entity deduplication solutions — link ambiguous entity mentions to Wikidata IDs to canonicalise them |
+| **Map-Reduce (global search)** | A programming model that splits a large problem into independent sub-problems (Map) and then combines results (Reduce). Graph RAG's global search: Map = generate partial answer per community; Reduce = aggregate all partial answers into one. | How Graph RAG handles whole-corpus questions efficiently — queries 10 community summaries in parallel instead of traversing the entire graph |
+
+---
+
 ## Why Traditional RAG Fails for Relational Queries
 
 Traditional RAG retrieves by **text similarity**. It cannot answer:

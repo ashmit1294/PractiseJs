@@ -21,6 +21,27 @@ Traditional RAG hands the LLM whatever it found, even if it's bad. **CRAG** adds
 
 ---
 
+## Key Terms Defined
+
+> Every term used in this file — no Googling needed.
+
+| Term | What it is | Why it matters here |
+|---|---|---|
+| **Retrieval Evaluator** | A lightweight LLM judge (or fine-tuned classifier) that scores how well a retrieved document answers a specific question. Outputs a numeric score (0.0–1.0) — not just cosine similarity. Evaluates *factual usefulness*, not just *semantic closeness*. | The core innovation of CRAG — this quality gate prevents bad docs from reaching the LLM |
+| **Cross-encoder re-ranker** | A model that takes `query + document` **concatenated as a single input** and outputs one relevance score. Attends jointly over both — far more precise than a bi-encoder. Cannot pre-compute (must run per-query), so used on a small candidate set (top-k). | A computationally cheap alternative to a full LLM as the Retrieval Evaluator — `ms-marco-MiniLM` models are fast enough for production |
+| **ms-marco** | **M**icro**s**oft **MA**chine **R**eading **CO**mprehension — a large-scale dataset of real Bing search queries + passages. Models fine-tuned on ms-marco (e.g., `cross-encoder/ms-marco-MiniLM-L-6-v2`) are strong passage relevance scorers. | The model family recommended for the CRAG cross-encoder Retrieval Evaluator |
+| **T5** | **T**ext-**t**o-**T**ext **T**ransfer **T**ransformer — Google's encoder-decoder model. `T5-large` is commonly fine-tuned as a binary/ternary text classifier (e.g., relevant vs not-relevant) because it's small, fast, and cheap. | Option 1 for the CRAG Retrieval Evaluator — fine-tune T5-large on labelled (query, doc, label) pairs as the cheapest scalable scorer |
+| **Tavily API** | Web search API specifically designed for LLM applications — returns clean text snippets (not raw HTML) already optimised for RAG context injection. Offers a `/search` endpoint with configurable `max_results` and domain filters. | The web search service used in CRAG's Incorrect path — replaces Google Search which returns HTML that requires parsing |
+| **ECS** | Amazon **E**lastic **C**ontainer **S**ervice — managed container orchestration service. Runs Docker containers without managing EC2 instances directly. Supports Fargate (serverless containers) and EC2 launch types. | The CRAG LangGraph orchestration graph runs on ECS (containerised Python service) in the AWS architecture |
+| **SQS DLQ** | Amazon **S**imple **Q**ueue **S**ervice **D**ead-**L**etter **Q**ueue — when a message fails processing N times (configurable), AWS automatically moves it to this separate "dead-letter" queue. Prevents poison-pill messages from blocking the main queue. Engineers inspect the DLQ to debug failures. | Used on the Incorrect (web search) path to handle Tavily API rate-limit failures — failed web search requests retry 3 times then land in DLQ for manual review |
+| **`asyncio.gather()`** | Python coroutine that runs multiple `async` functions **concurrently** (not in parallel threads — single-threaded event loop, but I/O operations overlap). All coroutines start immediately; `gather()` returns when all complete. | Used to parallelise Knowledge Refinement strip scoring — instead of scoring strips sequentially, all strip evaluations fire simultaneously, reducing latency from O(n) to O(1) |
+| **LangGraph `Send` API** | LangGraph mechanism for **fanning out** to multiple nodes simultaneously — sends a different state payload to each target node. Enables true parallel branching within a single graph execution step. | The AMBIGUOUS path in CRAG should fan out to both `knowledge_refinement` AND `web_search` simultaneously; `Send` API enables this without two sequential calls |
+| **Knowledge Refinement** | CRAG's strip-scoring process — decomposes a retrieved document into sentence-level "strips", evaluates each strip's relevance to the query independently, keeps only relevant strips, and recomposes them into clean context. Removes boilerplate/noise. | Applied on the CORRECT and AMBIGUOUS paths — reduces context noise before generation, improving answer quality |
+| **Pydantic** | Python data validation library — define typed schemas as classes; Pydantic validates JSON against them. Used with `with_structured_output()` to force LLM responses into typed Python objects. | `RetrievalGrade` and `StripRelevance` are Pydantic models — ensures LLM grader outputs a parseable `score: float`, not free text |
+| **`with_structured_output()`** | LangChain method that wraps an LLM call to enforce JSON output matching a Pydantic schema. Uses OpenAI's JSON mode or tool-calling internally — eliminates fragile string parsing. | Used by both the Retrieval Evaluator node and the strip grader node to get machine-readable scores |
+
+---
+
 ## The Problem CRAG Solves
 
 Traditional RAG has a critical blind spot: **it has no mechanism to evaluate the quality of what it retrieved**. If the vector DB returns a document that is semantically similar but factually wrong for the query, RAG will use it regardless. CRAG inserts a **Retrieval Evaluator** between the retrieval step and the generation step that classifies retrieval quality and routes accordingly.
