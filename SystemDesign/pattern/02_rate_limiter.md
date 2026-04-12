@@ -192,3 +192,59 @@ flowchart TD
 | Per API Key | apiKey | Third-party billing tiers |
 | Per Endpoint | userId + path | Protect expensive operations like search |
 | Global Service | service name | Protect a single backend from overload |
+
+---
+
+## How All Components Work Together (The Full Story)
+
+Picture a nightclub with a single bouncer at the door.
+
+**Every request that arrives:**
+1. The **Load Balancer** directs the request to one of many **Gateway Middleware** nodes — these are lightweight, stateless checkpoints.
+2. The middleware extracts the identity of the caller (userId, IP, or API key) and decides which **algorithm** to apply — Token Bucket, Sliding Window, or Fixed Counter. The algorithm choice is configuration; the middleware doesn't hard-code it.
+3. The middleware runs a **Lua script on Redis**. This script reads the current counter or token bucket for that identity key, checks if the limit is exceeded, and either approves or rejects — all in one atomic Redis operation. No other Redis command can sneak in between the read and the write.
+4. If approved: the request is forwarded to the **backend service**, which never even sees the rate-limiting machinery.
+5. If rejected: the middleware immediately returns a **429 response** with a `Retry-After` header telling the client when to try again. The backend is shielded.
+
+**How the components support each other:**
+- **Redis** is the shared brain. Without it, each gateway node would count independently and a user could multiply their quota by the number of nodes.
+- **Lua script atomicity** prevents the race condition where two simultaneous requests both read "quota remaining = 1" and both get approved.
+- The **Load Balancer** ensures that even if one gateway node crashes, traffic flows to healthy nodes where Redis still has the accurate counters.
+- **Circuit Breaker** watches Redis health. If Redis is unreachable, it switches each node to an emergency local counter — limits become per-node but the service stays alive.
+
+> **ELI5 Summary:** Redis is the score keeper. The Lua script is the rule enforcer that checks the score and updates it at the same time. The gateway is the bouncer. The load balancer is the manager who assigns which bouncer handles each guest. The circuit breaker is the fire alarm that switches to a backup plan when the scoreboard breaks.
+
+---
+
+## Key Trade-offs
+
+| Decision | Option A | Option B | Why We Pick B (or A) |
+|---|---|---|---|
+| **Token Bucket vs Sliding Window** | Token Bucket — allows short bursts above average rate | Sliding Window — strictly fair, no boundary exploitation | **Token Bucket** for APIs where legitimate clients occasionally burst (mobile retry after offline). **Sliding Window** for strict billing tiers where every extra request costs the customer. |
+| **Centralized Redis counter vs local counter** | Centralized Redis — accurate global count | Local per-node counter — faster, no network hop | **Centralized** for correctness. Local only as a fallback. A user with 10 gateway nodes could get 10× their quota if counters are local. |
+| **Fail-open vs fail-closed on Redis outage** | Fail-open — allow all traffic when Redis is down | Fail-closed — block all traffic when Redis is down | **Fail-open** is usually right: a brief Redis outage causing degraded rate limiting is better than blocking all users. But for security-critical endpoints (login, payment) use fail-closed. |
+| **Per-IP vs per-user limiting** | Limit by IP address — simple, no auth needed | Limit by authenticated userId | **Both together**: IP limiting blocks bots early (before auth), userId limiting enforces business rules fairly. IP alone fails because one IP can NAT many users. |
+| **Hard limit vs soft limit with warning** | Hard 429 when limit exceeded | Warning headers when approaching limit, hard 429 at limit | **Warning headers** (`X-RateLimit-Remaining`) let good-faith clients back off gracefully. Hard limit alone surprises clients and causes aggressive retries. |
+| **Global rate limit vs per-endpoint** | Single limit for all API calls | Different limits per endpoint | **Per-endpoint** is realistic: `POST /search` is expensive, `GET /profile` is cheap. Applying the same limit to both either wastes protective capacity or blocks cheap calls unnecessarily. |
+
+---
+
+## Important Cross Questions
+
+**Q1. Two requests from the same user arrive at the gateway at exactly the same millisecond. Both check the counter, both see "1 token left", both proceed. How do you prevent this race condition?**
+> The Redis Lua script makes check-and-decrement atomic. Redis is single-threaded in its command execution. Even if two gateway nodes call the script simultaneously, Redis executes one Lua script to completion before starting the next. The second script sees the counter already decremented and returns "denied".
+
+**Q2. What is the difference between rate limiting at the API Gateway vs inside each microservice?**
+> Gateway-level: one place to configure, enforced before any service code runs, protects all services uniformly. Service-level: each service can apply fine-grained domain-specific limits (e.g. only 2 concurrent video encodes per account). Best practice: **both**. Gateway handles global abuse prevention; services handle resource-specific limits.
+
+**Q3. A user has 10 machines behind one NAT IP. Your IP-based rate limit blocks all 10 machines when one misbehaves. How do you fix this?**
+> Add **user-agent fingerprinting** or require authenticated tokens for limits. For public unauthenticated endpoints: increase the per-IP limit and add per-user-agent subdivisions. For corporate clients (all behind one IP) offer API keys so each key gets its own quota.
+
+**Q4. How would you implement a "burst of 100 requests in the first second, then only 10 per second thereafter" rule?**
+> Token Bucket with capacity = 100 and refill rate = 10 tokens per second. On a fresh bucket you have 100 tokens — burn them all instantly. The bucket then refills at 10 per second — so you get exactly 10 RPS after the burst. Fixed or sliding windows cannot naturally express this burst concept.
+
+**Q5. How do you rate-limit a streaming WebSocket connection where messages are continuous?**
+> Rate limit the number of **messages per second** per connection rather than HTTP requests. Use a per-connection in-memory token bucket on the WebSocket server (no Redis hop needed since each server owns its connections). If a connection exceeds the message rate, the server either drops excess messages or sends a CLOSE frame.
+
+**Q6. A DDoS attack sends 10 million requests per second from 1 million different IPs. Does your rate limiter help?**
+> Standard per-IP or per-user rate limiting barely touches this — each fake IP only sends 10 RPS which might be under the limit. Fix: **global rate limiting at the CDN layer** (Cloudflare, AWS WAF) which can detect and block volumetric attacks based on traffic patterns, not just per-identity counters. Your application-level rate limiter handles abuse by real users; the CDN handles volumetric DDoS.

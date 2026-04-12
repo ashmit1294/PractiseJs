@@ -203,3 +203,65 @@ flowchart TD
 | Thundering herd TTL jitter | 0 to 300 seconds random |
 | Redis Sentinel failover time | 10-30 seconds |
 | Redis Cluster failover time | Under 1 second |
+
+---
+
+## How All Components Work Together (The Full Story)
+
+Think of a distributed cache as a two-floor city hall with an ultra-fast reception desk on the ground floor — and a massive but slower filing room upstairs.
+
+**Normal read path (the layered cache):**
+1. An application service (User Service, Product Service, Feed Service) first checks its **local in-process L1 cache** (Caffeine or an LRU map built into the process). This is sub-millisecond — just a hash map lookup in the same process memory. No network.
+2. On an L1 miss, the service asks **Redis (L2 cache)** — a shared memory store across all service instances. This is 1ms over a local network.
+3. On an L2 miss, the service goes to the **database (PostgreSQL/MongoDB)** — the authoritative source, typically 5-20ms.
+4. After fetching from DB, the service writes back to Redis with a TTL, so the next request for the same key hits Redis instead.
+
+**Write path (keeping cache consistent):**
+- Service updates the **database** first (source of truth).
+- Then immediately **deletes the Redis key** (not updates it, deletes it). Why delete and not update? Updating risks a race condition (two writers updating different cached values). Deletion forces the next read to fetch fresh from DB and re-populate the cache correctly.
+
+**Thundering Herd protection:**
+- Adding `random(0, 300)` seconds to every TTL means entries expire at different times, preventing the scenario where 10,000 entries all expire at 14:00:00 and simultaneously cause 10,000 DB queries.
+
+**How the components support each other:**
+- L1 (local) cache absorbs the fastest, cheapest repetitions — same service instance asking for the same user profile twice within 30 seconds.
+- L2 (Redis) absorbs cross-service sharing — User Service node A and node B both want `user:123`. Redis answers both with one DB hit.
+- **Redis Sentinel** is the watchdog: if the primary Redis node dies, Sentinel promotes a replica and updates all service connections within 10-30 seconds — invisible to users.
+- **Redis Cluster** is the horizontal scaling layer: split 16,384 hash slots across N nodes. Each node only stores a fraction of the total keyspace, so you scale storage and throughput linearly.
+
+> **ELI5 Summary:** L1 cache is your desk drawer — fastest to reach. L2 Redis is the office supply cabinet — shared with coworkers, still fast. Database is the warehouse across town — accurate but slow. Redis Sentinel is the office manager who replaces the supply cabinet if it breaks. Redis Cluster is having multiple supply cabinets in different rooms so no single cabinet gets overwhelmed.
+
+---
+
+## Key Trade-offs
+
+| Decision | Option A | Option B | Why We Pick B (or A) |
+|---|---|---|---|
+| **Cache-Aside vs Write-Through** | Cache-Aside: app manages reads and writes manually | Write-Through: every DB write also updates the cache | **Cache-Aside** is the most common: lazy population, simple logic. Write-Through is useful when stale data is never acceptable (user balance). Write-Through doubles write latency — every save waits for both DB and cache. |
+| **Delete on write vs update on write** | Update cache with new value on every DB write | Delete cache entry on every DB write | **Delete on write**: avoids race conditions. Two concurrent writers could write different values to cache. Delete forces a clean re-read from DB on next access. Slight latency cost on next read — acceptable. |
+| **TTL-based expiry vs explicit invalidation** | Set a TTL, let items expire automatically | Explicitly delete cache keys on every write | **Both**: TTL is a safety net that catches cache entries whose keys were accidentally not invalidated. Explicit DEL is the preferred fast-path for correctness. Never rely on TTL alone for critical data. |
+| **Redis Sentinel vs Redis Cluster** | Sentinel: one primary + replicas, automatic failover | Cluster: sharded keyspace, built-in failover, no single primary | **Sentinel** for simple high availability with a small dataset. **Cluster** when data exceeds a single node's RAM or you need sub-second failover. Cluster is more complex to operate. |
+| **LRU vs LFU eviction policy** | LRU: evict the least recently used key | LFU: evict the least frequently used key | **LFU** (Redis 4.0+) for most caches: a key accessed 1000 times a day is more valuable than one accessed once an hour ago. LRU would evict the high-traffic key if it hasn't been accessed in the last minute. LFU keeps genuinely popular items. |
+| **Small Redis with high DB fallback vs large Redis** | Small Redis (20% of data), frequent DB fallbacks | Large Redis (80% of data), rare DB fallbacks | **20% rule** is a good starting point (80/20 rule). Doubling Redis size from 20% to 40% of data typically yields only 5% more cache hit rate. Measure your workload's actual access distribution before over-provisioning. |
+
+---
+
+## Important Cross Questions
+
+**Q1. Your cache hit rate drops from 95% to 60% overnight without any deployment. What do you investigate?**
+> In order: (1) Check if Redis memory is full — eviction may be deleting hot entries (`redis-cli info memory`, `redis-cli info stats` for `evicted_keys`). (2) Check if a new access pattern has emerged — a marketing email sent 10M users to a product page that was never cached. (3) Check TTL values — someone may have incorrectly shortened TTLs. (4) Check Redis cluster rebalancing — a shard migration might temporarily redirect some keys to nodes that don't have them cached.
+
+**Q2. Two processes simultaneously write to the DB and then try to set the cache. Can this cause a stale cache?**
+> Yes — classic write race: Process A reads user profile, Process B writes an update and DELETEs the cache key, Process A (with the old value) writes to cache. Now the cache has the old value. **Fix**: don't update (SET) cache on write. Only DELETE. The next read will fetch fresh from DB and populate correctly. Alternatively, use cache versioning: include a version number in the key (`user:123:v2`). On read, only accept the version matching the current schema version.
+
+**Q3. What is a "hot key" problem in Redis Cluster and how do you solve it?**
+> A hot key is one that accounts for a disproportionate fraction of all Redis traffic. In Cluster mode, one key belongs to one slot on one node. If `user:celebrity` is fetched 1 million times per second, all 1M requests go to one Redis node → CPU 100%, everything else on that node slows down. **Fix**: Key replication. Store `user:celebrity:replica-0` through `user:celebrity:replica-9` on 10 different nodes. Client randomly reads from one replica. Write updates all replicas. Or: use a local L1 cache for hot keys to absorb 90% of reads before they hit Redis.
+
+**Q4. What happens if you use Write-Behind caching and Redis crashes before the delayed DB write?**
+> Data loss — the value in Redis was updated, the DB write was queued but never executed. The queue lives in Redis's memory. When Redis crashes, the queue is gone. DB still has the old value. On Redis restart, reads hit DB (stale value) and re-populate the cache. **Prevention**: only use Write-Behind for truly non-critical data (view counters, search history). Use Write-Through or Cache-Aside for anything important. If using Write-Behind, persist Redis with AOF (Append-Only File) to disk so the queue survives a restart.
+
+**Q5. How do you handle a cache warming race at startup? Multiple new service instances all start at once, all miss cache, all hammer the DB.**
+> Three strategies: (1) **Pre-warm**: a startup task fetches the top-N objects from DB and loads them into Redis before any service instance starts taking traffic. (2) **Request coalescing**: only one "cache filler" goroutine/thread runs per missing key — others wait for it. Implemented with a mutex per key. (3) **Gradual traffic ramp**: load balancer sends 5% of traffic to new instances for 60 seconds before sending full traffic. By then, cache is populated by real requests.
+
+**Q6. How do you implement "cache the absence" — caching that a user/product does NOT exist to prevent repeated DB lookups?**
+> Store a sentinel value: `SET user:99999 NULL EX 300` (cache "this key doesn't exist" with a 5-minute TTL). When the application reads this key and gets the sentinel, it knows immediately not to go to the DB — without going to the DB to confirm absence again. This is especially important for user profile lookups where a malicious actor sends requests for millions of non-existent user IDs (cache busting attack). A Bloom Filter is even more memory-efficient for this at extreme scale.

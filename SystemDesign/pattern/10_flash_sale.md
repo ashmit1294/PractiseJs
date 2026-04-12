@@ -227,3 +227,61 @@ flowchart TD
 | Payment gateway timeout | 30 seconds |
 | Stock recovery time after Redis crash | Under 60 seconds |
 | MySQL write throughput | ~5,000 writes/second |
+
+---
+
+## How All Components Work Together (The Full Story)
+
+Think of a flash sale system as a limited-edition concert venue. There are only 1000 seats. Millions of fans try to get in at once. The venue has a virtual queue outside, a turnstile that counts entries atomically, a 10-minute checkout timer per seat, and a refund process if you don't pay in time.
+
+**Before the sale starts:**
+- The **CDN** serves the static product page (description, images, price) to millions of users. No backend load from page browsing.
+- The Redis inventory counter is pre-seeded: `SET flash_item_1001 1000` — exactly 1000 units available.
+
+**When the sale opens (the chaotic first seconds):**
+1. Millions of users hit the **Waiting Room Service** simultaneously. This is one of the most critical pieces — it absorbs the vertical spike. Each user gets a queue position from a **Redis Sorted Set** (scored by arrival timestamp). The system admits a fixed N users per second (e.g. 200/s) based on backend capacity.
+2. Admitted users receive a short-lived **admission token** (expires in 60 seconds). Without this token, the Sale API rejects requests.
+3. The **Sale API** validates the token, then runs the **Redis Lua script**: "if `flash_item_1001 > 0`, decrement by 1 and return the new count; otherwise return -1". This entire check-and-decrement is atomic — no two users can both see "1 unit left" and both claim it.
+4. On success, a **Reservation** is created in Redis with a 10-minute TTL and durably written to **MySQL**.
+5. The user is directed to the checkout page. They have 10 minutes to complete payment via **Stripe/Payment Service**.
+6. On successful payment, the **Order Service** writes the final order to MySQL, decrements the **authoritative MySQL inventory**, and publishes `order.created` to **Kafka** for downstream processing (email receipts, shipping).
+
+**The Expiry safety net:**
+- If a user abandons checkout, their Redis reservation TTL expires after 10 minutes. The **Expiry Worker** detects the expired reservation and runs `INCR flash_item_1001` — restoring 1 unit to the Redis counter, making it available for the next buyer.
+
+> **ELI5 Summary:** Waiting Room is the queue outside the venue. Redis Lua script is the turnstile that counts heads atomically — one person at a time. Reservation is the ticket stub with a time limit. MySQL is the official seat registry. Expiry Worker is the usher who reclaims unpaid seats and resells them.
+
+---
+
+## Key Trade-offs
+
+| Decision | Option A | Option B | Why We Pick B (or A) |
+|---|---|---|---|
+| **Redis as primary inventory vs MySQL** | Use MySQL with row-level locking for inventory | Use Redis for live inventory counter, MySQL for durability | **Redis**: MySQL row locking at 100K concurrent requests causes massive contention and dead-locks. Redis DECR is atomic and handles 100K+ ops/sec on a single key with sub-millisecond latency. |
+| **Waiting room vs no waiting room** | Let all users hit Sale API directly | Virtual waiting room admits users in batches | **Waiting room**: at 1 million simultaneous users, the Sale API would receive more concurrent requests than Redis can handle for queue management. Waiting room decouples the chaotic arrival spike from the business logic. |
+| **Reservation hold vs immediate purchase** | Reserve AND charge in the same step — no hold | Two-step: reserve now (hold the unit), charge in next step | **Two-step reservation**: payment takes 2-10 seconds (bank network). Holding the Redis counter blocked during payment would time-out other buyers. Reserve first (instant), then payment in parallel. |
+| **Hard item limit vs oversell buffer** | Sell exactly N items, no exceptions | Allow up to 5% oversell, cancel excess orders, apologize and refund | **Exact limit**: oversell leads to fulfillment failures and customer service nightmares. Redis Lua atomic DECR guarantees no oversell at the cost of a small number of users seeing "sold out" due to reservations that may later expire. |
+| **Single Redis inventory key vs sharded slots** | One key per item across all servers | Shard item into N sub-keys, aggregate counts | **Single key** for moderate scale (up to ~100K RPS). **Sharded slots** for extreme scale (millions of RPS): item 1001 split into `1001-0` through `1001-9`, each with 100 units. User hashed to a slot. Tradeoff: selling exactly 1000 units requires aggregating across all shards. |
+| **Kafka for order processing vs synchronous DB writes** | Write order, inventory, email all synchronously in one transaction | Write order to Kafka, downstream services consume asynchronously | **Kafka**: synchronous writes across 3 services in a flash sale = 3 sequential operations under load. Kafka lets each service write at its own pace. Order creation returns instantly; downstream processing runs in background. |
+
+---
+
+## Important Cross Questions
+
+**Q1. Two users click "Buy" at the exact same millisecond. There is only 1 unit left. How does your system ensure only one of them gets it?**
+> The Redis Lua script runs atomically inside Redis's single-threaded command executor. Even if both requests arrive simultaneously at two different Sale API nodes, Redis processes one Lua script to completion before starting the other. The first script sees `count = 1`, decrements to 0, returns success. The second script sees `count = 0`, returns "sold out". No oversell is possible.
+
+**Q2. A user has a reservation but their internet drops during payment. The 10-minute timer is ticking. What happens?**
+> The reservation exists in Redis and MySQL with `expiresAt`. The user can re-open the app (or browser page) and continue checkout — the reservation is still valid for the remaining time. The same `reservationId` is shown on the checkout page. If payment succeeds before expiry: order confirmed. If they reconnect at minute 9.5, the payment gateway may report a timeout — user retries with the same idempotency key. If the 10 minutes fully expire, the Expiry Worker frees the unit and the user must re-enter the queue.
+
+**Q3. How do you prevent bots from flooding the waiting room and taking all spots ahead of real users?**
+> (1) **CAPTCHA challenge** at waiting room entry — bots fail, humans pass. (2) **Account age check** — newly created accounts get lower queue priority or are blocked from flash sales for X hours after creation. (3) **Purchase history limit** — each account can only claim 1 unit per flash sale. (4) **IP rate limiting** at the CDN/WAF layer — IP sending more than one waiting room request per second is throttled. (5) **Device fingerprinting** — detect multiple accounts using the same device/browser signature.
+
+**Q4. The Redis inventory counter shows 50 units remaining but MySQL authoritative stock shows 45 units. How did this discrepancy happen and how do you fix it?**
+> Gap scenarios: (a) 5 users reserved but payment failed AND the Expiry Worker ran twice (bug) restoring too many units. (b) Redis crashed and was re-seeded incorrectly. Reconciliation: the Expiry Worker or a nightly job cross-checks Redis counter against `(original_stock - confirmed_orders)` from MySQL. If there's a discrepancy, Redis is re-seeded from MySQL truth. The sale pauses briefly during re-seeding to prevent a window where both Redis and MySQL are being written to simultaneously.
+
+**Q5. How do you implement a "waitlist" — users who missed the sale can be notified when a reservation expires?**
+> After the sale sells out (Redis counter = 0), new users can join a **Waitlist Sorted Set** in Redis, scored by join timestamp. Every time the Expiry Worker frees a unit (INCR the counter), it simultaneously pops the top of the Waitlist and sends that user a notification with a special high-priority admission token valid for 5 minutes. This token bypasses the normal waiting room and goes directly to the Sale API. If the waitlisted user doesn't complete checkout in 5 minutes, the next person on the waitlist is notified.
+
+**Q6. Why use a Lua script instead of a Redis transaction (MULTI/EXEC) for the inventory check?**
+> Redis `MULTI/EXEC` is a transaction, but it doesn't support conditional logic inside the transaction block. You can't say "DECR only if value > 0" inside a `MULTI/EXEC` — you'd have to WATCH the key, check it in your app, then EXEC. Between the check and EXEC, another client could decrement, but WATCH catches this and the EXEC fails — requiring a retry loop in your application. **Lua script** is simpler: the entire conditional logic runs atomically inside Redis without any client-side retry. One network round trip, no race conditions, no retry needed.

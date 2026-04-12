@@ -225,3 +225,68 @@ flowchart TD
 | Presigned URL expiry (download) | 1 hour (configurable) |
 | CDN cache-hit ratio target | 95%+ |
 | Erasure coding storage overhead | 1.5x (vs 3x for replication) |
+
+---
+
+## How All Components Work Together (The Full Story)
+
+Think of a file storage system as a global warehouse that never loses a package, where every package is split into pieces across multiple secure vaults, and a smart delivery network brings it to your nearest location faster than you'd believe.
+
+**The upload flow (client → permanent storage):**
+1. The user's app requests an upload from the **File API**. The API does one small but critical thing: it creates a file row in **PostgreSQL** (`status=PENDING`) and generates **Presigned URLs** for each chunk — temporary signed tickets allowing the client to upload directly to S3.
+2. The client splits the file into 4 MB chunks and uploads all chunks **in parallel** directly to **S3 Temporary Path** — bypassing your app servers entirely. The API server barely breathes during a 500 MB upload.
+3. When all chunks are uploaded, the client calls `POST /files/F100/complete`. The **Upload Processor Worker** verifies checksums, computes the SHA-256 hash of the whole file, checks **Deduplication Service** (is this file already stored by someone else?), and performs a server-side copy from the temp path to the permanent path inside S3.
+4. The **Metadata DB** row is updated to `status=READY` and the file is now accessible.
+
+**The download flow (client → CDN → S3):**
+1. The user requests a download. The File API verifies permissions and generates a **Presigned CDN URL** (signed, expiring) pointing to the CloudFront CDN.
+2. The CloudFront CDN edge checks its cache. If the file was recently downloaded by another user in the same region, it's already there — served instantly from edge cache.
+3. On a CDN miss, CloudFront fetches from S3 (origin), streams to the user, and caches the file at the edge for future requests.
+
+**How the components support each other:**
+- Presigned URLs route large data transfers around your app servers — they handle only metadata, never bytes. This is the single most important architectural decision in the system.
+- S3's multi-AZ replication provides durability without any application-level orchestration.
+- CDN ensures global users don't have to travel to your primary AWS region for every download.
+- Deduplication (SHA-256 hash comparison) can save enormous storage costs in consumer apps where many users upload the same documents/photos.
+
+> **ELI5 Summary:** File API is the front desk clerk who hands you a shipping label and locker key. S3 is the massive secure warehouse with copies in three buildings. CDN is the local pickup store near your home. Presigned URL is the locker key that expires after an hour. Deduplication is the clerk noticing you're shipping a box identical to someone else's — they put a second label on the existing box instead of storing a second copy.
+
+---
+
+## Key Trade-offs
+
+| Decision | Option A | Option B | Why We Pick B (or A) |
+|---|---|---|---|
+| **Direct S3 upload vs through app server** | Route all uploads through your API server (simpler auth, one URL) | Generate presigned URLs, client uploads directly to S3 | **Direct S3**: routing 500 MB through your app server wastes compute, network interfaces, and slows other users. At 100 concurrent large uploads you need a massive app server fleet. Presigned URL adds one tiny API call and then vanishes from your infrastructure. |
+| **Replication (3 copies) vs erasure coding** | 3 full copies in 3 AZs — simple, fast reads | Erasure coding (4+2 shards) — 1.5× storage, slightly slower reconstruction | **Erasure coding** for cost-sensitive cold storage at scale (save 50% storage vs 3-copy). **Replication** for hot data requiring millisecond reads — reconstruction latency is incompatible with fast access patterns. |
+| **Single large file vs chunked upload** | Upload file as one HTTP request | Split into 4 MB chunks, upload separately | **Chunked** for any file over ~20 MB: resumable on failure (only re-upload missing chunks), parallelizable (faster total time), progress tracking, checksum verification per chunk. Single-part for tiny files where overhead outweighs benefits. |
+| **Content hash for deduplication vs no dedup** | Store every uploaded copy individually | Detect identical files (same SHA-256) and reference the same data | **Dedup** for consumer apps: users sharing the same PDF, company logo, or profile photo. Can save 30-50% of storage. Tradeoff: deletion becomes complex — must reference-count and only physically delete the bytes when no reference remains. |
+| **Flat S3 bucket vs prefix-structured paths** | `bucket/fileId` flat namespace | `bucket/userId/year/month/fileId` structured paths | **Structured paths**: better cost allocation (per-user spend via S3 analytics), easier ACL policies, simpler lifecycle rules (archive user A's files after 1 year). S3 performance is equal for both since S3 is internally key-value regardless. |
+| **Sync delete vs soft delete** | Physically remove bytes from S3 immediately on delete | Mark as deleted in metadata DB, physically delete after 30-day grace period | **Soft delete**: users often accidentally delete files. Grace period with restore capability is a significant UX feature. Physical deletion via lifecycle rule or Garbage Collector runs after grace period. Add legal hold: some files cannot be deleted before a compliance retention period. |
+
+---
+
+## Important Cross Questions
+
+**Q1. A user uploads a 10 GB video. The upload fails at chunk 87 of 100. How does resume work?**
+> The client calls `GET /files/F100/chunks` and receives the list of successfully uploaded chunk ETags (S3 returns these for multipart uploads via `ListParts` API). The client compares with its local progress tracking and identifies chunks 88-100 as missing. It re-uploads only those 13 chunks. The assembly step only runs after all 100 chunks are confirmed. Total re-upload: 13 × 4 MB = 52 MB instead of 10 GB. This is the primary reason multipart uploads exist.
+
+**Q2. Two users independently upload the exact same 500 MB file. How does deduplication work and what are the edge cases?**
+> The Upload Processor computes SHA-256 of the assembled file and checks the `file_hashes` table in PostgreSQL. If an identical hash exists, the new file record's `storage_key` points to the existing S3 object. The new record has a different `fileId`, `ownerId`, and `permissions` — two users see "their" files independently. Edge case: if User A deletes their file, the bytes should NOT be deleted because User B still references them. Solution: reference counting (`ref_count` column incremented on new reference, decremented on delete, bytes only deleted when `ref_count = 0`).
+
+**Q3. How do you ensure a file cannot be downloaded after a user's subscription expires?**
+> Presigned URLs expire (1-hour TTL). After subscription expiry, the File API stops generating new presigned URLs for that user's files — permission check fails before URL generation. URLs already generated before expiry continue to work for their remaining lifetime (fine: 1 hour max). For immediate revocation, use CDN-level URL signing with a private key stored in your system. Revoking access means changing the signing key (which invalidates all outstanding URLs) or implementing a CDN token validator that checks subscription status at request time.
+
+**Q4. How would you implement "file versioning" like Dropbox or Google Drive?**
+> Instead of overwriting the S3 object on update, write a new S3 object with a version suffix and add a version row to the `file_versions` table: `(fileId, versionId, storageKey, createdAt, size, changedBy)`. The "current version" is the row with the highest `versionId`. Restore = update `current_version_id` in the files table. Delete = mark the version as deleted (soft delete). S3 also has native Object Versioning as a feature — but managing versions at the application layer gives you finer control (meaningful version names, merge tracking, comment on changes).
+
+**Q5. How would you implement folder sharing between multiple users with fine-grained permissions?**
+> Store permissions in a `file_permissions` table: `(fileId, granteeId, permission: read|write|admin, expiresAt)`. When checking access, query this table (or a Redis cache of it for hot paths). For folders: permissions propagate recursively to all children. Implement an ACL (Access Control List) service that the File API calls before every operation. Shared links (public URLs) are separate: generate a `share_token` that maps to `(fileId, permission, expiresAt)` stored in PostgreSQL. The CDN/File API validates the token on each request.
+
+**Q6. Your storage system holds 10 PB of data. Storage cost is too high. How do you reduce it without losing files?**
+> Tiered storage lifecycle:
+> - **Hot tier (S3 Standard)**: files accessed in last 30 days. Fast, expensive.
+> - **Warm tier (S3 Infrequent Access)**: files not accessed in 30-90 days. 40% cheaper, 1ms retrieval.
+> - **Cold tier (S3 Glacier)**: files not accessed in 90+ days. 80% cheaper, 5-12 hour retrieval.
+> - **Erasure coding**: for cold files, replace 3-copy replication with 4+2 erasure coding. 1.5× storage vs 3×.
+> S3 Lifecycle Rules automate the transition based on last-access timestamps. Client must handle a "This file is archived; restoration takes up to 12 hours" message for cold files. This typically reduces storage cost of a large dataset by 60-70%.

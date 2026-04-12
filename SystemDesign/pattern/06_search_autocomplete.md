@@ -181,3 +181,66 @@ flowchart TD
 | Client debounce | 200ms |
 | Autocomplete latency target | Under 10ms (P99) |
 | Top-K stored per Trie node | 3 to 10 |
+
+---
+
+## How All Components Work Together (The Full Story)
+
+Think of search autocomplete as a librarian who has already memorised the top 10 books for every possible starting word — AND has a live ticker on their desk watching what's trending right now.
+
+**When you type "ca":**
+1. Your browser waits 200ms after your last keystroke (**debounce**) before sending a request — this prevents one request per keystroke for fast typists, reducing API calls by ~70%.
+2. The request first goes to the **CDN Edge**. "ca" is an extremely common prefix (camera, cake, car...). There is almost certainly a cached result from the last 60 seconds. If yes: returned in under 5ms, no servers involved.
+3. On a CDN miss, the **Autocomplete Service** is called. It simultaneously queries two sources:
+   - The **In-Memory Trie**: walks the letter tree (ROOT → C → CA) and reads the pre-stored top-10 list from that node. No searching — just a pointer dereference.
+   - **Redis Sorted Set**: queries for keys with score in the "ca" range, returning trending terms from the last 60 seconds that might not yet be in the Trie.
+4. The results are merged (Trie gives historical popularity, Redis gives recency) and returned to the CDN which caches them for 60 seconds.
+
+**The background data pipeline (keeps the Trie fresh):**
+1. Every search query you submit (not just autocomplete, but the actual search) is published to **Kafka** as an event.
+2. **Apache Spark** runs a batch aggregation job every 15 minutes: "how many times was each search term searched in the last 7 days?"
+3. The **Trie Builder** uses Spark's output to rebuild the in-memory Trie, storing the top-10 completions at each prefix node, and saves a snapshot to **S3**.
+4. **Autocomplete Service nodes** reload the Trie snapshot from S3 every 15 minutes — brand new nodes download it on startup before serving any requests.
+
+**How the components support each other:**
+- CDN absorbs ~85% of autocomplete traffic, making the backend essentially irrelevant for common prefixes.
+- The dual Trie + Redis approach covers both historical accuracy and real-time trends without either source being perfect alone.
+- Kafka and Spark work in the background — zero impact on the latency-critical read path.
+- S3 Trie snapshots allow fast recovery of any Autocomplete Service node without rebuilding from scratch.
+
+> **ELI5 Summary:** The Trie is the librarian's pre-memorized answer book. Redis is the trending ticker on their desk. CDN is the photocopy of the answer book kept at every library branch in the city. Kafka is the suggestion box where every search is recorded. Spark is the person who reads all suggestions overnight and updates the answer book.
+
+---
+
+## Key Trade-offs
+
+| Decision | Option A | Option B | Why We Pick B (or A) |
+|---|---|---|---|
+| **Trie vs Redis Sorted Set as primary data structure** | Full Trie in memory — perfect prefix lookup | Redis Sorted Set with ZRANGEBYLEX — distributed, no in-process memory | **Trie** for sub-millisecond lookup and custom logic (top-K pre-caching per node). **Redis Sorted Set** as a near-real-time trending layer. Use both. Trie alone becomes stale; Redis alone lacks the historical depth. |
+| **15-minute Trie rebuild vs real-time update** | Rebuild entire Trie from scratch every 15 minutes | Patch individual Trie nodes as queries arrive in real-time | **Batch rebuild** is simpler and consistent — partially updated Tries can have inconsistent top-K. Trade-off: 15-minute lag for new trending terms. Mitigated by the Redis trending layer which is near-real-time. |
+| **Depth-limited Trie vs full depth** | Store prefixes up to any depth | Cap at depth 8 (users rarely type more than 8 chars before picking a suggestion) | **Depth-limited** drastically reduces memory. English vocabulary above 8 characters is millions of words. Capping at 8 drops 90% of the nodes while covering 99.9% of real user typing behavior. |
+| **Top-3 vs Top-10 per Trie node** | Store 3 completions per node — minimal memory | Store 10 completions per node — richer results | **Top-5 to 10** is industry standard. Top-3 is too sparse for long-tail prefixes that match many popular terms. Top-10 uses more memory but fits comfortably inside 1 GB for typical vocabularies. |
+| **Single global Trie vs per-language Tries** | One Trie for all languages mixed together | Separate Trie per language namespace | **Separate Tries** per language: mixing Japanese and English in one Trie is nonsensical (different character ranges, different character frequency distributions). Load the relevant Trie based on the `Accept-Language` header. |
+| **Client-side debounce vs server-side throttle** | Debounce in the browser — fewer requests sent | Server throttles requests per session — protects backend | **Both**: client debounce reduces load by 70%, server throttle is a safety net against clients that bypass debounce. |
+
+---
+
+## Important Cross Questions
+
+**Q1. How would you design the Trie to support personalised autocomplete (suggestions based on MY past searches, not global popularity)?**
+> Two-layer approach: global Trie serves population-level completions. A per-user personalised layer (stored in Redis as a small personal Sorted Set per user, e.g. "user:U1:searches") serves the user's own recent searches. At query time, merge and re-rank: personal results score higher for the first 3 slots, global results fill remaining slots.
+
+**Q2. Google shows different suggestions in different countries. How do you implement geo-based autocomplete?**
+> Separate Sorted Sets and Trie snapshots per locale (e.g. `us:en:trie`, `in:en:trie`, `de:de:trie`). Kafka events are tagged with the user's country. Spark aggregates separately per country × language. CDN routes to the region-specific autocomplete service. API Gateway selects the correct data namespace from the request's geo headers.
+
+**Q3. How do you prevent offensive or spam queries from appearing as autocomplete suggestions?**
+> Maintain a blocklist of prohibited terms (file or Redis Set). The Trie builder filters out blocked terms during rebuild — they never enter the Trie. For real-time spam: the Kafka consumer applies the blocklist before incrementing the Redis Sorted Set score. Blocking is deterministic and auditable. New additions to the blocklist take effect within the next Trie rebuild cycle (max 15 minutes).
+
+**Q4. The Trie is 2 GB in memory. A new Autocomplete Service node starts. How do you get the Trie onto it without affecting latency?**
+> The service node downloads the serialised Trie snapshot from S3 during startup (before the node is registered with the load balancer). Health check endpoint returns 503 until the Trie is fully loaded. Load balancer only directs traffic to healthy (Trie-loaded) nodes. The download takes ~30-60 seconds for a 2 GB file. Users never receive requests served by an empty Trie.
+
+**Q5. How do you test that the Trie rebuild is correct and not degraded?**
+> Shadow testing: run both the old Trie and the new Trie in parallel for 5 minutes after rebuild. Compare a random sample of 1000 prefix queries between old and new. If more than 2% of top suggestions differ in a way that looks wrong (e.g. known popular term disappears from the top-3), roll back to the previous S3 snapshot and alert the engineer. Automate this as part of the Trie builder's deployment pipeline.
+
+**Q6. A user types very quickly and sends three requests before the debounce fires. How do you handle out-of-order responses?**
+> The browser's debounce ensures only one request fires — but if the user types "ca", pauses (request fires), then types "r" quickly (second request), two requests are in flight. Each request returns independently. The client tracks a `requestId` or uses **cancellation**: when a new request fires, cancel (abort) any pending previous request using `AbortController`. The latest typed prefix always wins. Responses for cancelled requests are discarded.

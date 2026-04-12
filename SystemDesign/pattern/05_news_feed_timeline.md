@@ -213,3 +213,64 @@ flowchart TD
 | Feed load P99 latency | Under 100ms |
 | Cassandra partition key | userId + weekly bucket |
 | Follow graph storage | Redis Set per user |
+
+---
+
+## How All Components Work Together (The Full Story)
+
+Think of a news feed as a personalised newspaper that is assembled just for you. The question is: does the printing happen when the writer publishes, or when you ask for your paper?
+
+**When an author posts (the write path):**
+1. The **Post Service** saves the new post to **PostgreSQL** and immediately returns "post is live" to the author — the fan-out happens in the background, not blocking the author.
+2. **Kafka** receives a `post.created` event. The **Fan-out Coordinator** reads the author's follower count from **Redis** (a fast Set of follower IDs).
+3. If the author has fewer than 10,000 followers (normal user), **Fan-out Workers** add the `postId` to each follower's **Redis Sorted Set** (their personal pre-built feed), scored by the post's timestamp. Workers also write durable copies to **Cassandra** for persistence.
+4. If the author is a celebrity (10,000+ followers), the fan-out workers skip most followers and only update a small set of "power readers". The celebrity's post is fetched at read time and merged in.
+
+**When a user opens their feed (the read path):**
+1. **Feed Service** reads the user's **Redis Sorted Set** — a pre-built, sorted list of up to 1000 post IDs. This lookup is under 1ms.
+2. Feed Service bulk-fetches post objects from **Post Cache (Redis)** using MGET (one round trip for all IDs).
+3. Any post objects not in cache are fetched from **PostgreSQL** and stored in Post Cache for future readers.
+4. For following feed: if the user follows any celebrities, their feeds are merged in at read time (pull path). The merged result is sorted by timestamp before returning.
+
+**How the components support each other:**
+- Redis Sorted Set is the pre-assembled newspaper — reading is instant because the assembly happened earlier.
+- Cassandra backs up Redis so a cache wipe doesn't lose anyone's feed history.
+- Kafka absorbs fan-out work asynchronously, so the author never waits for 500 Redis writes before seeing their post go live.
+- The celebrity threshold is the "valve" that prevents any single post from creating millions of simultaneous Redis writes.
+
+> **ELI5 Summary:** Post Service is the author's editor. Kafka is the newspaper printing press. Fan-out Workers are delivery trucks dropping copies at each subscriber's door (Redis). Cassandra is the warehouse. Feed Service is the newsstand you visit to get your copy. For celebrities, there is no pre-delivery — you pick up a blank sheet and a special insert is added for the celebrity section when you arrive at the newsstand.
+
+---
+
+## Key Trade-offs
+
+| Decision | Option A | Option B | Why We Pick B (or A) |
+|---|---|---|---|
+| **Fan-out on write vs fan-out on read** | Push to every follower immediately (write) | Pull from each followed author at read time | **Hybrid**: write fan-out for normal users (fast read), read fan-out for celebrities (avoids write storm). Neither extreme works at scale by itself. |
+| **Store post IDs in feed vs full post objects** | Store full post JSON in the feed Redis entry | Store only postId, fetch post details separately | **Post IDs only**: post details can change (edits, likes count updates). Storing the ID means you always fetch fresh details. Storing full objects means stale feed data after post edits. |
+| **Chronological vs ranked feed** | Show posts in creation order only | Show posts ranked by ML relevance score | **Chronological is technically simpler**: a Redis Sorted Set scored by timestamp does this naturally. **Ranked feed** requires an ML inference service that scores posts at read time or pre-computes scores. Instagram and Facebook switched from chronological to ranked — better engagement but higher complexity. |
+| **1000 feed entries per user vs unlimited** | Cap each user's Redis feed at 1000 entries | Unlimited entries (unbounded Sorted Set) | **Cap at 1000**: users rarely scroll beyond 200 posts. Storing unlimited entries wastes memory proportional to post frequency. If a user wants older posts, they load them from Cassandra. |
+| **Immediate fan-out vs batched fan-out** | Fan out to all followers within milliseconds | Batch fan-outs every few seconds | **Immediate** for most systems — users expect to see posts quickly. Batched reduces write amplification for high-frequency posters but introduces visible lag. |
+| **Follow graph in PostgreSQL vs Redis** | Store follow relationships in a relational DB | Cache follow lists in Redis Sets for each user | **Redis Sets** for the hot path: looking up 500 follower IDs on every post requires immediate access. DB is the durable backup; Redis is the operational copy. |
+
+---
+
+## Important Cross Questions
+
+**Q1. A user has 100 million followers (e.g., Cristiano Ronaldo on Instagram). They post. What happens?**
+> The fan-out coordinator detects 100M followers — this exceeds the celebrity threshold. It does NOT push to 100M Redis feeds. Instead, it: (1) writes the post to PostgreSQL (one write), (2) publishes `post.created` to Kafka (one event), (3) marks the post as a celebrity post. At read time, every user's Feed Service includes a merge step: fetch the last N posts from each followed celebrity's timeline and merge into the ranked feed. The 100M write storm never happens.
+
+**Q2. A user follows 5000 people and all 5000 post within the same minute. How do you handle the write and the read?**
+> Write: 5000 independent fan-out workers each add one postId to this user's Redis Sorted Set. Each is a fast `ZADD` operation. The Sorted Set automatically keeps them sorted by timestamp. Read: Feed Service does ZREVRANGE (newest first) on the Sorted Set — returns 20 IDs in one call. Bulk-fetches 20 post objects. Total read: ~2ms. The write storm (5000 ZADDs) is spread over the minute as each post is created — not all at once.
+
+**Q3. A user deletes a post. It was already fan-out to 10 million feeds. How do you remove it?**
+> You don't remove the postId from 10 million Redis Sorted Sets — that's 10M Redis writes. Instead: use a soft-delete flag on the post record in PostgreSQL. Set `deleted=true`. When Feed Service fetches post details, it skips posts with `deleted=true`. From the user's perspective the post disappears instantly (next feed load excludes it). The phantom postId in Redis Sorted Sets is harmless — it just returns null from the post cache and gets filtered out. Old postIds in Redis expire naturally as the Sorted Set is trimmed to 1000 entries.
+
+**Q4. How does cursor-based pagination work and why is it better than offset-based?**
+> Offset-based: `SELECT * FROM posts LIMIT 20 OFFSET 40` — fetches rows 41-60. Problem: if someone posts 3 new posts while you scroll, those rows shift the offset. Row 41 is now row 44. You see duplicates or miss rows. Cursor-based: "give me posts with timestamp < X" where X is the timestamp of the last post you saw. New posts at the top don't affect what's below your cursor. Your scroll position is stable.
+
+**Q5. How do you handle a user who posts 1000 times per day (a news account)?**
+> Fan-out on write for 1000 posts/day × 500 followers = 500,000 Redis write operations per day. Acceptable. But if the news account has 1 million followers: 1 billion writes per day — too expensive. Apply the celebrity threshold not just on follower count but also on post frequency: accounts above a certain posts-per-day rate automatically switch to the pull model, regardless of follower count.
+
+**Q6. How do you implement the "show only posts from last 48 hours" filter without fully rebuilding the feed?**
+> The Redis Sorted Set stores postIds scored by Unix timestamp. Feed Service can do `ZRANGEBYSCORE feed:userId (now-172800) +inf` — "give me IDs with score (timestamp) newer than 48 hours ago". No rebuild needed. The filter is applied at read time with a simple range query. Cassandra supports the same range query natively on its time-partitioned table.

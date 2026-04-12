@@ -239,3 +239,65 @@ flowchart TD
 | Matching service p99 latency | Under 500 ms |
 | Surge pricing recalculation interval | Every 30 seconds |
 | Trip state transitions | 7 states |
+
+---
+
+## How All Components Work Together (The Full Story)
+
+Think of a ride-sharing system as an air traffic control tower. Hundreds of planes (drivers) constantly broadcast their position. When a passenger needs a flight, the tower finds the nearest available plane, arranges the pickup, and continuously broadcasts the plane's position to the passenger until landing.
+
+**The continuous location heartbeat (always running):**
+- Every 4 seconds, every active driver's app sends its GPS coordinates via **PATCH /drivers/location** to the **Location Service**.
+- The Location Service stores this in a **Redis Geo Sorted Set** using `GEOADD`. Redis understands latitude/longitude natively — you can search by radius.
+- Simultaneously, the update is published to **Kafka** (`driver_location_update` topic), where the **WebSocket Service** and **Analytics Service** consume it.
+
+**When a rider requests a trip:**
+1. The **Matching Service** calls Redis `GEORADIUS` — "give me all driver IDs within 5 km of the rider's location, sorted by distance". Returns in under 5ms.
+2. The top 5-10 candidates are passed to the **Routing Service** (OSRM/Google Maps) for real road-based ETA calculation — straight-line distance misses one-way streets and traffic.
+3. The best driver is selected by a scoring formula: `score = (1/ETA) × driver_rating_weight`. A **Redis lock** is acquired on the chosen driver's ID (prevents two riders getting the same driver).
+4. **Trip Service** creates the trip record in **PostgreSQL** (state: REQUESTED), pushes a trip offer to the driver via **WebSocket**, and simultaneously starts showing the rider the estimated ETA.
+5. On driver acceptance: trip state → ACCEPTED. The **WebSocket Service** starts streaming live location updates (from Kafka) to the rider's app every 4 seconds.
+6. After trip completion: **Pricing Service** calculates fare (distance × rate × surge multiplier read from Redis). **Payment Service** charges the rider.
+
+**How the components support each other:**
+- Redis Geo is the real-time map — without it, matching would require a full DB scan.
+- Kafka decouples location updates from delivery: WebSocket Service subscribes only to updates for drivers actively matched with its connected riders, not all 100,000 drivers in the city.
+- Trip state machine in PostgreSQL ensures only valid transitions happen (can't go from REQUESTED to COMPLETED without going through ACCEPTED and IN_PROGRESS).
+- Surge pricing (Redis with 30s TTL) gives drivers an incentive to move to high-demand areas without requiring any DB transaction.
+
+> **ELI5 Summary:** Redis Geo is the GPS dot board in the control tower. GEORADIUS is the radar sweep. Routing Service is the flight computer calculating real travel times. WebSocket is the radio channel between the tower and the passenger. Kafka is the flight data recorder that also feeds the passenger's app with live plane position. Trip Service is the official logbook. Payment is the landing fee.
+
+---
+
+## Key Trade-offs
+
+| Decision | Option A | Option B | Why We Pick B (or A) |
+|---|---|---|---|
+| **Redis Geo for location vs PostGIS** | Store lat/lng in PostgreSQL with PostGIS spatial index | Store in Redis Sorted Set (Geo commands) | **Redis Geo** for the live matching hot path: sub-5ms GEORADIUS vs 10-50ms PostGIS query. PostGIS is better for complex geospatial analytics, historical trip routing analysis. Use both: Redis for live operations, PostGIS for analytics. |
+| **Push driver location to rider via Kafka vs direct WS** | WebSocket server fetches latest location from Redis every 4s and pushes | Driver location update goes Kafka → WS Server → rider | **Kafka-based push**: WS Server only subscribes to Kafka events for drivers assigned to its connected riders. Without Kafka, every WS server would need to poll Redis for every driver every 4 seconds — expensive at scale. |
+| **Two-stage matching (fast filter + precise routing) vs single stage** | Run real road routing for all 100 nearby drivers | First filter to top 10 by straight-line, then precise routing for those 10 | **Two-stage**: routing API calls cost money and latency. Calling OSRM for 100 drivers × millions of match requests daily = enormous cost. Straight-line pre-filter eliminates 90% of candidates cheaply. |
+| **Surge pricing: hard rules vs ML model** | Rules-based: demand/supply ratio above 1.5 = 1.5× price | ML model: predict surge based on weather, events, time of day | **ML model** (ideal): predicts surge 15 minutes ahead, giving drivers time to reposition. **Rules-based**: simpler, faster to implement, easier to explain to regulators. Start rules-based, evolve to ML. |
+| **Driver accepts/rejects offer vs automatic assignment** | Driver must manually accept each trip offer | Auto-assign driver, driver can cancel in first 60 seconds | **Manual accept**: driver autonomy is a legal requirement in most jurisdictions (drivers are independent contractors, not employees). Auto-assign would imply employment relationship. |
+| **GPS-only matching vs GPS + heading** | Match by current location only | Match by location AND direction of travel | **Location + heading** prevents matching a driver heading away from the rider at high speed, even if they're close. A driver 200m away going 80 km/h in the opposite direction has effectively negative real proximity. |
+
+---
+
+## Important Cross Questions
+
+**Q1. The entire city goes offline (power outage) and 10,000 drivers all reconnect at once. How does the system handle the reconnect storm?**
+> All 10,000 drivers send location updates simultaneously. Redis handles ~1M writes/second — 10,000 concurrent GEOADDs is trivial. No waiting room needed because the location update path is idempotent and fast. The harder problem: 5,000 active trips whose WebSocket connections dropped all try to reconnect. Each reconnect triggers a Kafka subscription reactivation. Spread reconnections via exponential backoff + jitter (random delay 0-10 seconds) in the SDK. Load balancers health-check WebSocket servers and route evenly.
+
+**Q2. A driver is assigned a trip but the driver's battery dies (app closes ungracefully). No cancellation event fires. What happens?**
+> The Trip Service has a **driver response timeout** (e.g. 30 seconds after offer sent). If no ACCEPT or REJECT arrives, the offer is withdrawn and the Matching Service re-runs the query for the next best driver. The trip goes back to REQUESTED state. Additionally, the driver's presence in the Location Service expires: if no GPS update arrives for 60 seconds, the driver is marked as offline and removed from the GEORADIUS pool. Running trip is escalated to a "trip in unknown state" alert for customer support.
+
+**Q3. How do you ensure that a driver can only accept one trip at a time — preventing two accepted trips simultaneously?**
+> Before sending the trip offer, the Matching Service acquires a **Redis lock** on `driver:D1:lock` with a 30-second TTL. Only one matching operation holds this lock at a time. If the driver accepts Trip A, the lock is held throughout acceptance processing. If a second rider's matching query finds the same driver, it tries to acquire the locked key → fails → moves to the next candidate driver. Lock is released when driver status becomes "on trip" in the system.
+
+**Q4. How does the Routing Service calculate an ETA that accounts for real-time traffic?**
+> Two options: (1) **OSRM** (open source, self-hosted): pre-built road graphs with historical speed data. Fast (under 50ms), static — doesn't incorporate live traffic. (2) **Google Maps Platform / HERE API**: expensive per-call, but uses live traffic data. Hybrid: use OSRM for high-frequency matching (thousands of queries/second), use Google Maps for the final confirmed ETA shown to the rider (low frequency, high precision). Refresh the rider's ETA every 60 seconds during the trip using Google traffic data.
+
+**Q5. How do you implement "trip history" and allow a rider to see exactly where their trip went with the route drawn on a map?**
+> During a trip, the Location Service stores driver GPS coordinates in a **Cassandra time series** (or the Kafka topic retains them). After trip completion, a **Trip Finalizer** job reads the GPS sequence from Cassandra, simplifies the polyline (remove redundant intermediate points using Douglas-Peucker algorithm), and stores the compressed route in the trips table. The rider's app fetches the route via `GET /trips/T99/route` which returns the polyline. Google Maps SDK renders it. This is exactly how Uber's post-trip map works.
+
+**Q6. How does the surge pricing algorithm decide the multiplier without manual intervention?**
+> Every 30 seconds, the Surge Calculation Job: (1) reads all active ride requests in a geohash cell in the last 5 minutes (from Kafka `trip.requested` events counted in Redis). (2) reads available driver count in the same geohash (from Redis Geo). (3) computes `ratio = requests / drivers`. (4) maps ratio to multiplier using a lookup curve (1.0× at ratio <1.2, 1.5× at ratio 1.2-2.0, 2.0× at ratio >2.0). (5) writes to Redis with 30s TTL. The entire process is automatic, runs continuously, and requires zero human input. A regulatory cap (e.g. max 3.0× in some jurisdictions) is enforced at write time.

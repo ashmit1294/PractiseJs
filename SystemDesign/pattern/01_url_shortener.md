@@ -181,3 +181,68 @@ flowchart TD
 | Cache hit rate target | 95%+ |
 | Storage per URL row | ~500 bytes |
 | 10 years of data at 100M URLs/year | ~500 GB |
+
+---
+
+## How All Components Work Together (The Full Story)
+
+Think of the URL shortener as a post office with two desks and a smart notice board.
+
+**When you create a short link:**
+1. You walk in and hand your long address to the **Write Service** (desk 1). It asks the **Snowflake ID Generator** for a unique ticket number — like a token machine at a deli counter that never gives the same number twice, even if two machines run side by side.
+2. The ticket number is converted to a short 7-character code by the **Base62 Encoder** — this is just math that turns a big number into a compact symbol.
+3. The **Write Service** writes `shortCode → longURL` into **PostgreSQL** (the filing cabinet of truth) and is done. The creation path does NOT touch Redis at all — there is no point caching something that has never been read yet.
+
+**When someone clicks a short link:**
+1. The request first hits the **CDN** — a network of local warehouses worldwide. If the short code was clicked recently anywhere near you, the CDN already knows the destination and answers in under 5ms without your request ever reaching the main servers.
+2. On a CDN miss, the **Load Balancer** directs the request to a **Redirect Service** node.
+3. The Redirect Service checks **Redis** first. Redis stores `shortCode → longURL` in RAM — lookup is under 1ms.
+4. On a Redis miss (the code is obscure or Redis just restarted), the Redirect Service reads **Cassandra** — a database designed for millions of fast reads per second.
+5. The long URL is returned, **Redis is populated for next time**, and the click is logged **asynchronously** to the **Analytics Service** → **Kafka** → **Flink** → **TimeSeries DB**. Asynchronous means the user gets the redirect immediately — the analytics logging does not slow them down.
+
+**How the components support each other:**
+- The CDN protects Redirect Service from load spikes.
+- Redis protects Cassandra from repeat reads.
+- Kafka decouples analytics so a slow analytics pipeline cannot freeze the redirect path.
+- Snowflake ensures Write Service nodes never produce duplicate codes even when running in parallel.
+- PostgreSQL is the gold copy; Cassandra handles the read scale for redirects.
+
+> **ELI5 Summary:** The CDN is the fast local shop. Redis is the shop's cash register memory. Cassandra is the stock room. PostgreSQL is the head office ledger. Kafka is the delivery van that carries click reports to the analytics team without blocking the shop.
+
+---
+
+## Key Trade-offs
+
+| Decision | Option A | Option B | Why We Pick B (or A) |
+|---|---|---|---|
+| **301 vs 302 redirect** | 301 Permanent — browser caches forever, zero server load after first visit | 302 Temporary — browser always asks your server, analytics always recorded | **Pick 302** if you need analytics. Pick 301 only if you want to save server load and do not care about tracking clicks. |
+| **Pre-computed vs on-the-fly ID** | Generate ID at request time using Snowflake (on-the-fly) | Pre-generate millions of IDs in a batch and hand them out from a pool | **On-the-fly Snowflake** is simpler and safe; pre-generated pools are faster but require complex state management. |
+| **Single DB vs dual (PG + Cassandra)** | Just use PostgreSQL for everything | Write to PostgreSQL, read at scale from Cassandra | **Dual** only makes sense at extreme read scale. For most systems PostgreSQL alone is fine. Cassandra adds operational complexity. |
+| **Expiring short codes vs permanent** | Codes never expire — simplest | Codes expire after N days — saves storage, cleans up spam links | **Expiry** is better for spam control and storage. Trade-off: legitimate users lose links they shared. Use long TTLs (1–2 years) + user notification. |
+| **Base62 vs MD5 hash** | Use a hash of the URL as the short code | Generate an independent ID (Snowflake + Base62) | **Independent ID** is better: hash-based codes are deterministic (same long URL = same short code) which seems good but causes problems — two users shortening the same URL share a code, losing per-user analytics. |
+| **Custom alias support** | Only auto-generated codes | Allow users to choose e.g. `sho.rt/my-brand` | **Custom aliases** increase value but create race conditions (two users want the same alias). Use database unique constraint + optimistic retry. |
+
+---
+
+## Important Cross Questions
+
+**Q1. How do you guarantee zero duplicate short codes across 100 Write Service nodes running in parallel?**
+> Each Snowflake node has a unique `worker_id` (a number 0–1023 assigned at startup). The Snowflake formula is `timestamp_bits | worker_id_bits | sequence_bits`. Even if two nodes generate at the exact same millisecond, their `worker_id` bits differ — so the output IDs differ. The Base62 codes derived from them are therefore always unique.
+
+**Q2. A user shortened a URL, shared it on social media, and it got 50 million clicks in an hour. How does your system handle it?**
+> The CDN edge caches the `shortCode → longURL` mapping with a TTL (say 60 seconds). Of 50M clicks, ~49.9M are served by CDN edge nodes globally with zero load on your servers. The remaining ~100K misses hit Redis, which can serve ~1M ops/sec. Redirect Service and Cassandra barely notice the traffic.
+
+**Q3. How do you handle a cache miss storm if Redis restarts and the cache is empty?**
+> Two protections: (1) A pre-warm script runs on Redis startup — it reads the top 10,000 most-clicked URLs from Cassandra and loads them into Redis before the service is re-registered with the load balancer. (2) Add jitter to TTLs so entries don't expire all at the same second, preventing a synchronized miss storm later.
+
+**Q4. Why not just use a hash of the long URL as the short code instead of Snowflake?**
+> Hash collisions: two different long URLs can hash to the same code if you truncate the hash. More importantly, hashing means two users shortening the same URL get the same code, which breaks per-user analytics. Snowflake gives every operation a unique ID regardless of the input URL.
+
+**Q5. What happens if the Snowflake generator clock drifts backwards (NTP time correction)?**
+> Snowflake IDs embed a timestamp. If the clock moves backward, the generator would potentially produce a duplicate ID. Fix: the Snowflake implementation checks the current time against the last recorded time. If current < last, it waits until `current == last` before generating. Alternatively, use a logical sequence counter that monotonically increments regardless of clock.
+
+**Q6. How would you add custom expiry per URL (some expire in 1 day, others in 1 year)?**
+> Add an `expiresAt` column to PostgreSQL. On every redirect, check `expiresAt`. For Redis TTL: set TTL to `min(requested_expiry, 24_hours)` so Redis evicts the entry appropriately. A background job (`DELETE FROM urls WHERE expiresAt < NOW()`) cleans PostgreSQL nightly. Cassandra handles this natively with per-row TTL.
+
+**Q7. How do you prevent someone from shortening malicious URLs (phishing, malware)?**
+> Integrate a URL reputation API (Google Safe Browsing API) at the Write Service. Before storing, check the long URL against the blocklist. Return a 403 if flagged. Periodically re-scan existing URLs (background job) as blocklists update. For enterprise: human-review queue for newly registered domains.
