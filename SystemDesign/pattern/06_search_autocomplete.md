@@ -244,3 +244,16 @@ Think of search autocomplete as a librarian who has already memorised the top 10
 
 **Q6. A user types very quickly and sends three requests before the debounce fires. How do you handle out-of-order responses?**
 > The browser's debounce ensures only one request fires — but if the user types "ca", pauses (request fires), then types "r" quickly (second request), two requests are in flight. Each request returns independently. The client tracks a `requestId` or uses **cancellation**: when a new request fires, cancel (abort) any pending previous request using `AbortController`. The latest typed prefix always wins. Responses for cancelled requests are discarded.
+
+---
+
+## Real-World Apps That Use This Pattern
+
+| Company | Product | How They Use It |
+|---|---|---|
+| **Google** | Google Search Autocomplete | The gold standard. Processes billions of daily keystrokes. Google's autocomplete combines a real-time Trie (for literal prefix matching), a personalised signal (based on your search history + location), trending searches (What's exploding in the last 1 hour), and a spam/SafeSearch filter. The debounce on google.com fires after ~100ms of inactivity. Suggestions are updated in near-real-time — a news event makes related terms appear in autocomplete within minutes via Kafka-fed stream processing. |
+| **Amazon** | Amazon Search Bar | Autocomplete combined with product category disambiguation. Typing "apple" could mean fruit or MacBook. Amazon's autocomplete Trie is enriched with product-count per suggestion ("apple (45,000 results)" vs "Apple MacBook (3,200 results)") and click-through rate per suggestion. The Trie is segmented by marketplace (amazon.com vs amazon.co.uk — different top suggestions per region/language). |
+| **YouTube** | YouTube Search | YouTube's autocomplete prioritizes search terms that users historically converted into video watches (not just searches). A suggestion that many users search but immediately go back on is deprioritized. Real-time trending (a breaking news event or viral video) causes new terms to appear in autocomplete within 10-15 minutes via streaming pipeline. |
+| **Elasticsearch** | Elasticsearch Suggest API | The open-source building block many companies use. Elasticsearch's `completion` suggester field type is essentially a managed Trie stored in the Lucene index. Used by Airbnb (location autocomplete), Medium (article search), Stack Overflow (tag autocomplete), and thousands of SaaS products. The FST (Finite State Transducer) in Lucene achieves Trie-equivalent performance at much lower memory footprint. |
+| **GitHub** | GitHub Search | GitHub's autocomplete for repository names, users, and file paths. File path autocomplete inside a repo (Ctrl+K in GitHub) uses client-side Trie built from the repo's file tree fetched on first open and cached locally in browser memory — making subsequent keystrokes instant with zero server round trip. |
+| **Uber / Google Maps** | Location Autocomplete | Address autocomplete is the most latency-sensitive autocomplete — users expect suggestions while physically typing an address. Google Places Autocomplete API handles this: the backend Trie is indexed by city+street and weighted by distance from the user's current GPS coordinates. Closer places rank higher for the same prefix. |

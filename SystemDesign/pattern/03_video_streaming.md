@@ -249,3 +249,16 @@ Think of a video streaming system as two separate pipelines that share a library
 
 **Q6. During the transcoding pipeline, a GPU worker crashes halfway through. Does any viewer see broken video?**
 > No. The video is not "live" until the manifest is finalized and the status is set to `READY` in Cassandra. The crashed worker's job remains uncommitted in Kafka. Another worker picks it up and re-transcodes from the start of incomplete segments. Transcoding is idempotent — processing the same segment twice produces the same output. Viewers only ever access the completed, verified video.
+
+---
+
+## Real-World Apps That Use This Pattern
+
+| Company | Product | How They Use It |
+|---|---|---|
+| **YouTube** | YouTube (1B+ daily active users) | Upload pipeline: video hits Google's ingest servers → transcoded into ~12 quality levels (144p to 4K HDR + 360°) using Google's custom Argos transcoding infrastructure → stored in Google's Colossus distributed filesystem → served by Google's global CDN. ABR player (YouTube's HTML5 player) adjusts quality every few seconds. 500 hours of video uploaded every minute — transcoding is massively parallelized across Google's data centers. |
+| **Netflix** | Netflix Streaming | The gold standard. Netflix encodes each title into 120+ bitrate-resolution combinations (their "per-title encoding" algorithmically determines the optimal bitrate for each scene's complexity — an action scene needs more bits than a dark static shot). Open Connect Appliances (Netflix's CDN hardware) are placed inside ISP data centers to serve content from the closest possible source. |
+| **Twitch** | Live Streaming | Live pipeline variant: streamer's OBS/game client → Twitch ingest server → real-time transcoding (2-3 quality tiers, not the 12 of VOD) → HLS manifest updated every 2 seconds → CDN → viewer. The 10-20 second live delay is mostly the HLS segment window. Twitch VODs use the same architecture as YouTube for replays. |
+| **Disney+** | Disney+ / Hotstar | Launched using AWS MediaConvert for transcoding and AWS CloudFront as CDN. During the India cricket World Cup 2023 final, Hotstar served 35 million concurrent streams — the highest ever recorded. Achieved by pre-scaling CDN capacity and using multi-CDN (primary + fallback CDN providers) to avoid single-CDN saturation. |
+| **Zoom** | Zoom Cloud Recordings | Zoom recordings use the same segmented video pattern: recording chunks stored to S3, transcoded on upload, manifest generated, playback via HLS in browser. Conference calls themselves use a different real-time WebRTC-based path — but playback of stored recordings is pure video streaming architecture. |
+| **Cloudflare** | Cloudflare Stream | SaaS video streaming built on top of the pattern described. Developers upload videos via API, Cloudflare handles all transcoding and CDN delivery, and developers embed a `<stream>` tag. Pricing is per-minute of stored video + per-minute of delivered video — showing how the storage + CDN cost model maps to a business.  |

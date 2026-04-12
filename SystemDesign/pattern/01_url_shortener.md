@@ -246,3 +246,16 @@ Think of the URL shortener as a post office with two desks and a smart notice bo
 
 **Q7. How do you prevent someone from shortening malicious URLs (phishing, malware)?**
 > Integrate a URL reputation API (Google Safe Browsing API) at the Write Service. Before storing, check the long URL against the blocklist. Return a 403 if flagged. Periodically re-scan existing URLs (background job) as blocklists update. For enterprise: human-review queue for newly registered domains.
+
+---
+
+## Real-World Apps That Use This Pattern
+
+| Company | Product | How They Use It |
+|---|---|---|
+| **Bit.ly** | bit.ly | The canonical URL shortener. Exact architecture: Base62 encoding, custom vanity slugs, click analytics per link, geographic click maps, QR code generation, link expiry. Enterprise tier adds branded domains (go.yourcompany.com). |
+| **Twitter / X** | t.co | Every URL tweeted — regardless of its original length — is automatically wrapped in a t.co short link. This serves two purposes: (1) enforces the character limit, (2) lets Twitter scan URLs for malicious content before the user visits. All 280-character tweets you write with a URL actually consume exactly 23 characters for any link via t.co. |
+| **TinyURL** | tinyurl.com | First popular URL shortener (2002). Uses a similar Base62-over-sequential-ID approach. Pioneered the concept of custom aliases (tinyurl.com/my-alias). No analytics by default — pure redirect-only, which made it popular for privacy-conscious users. |
+| **Google** | goo.gl (shutdown 2019) | Google's internal shortener, used heavily in Firebase links and Google ads tracking. Shutdown and replaced by Firebase Dynamic Links, which add platform-aware routing (same short link opens iOS app, Android app, or web depending on the device). |
+| **GitHub** | git.io (shutdown 2022) | GitHub operated a shortener specifically for github.com URLs. Demonstrated the common enterprise pattern: shortener limited to a single domain's URLs, preventing use as a general-purpose phishing tool. |
+| **Shopify / Klaviyo** | Email campaign links | Every link in a marketing email is wrapped in a tracking URL (via their email platform). Clicking the link hits the shortener/tracker, increments open/click metrics, then 302-redirects to the actual product page. This is the URL shortener pattern applied to email marketing analytics. |

@@ -248,3 +248,16 @@ Picture a nightclub with a single bouncer at the door.
 
 **Q6. A DDoS attack sends 10 million requests per second from 1 million different IPs. Does your rate limiter help?**
 > Standard per-IP or per-user rate limiting barely touches this — each fake IP only sends 10 RPS which might be under the limit. Fix: **global rate limiting at the CDN layer** (Cloudflare, AWS WAF) which can detect and block volumetric attacks based on traffic patterns, not just per-identity counters. Your application-level rate limiter handles abuse by real users; the CDN handles volumetric DDoS.
+
+---
+
+## Real-World Apps That Use This Pattern
+
+| Company | Product | How They Use It |
+|---|---|---|
+| **GitHub** | GitHub API (REST + GraphQL) | Unauthenticated requests: 60/hour per IP. Authenticated: 5,000/hour per token. GraphQL: 5,000 points/hour (queries cost more points than simple reads). Exceeding limits returns HTTP 429 with `X-RateLimit-Reset` header telling you when your quota refills. This is the Token Bucket pattern. |
+| **Stripe** | Stripe API | Rate limits per API key: ~100 read requests/second, ~100 write requests/second. Stripe uses a sliding window approach and returns `HTTP 429` with `Retry-After` header. Their dashboard shows you a real-time requests/second graph per API key — useful for detecting integration bugs. |
+| **Twitter / X** | Twitter API v2 | 15-minute windows with per-endpoint limits: 500 tweets/month for free tier, 15 reads/15 min per app token on Basic tier. Demonstrated the business model of rate limiting: tiered API access where paying customers get higher limits (Enterprise tier: effectively unlimited). |
+| **Twilio** | SMS / Voice API | Rate limits for SMS: 1 message per second per long-code number (US regulation-driven). Programmable Voice: 1 call per second per account by default. Business justification: telecom carriers enforce rate limits on Twilio; Twilio passes them downstream to prevent any one customer from spamming to the point of affecting all customers. |
+| **Cloudflare** | WAF / DDoS Protection | Operates at the CDN edge layer. Rate limiting rules fire before requests even reach your origin server. Cloudflare's `cf-ray` header and challenge pages (the browser spinning "Checking your browser") are rate-limiting mechanisms in action. Used by millions of sites to absorb volumetric attacks without origin server involvement. |
+| **AWS** | API Gateway | Per-stage and per-route throttling: default burst limit 5,000 RPS, steady-state 10,000 RPS. Usage Plans let you tie an API key to a specific throttle tier and monthly quota — exactly the metered-API-access pattern used by SaaS companies building APIs on top of AWS. |
